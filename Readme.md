@@ -1,6 +1,6 @@
 # Proyecto realizado en React + Node + JS + SQLite3
 
-Proyecto aulico realizado para registrar mediante un hash de encriptado un nuevo usuario
+Proyecto Final Integrador: Sistema de Gestión e-Commerce
 
 ## Datos del curso
 - Materia: Diseño Web Dinámico
@@ -22,10 +22,12 @@ Proyecto aulico realizado para registrar mediante un hash de encriptado un nuevo
 - Dotenv
 - SQLite3
 - Axios
+- Cors
 
 ## Arquitectura del sistema
 ```
-Proyecto final - Dinamico
+Proyecto final---Dinamico
+├─ Documents
 ├─ Server
 │ ├─ node_modules
 │ ├─ src
