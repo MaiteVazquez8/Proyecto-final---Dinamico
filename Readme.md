@@ -1,6 +1,6 @@
 # Proyecto realizado en React + Node + JS + SQLite3
 
-Proyecto aulico realizado para registrar mediante un hash de encriptado un nuevo usuario
+Proyecto aulico
 
 ## Datos del curso
 - Materia: Diseño Web Dinámico
