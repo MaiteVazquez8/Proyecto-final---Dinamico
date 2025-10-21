@@ -27,15 +27,47 @@ Proyecto Final Integrador: Sistema de Gestión e-Commerce
 ## Arquitectura del sistema
 ```
 Proyecto final---Dinamico
+├─ Client
+│ ├─ node_modules
+│ ├─ public
+│ │ └─ vite.svg
+│ ├─ src
+│ │ ├─ assets
+│ │ │ └─ react.svg
+│ │ ├─ Components
+│ │ │ ├─ Global
+│ │ │ │ ├─ Encabezado.jsx
+│ │ │ │ └─ Footer.jsx
+│ │ │ ├─ Layout.css
+│ │ │ ├─ Layout.jsx
+│ │ │ ├─ Login.css
+│ │ │ └─ Login.jsx
+│ │ ├─ Hooks
+│ │ ├─ Server
+│ │ ├─ App.jsx
+│ │ ├─ Global.css
+│ │ └─ main.jsx
+│ ├─ .gitignore
+│ ├─ eslint.config.js
+│ ├─ index.html
+│ ├─ package-lock.json
+│ ├─ package.json
+│ └─ vite.config.js
 ├─ Documents
 ├─ Server
 │ ├─ node_modules
 │ ├─ src
 │ │ ├─ Controller
+│ │ │ └─ Login.Controller.js
 │ │ ├─ DataBase
+│ │ │ ├─ db.js
+│ │ │ └─ Sistema.db
 │ │ ├─ Middlewares
 │ │ ├─ Routers
+│ │ │ └─ Login.Router.js
 │ │ └─ Utils
+│ │    └─ hash.js
+│ ├─ .env
 │ ├─ .gitignore
 │ ├─ app.js
 │ ├─ package-lock.json
