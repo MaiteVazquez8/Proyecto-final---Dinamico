@@ -1,8 +1,8 @@
 const encriptar=require('bcrypt')
 const salto=10
 
-const encriptarPassword=async()=>{
-    const Seguridad=await encriptar.genSalt(Salto)
+const encriptarPassword=async(Password)=>{
+    const Seguridad=await encriptar.genSalt(salto)
     return encriptar.hash(Password,Seguridad)
 }
 
