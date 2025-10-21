@@ -7,7 +7,7 @@ const encriptarPassword=async()=>{
 }
 
 const compararPassword=async(Password,Parametro)=>{
-    const Seguridad=await encriptar.compare(Password.Parametro)
+    return encriptar.compare(Password,Parametro)
 }
 
 module.exports={compararPassword, encriptarPassword}
