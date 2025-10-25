@@ -5,7 +5,7 @@ import "./Login.css"
 function Login() {
     const[user,Setuser]=useState('')
     const[password,Setpassword]=useState('')
-    const[Mensaje, SetMensaje]=useState('')
+    const[mensaje, SetMensaje]=useState('')
 
     const LoginSubmit=async(e)=>{
         e.preventDefault()
@@ -59,9 +59,9 @@ function Login() {
             Iniciar Sesión
           </button>
           
-          {Mensaje && (
-            <div className={`login-message ${Mensaje.includes('error') ? 'error' : 'success'}`}>
-              {Mensaje}
+          {mensaje && (
+            <div className={`login-message ${mensaje.includes('error') ? 'error' : 'success'}`}>
+              {mensaje}
             </div>
           )}
         </form>

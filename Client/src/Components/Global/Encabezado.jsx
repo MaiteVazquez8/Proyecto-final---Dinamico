@@ -11,7 +11,7 @@ function Encabezado({ onNavigate, currentPage }) {
   const [Password, setPassword] = useState('')
   const [Name, setName] = useState('')
 
-  const [Mensaje, Setmensaje] = useState()
+  const [mensaje, Setmensaje] = useState()
 
   const Registrosubmit = async (e) => {
     e.preventDefault()
@@ -22,8 +22,6 @@ function Encabezado({ onNavigate, currentPage }) {
         user,
         Password,
         Name
-
-
       })
       Setmensaje(Server.data.mensaje) || 'registrado'
       setName('')
@@ -91,7 +89,7 @@ function Encabezado({ onNavigate, currentPage }) {
 
         <input type="submit" value="registrar" />
       </form>
-      {Mensaje && <h1>{Mensaje}</h1>}
+      {mensaje && <h1>{mensaje}</h1>}
     </>
   )
 }
