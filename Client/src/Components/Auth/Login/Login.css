@@ -1,4 +1,4 @@
-/* Login Component Styles - Modern Electronics Store Theme */
+/* Login Component Styles - Simple Version */
 
 .login-container {
   width: 100%;
@@ -14,15 +14,10 @@
 .login-card {
   background: #EAEFEF;
   border-radius: 20px;
-  box-shadow: 
-    0 20px 40px rgba(51, 52, 70, 0.15),
-    0 8px 16px rgba(51, 52, 70, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(51, 52, 70, 0.15);
   padding: 40px;
   width: 100%;
   max-width: 400px;
-  position: relative;
-  overflow: hidden;
 }
 
 .login-card::before {
@@ -45,14 +40,12 @@
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
 }
 
 .login-subtitle {
   color: #6B6D94;
   font-size: 14px;
   margin: 0;
-  font-weight: 400;
 }
 
 .login-form {
@@ -71,7 +64,6 @@
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 8px;
-  letter-spacing: 0.3px;
 }
 
 .form-input {
@@ -91,12 +83,10 @@
   border-color: #7F8CAA;
   background: #EAEFEF;
   box-shadow: 0 0 0 3px rgba(127, 140, 170, 0.1);
-  transform: translateY(-1px);
 }
 
 .form-input::placeholder {
   color: #A0A2BA;
-  font-weight: 400;
 }
 
 .login-button {
@@ -110,21 +100,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-top: 10px;
-  position: relative;
-  overflow: hidden;
-}
-
-.login-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
 }
 
 .login-button:hover {
@@ -133,13 +109,21 @@
   box-shadow: 0 8px 25px rgba(51, 52, 70, 0.3);
 }
 
-.login-button:hover::before {
-  left: 100%;
-}
-
 .login-button:active {
   transform: translateY(0);
-  box-shadow: 0 4px 15px rgba(51, 52, 70, 0.2);
+}
+
+.login-button:disabled {
+  background: #A0A2BA;
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.7;
+}
+
+.login-button:disabled:hover {
+  background: #A0A2BA;
+  transform: none;
+  box-shadow: none;
 }
 
 .login-message {
@@ -158,38 +142,60 @@
 }
 
 .login-message.error {
-  background: rgba(127, 140, 170, 0.1);
+  background: rgba(231, 76, 60, 0.1);
+  color: #E74C3C;
+  border: 1px solid #E74C3C;
+}
+
+/* Auth Switch Styles */
+.auth-switch {
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #D6D6E1;
+}
+
+.auth-switch-text {
+  color: #6B6D94;
+  font-size: 14px;
+  margin: 0;
+}
+
+.auth-switch-link {
+  background: none;
+  border: none;
   color: #333446;
-  border: 1px solid #7F8CAA;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.auth-switch-link:hover {
+  color: #7F8CAA;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .login-container {
     padding: 20px;
-    min-height: calc(100vh - 80px);
-    align-items: center;
-    justify-content: center;
   }
   
   .login-card {
     padding: 25px 20px;
-    border-radius: 16px;
-    margin-top: 0;
   }
 }
 
 @media (max-width: 480px) {
   .login-container {
     padding: 15px;
-    min-height: calc(100vh - 80px);
-    align-items: center;
-    justify-content: center;
   }
   
   .login-card {
     padding: 20px 15px;
-    border-radius: 12px;
   }
   
   .login-title {
@@ -205,44 +211,4 @@
     padding: 12px 18px;
     font-size: 14px;
   }
-}
-
-/* Animation for form elements */
-.form-group {
-  animation: slideInUp 0.6s ease-out;
-}
-
-.form-group:nth-child(1) { animation-delay: 0.1s; }
-.form-group:nth-child(2) { animation-delay: 0.2s; }
-.form-group:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Focus states for accessibility */
-.form-input:focus,
-.login-button:focus {
-  outline: 2px solid #7F8CAA;
-  outline-offset: 2px;
-}
-
-/* Loading state for button */
-.login-button:disabled {
-  background: #A0A2BA;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.login-button:disabled:hover {
-  background: #A0A2BA;
-  transform: none;
-  box-shadow: none;
 }

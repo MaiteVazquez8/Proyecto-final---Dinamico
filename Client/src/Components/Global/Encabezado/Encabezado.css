@@ -1,0 +1,62 @@
+/* User Info Styles */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 1px solid rgba(214, 214, 225, 0.3);
+}
+
+.welcome-text {
+    color: #B8CFCE;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.logout-nav-btn {
+    background: linear-gradient(135deg, #7F8CAA 0%, #B8CFCE 100%);
+    border: none;
+    color: #333446;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-nav-btn:hover {
+    background: linear-gradient(135deg, #6B7A9A 0%, #A8BDBC 100%);
+    transform: translateY(-1px);
+}
+
+/* Sidebar User Info */
+.sidebar-user-info {
+    padding: 15px 30px;
+    border-bottom: 1px solid rgba(234, 239, 239, 0.1);
+    margin-bottom: 10px;
+}
+
+.sidebar-welcome {
+    color: #B8CFCE;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.logout-link {
+    color: #FF6B6B !important;
+    border-left-color: #FF6B6B !important;
+}
+
+.logout-link:hover {
+    background: rgba(255, 107, 107, 0.1) !important;
+    color: #FF8E8E !important;
+}
+
+/* Responsive adjustments for user info */
+@media (max-width: 768px) {
+    .user-info {
+        display: none;
+    }
+}

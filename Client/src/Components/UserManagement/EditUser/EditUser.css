@@ -1,0 +1,43 @@
+/* Form Buttons for Edit User */
+.form-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.back-button {
+    background: transparent;
+    border: 2px solid #7F8CAA;
+    color: #7F8CAA;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.back-button:hover {
+    background: #7F8CAA;
+    color: #EAEFEF;
+    transform: translateY(-2px);
+}
+
+.form-buttons .login-button {
+    flex: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .form-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .back-button,
+    .form-buttons .login-button {
+        flex: none;
+        width: 100%;
+    }
+}
