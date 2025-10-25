@@ -24,53 +24,76 @@ Proyecto Final Integrador: Sistema de Gestión e-Commerce
 - Axios
 - Cors
 
-## Arquitectura del sistema
+## Arquitectura del Sistema
+
+### Estructura de Directorios
+
 ```
-Proyecto final---Dinamico
-├─ Client
-│ ├─ node_modules
-│ ├─ public
-│ │ └─ vite.svg
-│ ├─ src
-│ │ ├─ assets
-│ │ │ └─ react.svg
-│ │ ├─ Components
-│ │ │ ├─ Global
-│ │ │ │ ├─ Encabezado.jsx
-│ │ │ │ └─ Footer.jsx
-│ │ │ ├─ Layout.css
-│ │ │ ├─ Layout.jsx
-│ │ │ ├─ Login.css
-│ │ │ └─ Login.jsx
-│ │ ├─ Hooks
-│ │ ├─ Server
-│ │ ├─ App.jsx
-│ │ ├─ Global.css
-│ │ └─ main.jsx
-│ ├─ .gitignore
-│ ├─ eslint.config.js
-│ ├─ index.html
-│ ├─ package-lock.json
-│ ├─ package.json
-│ └─ vite.config.js
-├─ Documents
-├─ Server
-│ ├─ node_modules
-│ ├─ src
-│ │ ├─ Controller
-│ │ │ └─ Login.Controller.js
-│ │ ├─ DataBase
-│ │ │ ├─ db.js
-│ │ │ └─ Sistema.db
-│ │ ├─ Middlewares
-│ │ ├─ Routers
-│ │ │ └─ Login.Router.js
-│ │ └─ Utils
-│ │    └─ hash.js
-│ ├─ .env
-│ ├─ .gitignore
-│ ├─ app.js
-│ ├─ package-lock.json
-│ └─ package.json
-└─ Readme.md
+ElectroShop/
+├── Client/                                 
+│   ├── src/
+│   │   ├── Components/                     
+│   │   │   ├── Auth/                       
+│   │   │   │   ├── Login/
+│   │   │   │   │   ├── Login.jsx           
+│   │   │   │   │   └── Login.css           
+│   │   │   │   └── Register/
+│   │   │   │       ├── Register.jsx        
+│   │   │   │       └── Register.css        
+│   │   │   ├── Global/                     
+│   │   │   │   ├── Encabezado/
+│   │   │   │   │   ├── Encabezado.jsx      
+│   │   │   │   │   └── Encabezado.css      
+│   │   │   │   └── Footer/
+│   │   │   │       ├── Footer.jsx          
+│   │   │   │       └── Footer.css          
+│   │   │   ├── Layout/                     
+│   │   │   │   ├── Layout.jsx              
+│   │   │   │   └── Layout.css              
+│   │   │   ├── Pages/                      
+│   │   │   │   └── Home/
+│   │   │   │       ├── Home.jsx            
+│   │   │   │       └── Home.css            
+│   │   │   ├── Products/                   
+│   │   │   │   ├── ProductList/
+│   │   │   │   │   ├── ProductList.jsx     
+│   │   │   │   │   └── ProductList.css     
+│   │   │   │   └── ProductDetail/
+│   │   │   │       ├── ProductDetail.jsx   
+│   │   │   │       └── ProductDetail.css   
+│   │   │   ├── Shopping/                   
+│   │   │   │   ├── Cart/
+│   │   │   │   │   ├── Cart.jsx            
+│   │   │   │   │   └── Cart.css            
+│   │   │   │   └── Favorites/
+│   │   │   │       ├── Favorites.jsx       
+│   │   │   │       └── Favorites.css       
+│   │   │   └── UserManagement/             
+│   │   │       ├── EditUser/
+│   │   │       │   ├── EditUser.jsx        
+│   │   │       │   └── EditUser.css        
+│   │   │       └── DeleteUser/
+│   │   │           ├── DeleteUser.jsx      
+│   │   │           └── DeleteUser.css      
+│   │   ├── App.jsx                         
+│   │   ├── main.jsx                        
+│   │   └── Global.css                      
+│   ├── public/                             
+│   ├── package.json                        
+│   └── vite.config.js                      
+├── Server/                                 
+│   ├── src/
+│   │   ├── Controllers/                    
+│   │   │   └── Login.Controller.js         
+│   │   ├── DataBase/                       
+│   │   │   ├── db.js                       
+│   │   │   └── Sistema.db                  
+│   │   ├── Routers/                        
+│   │   │   └── Login.Router.js             
+│   │   └── Utils/                          
+│   │       └── hash.js                     
+│   ├── app.js                              
+│   ├── package.json                        
+│   └── .env                                             
+└── README.md                               
 ```
