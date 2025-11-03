@@ -9,8 +9,13 @@ const PORT = process.env.PORT || 5000;
 App.use(express.json());
 App.use(cors());
 
-const router = require('./src/Routers/Login.Router');
-App.use('/api', router);
+const loginRouter = require('./src/Routers/Login.Router');
+const productosRouter = require('./src/Routers/Productos.Router');
+const comprasRouter = require('./src/Routers/Compras.Router');
+
+App.use('/api', loginRouter);
+App.use('/api/productos', productosRouter);
+App.use('/api/compras', comprasRouter);
 
 App.listen(PORT, () => {
     console.log(`✅ Servidor activo en: http://localhost:${PORT}`);
