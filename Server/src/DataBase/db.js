@@ -1,4 +1,4 @@
-const sqlite=require('sqlite3')
+const sqlite3=require('sqlite3')
 const path=require('path')
 
 const dbUbicacion=path.resolve(__dirname,'./Sistema.db')
@@ -25,7 +25,7 @@ const db = new sqlite3.Database(dbUbicacion, (Error) => {
                 Direccion TEXT,
                 ID_Compra INTEGER,
                 ID_Calificacion INTEGER,
-                FOREING KEY (ID_Calificacion) REFERENCES Calificaciones(ID_Calificacion),
+                FOREIGN KEY (ID_Calificacion) REFERENCES Calificaciones(ID_Calificacion),
                 FOREIGN KEY (ID_Compra) REFERENCES Compras(ID_Compra)
             );
         `);
@@ -45,7 +45,7 @@ const db = new sqlite3.Database(dbUbicacion, (Error) => {
                 Direccion TEXT,
                 ID_Compra INTEGER,
                 ID_Calificacion INTEGER,
-                FOREING KEY (ID_Calificacion) REFERENCES Calificaciones(ID_Calificacion),
+                FOREIGN KEY (ID_Calificacion) REFERENCES Calificaciones(ID_Calificacion),
                 FOREIGN KEY (ID_Compra) REFERENCES Compras(ID_Compra)
             );
         `);
@@ -53,8 +53,8 @@ const db = new sqlite3.Database(dbUbicacion, (Error) => {
             // PERSONAL
             db.run(`
             CREATE TABLE IF NOT EXISTS Personal (
-                DNI INTEGER PRIMARY KEY,
-                ID_Personal INTEGER AUTOINCREMENT,
+                DNI INTEGER,
+                ID_Personal INTEGER  PRIMARY KEY AUTOINCREMENT,
                 Nombre TEXT,
                 Apellido TEXT,
                 Telefono INTEGER,
@@ -145,7 +145,7 @@ const db = new sqlite3.Database(dbUbicacion, (Error) => {
                 DNI INTEGER,
                 Costo_Envio INTEGER,
                 Tipo_Envio TEXT,
-                FPREING KEY (Id_Compra) REFERENCES Compras(ID_Compra),
+                FOREIGN KEY (Id_Compra) REFERENCES Compras(ID_Compra),
                 FOREIGN KEY (DNI) REFERENCES Cliente(DNI)
             );
         `);
@@ -165,12 +165,12 @@ const db = new sqlite3.Database(dbUbicacion, (Error) => {
             // ME GUSTA
             db.run(`
             CREATE TABLE IF NOT EXISTS Me_Gusta (
-                ID_Carrito INTEGER PRIMARY KEY AUTOINCREMENT,
+                ID_Me_Gusta INTEGER PRIMARY KEY AUTOINCREMENT,
                 ID_Producto INTEGER,
                 DNI INTEGER,
                 ID_Carrito INTEGER,
                 Total INTEGER,
-                FROREING KEY (DNI) REFERENCES Cliente(DNI),
+                FOREIGN KEY (DNI) REFERENCES Cliente(DNI),
                 FOREIGN KEY (ID_Carrito) REFERENCES Carrito(ID_Carrito),
                 FOREIGN KEY (ID_Producto) REFERENCES Productos(ID_Producto)
             );
@@ -187,7 +187,7 @@ const db = new sqlite3.Database(dbUbicacion, (Error) => {
                 Sueldo INTEGER,
                 Fecha_Pago TEXT,
                 ID_Factura TEXT,
-                FOREIGN KEY (DNI_Personal) REFERENCES Personal(DNI)
+                FOREIGN KEY (ID_Personal) REFERENCES Personal(DNI)
             );
         `);
 
