@@ -30,17 +30,6 @@ function Footer() {
           </ul>
         </div>
 
-        {/* Categorías */}
-        <div className="footer-section">
-          <h3 className="footer-title">Categorías</h3>
-          <ul className="footer-links">
-            <li><a href="#phones">Teléfonos</a></li>
-            <li><a href="#laptops">Laptops</a></li>
-            <li><a href="#tablets">Tablets</a></li>
-            <li><a href="#audio">Audio</a></li>
-          </ul>
-        </div>
-
         {/* Contacto */}
         <div className="footer-section">
           <h3 className="footer-title">Contacto</h3>

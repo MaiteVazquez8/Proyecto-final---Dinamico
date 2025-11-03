@@ -4,94 +4,77 @@ import "../../Auth/Login/Login.css"
 import "./EditUser.css"
 
 function EditUser({ onNavigate }) {
-    const [currentUser, setCurrentUser] = useState('')
-    const [currentPassword, setCurrentPassword] = useState('')
     const [newName, setNewName] = useState('')
     const [newUser, setNewUser] = useState('')
     const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [mensaje, setMensaje] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [step, setStep] = useState(1) // 1: Verificar usuario, 2: Editar datos
 
-    const verifyUser = async (e) => {
+    const updateProfile = async (e) => {
         e.preventDefault()
         setMensaje('')
         setIsLoading(true)
 
-        if (!currentUser || !currentPassword) {
-            setMensaje('Por favor completa todos los campos')
+        // Validaciones básicas
+        if (!newName && !newUser && !newPassword) {
+            setMensaje('Por favor modifica al menos un campo')
+            setIsLoading(false)
+            return
+        }
+
+        if (!confirmPassword) {
+            setMensaje('Por favor ingresa tu contraseña actual para confirmar los cambios')
+            setIsLoading(false)
+            return
+        }
+
+        if (newPassword && newPassword.length < 6) {
+            setMensaje('La nueva contraseña debe tener al menos 6 caracteres')
             setIsLoading(false)
             return
         }
 
         try {
-            const server = await axios.post('http://localhost:5000/api/verificarUsuario', {
-                user: currentUser,
-                password: currentPassword
+            // Primero verificar la contraseña actual
+            const verifyResponse = await axios.post('http://localhost:5000/api/verificarUsuario', {
+                user: 'currentUser', // Esto debería venir del contexto del usuario logueado
+                password: confirmPassword
             })
-            
-            // Si la verificación es exitosa, pasar al paso 2
-            setStep(2)
-            setNewUser(currentUser) // Pre-llenar con el usuario actual
-            setMensaje('')
-            
-        } catch (error) {
-            if (error.response?.data?.mensaje) {
-                setMensaje(error.response.data.mensaje)
-            } else {
-                setMensaje('Error al verificar usuario')
-            }
-        } finally {
-            setIsLoading(false)
-        }
-    }
 
-    const updateUser = async (e) => {
-        e.preventDefault()
-        setMensaje('')
-        setIsLoading(true)
-
-        if (!newName || !newUser) {
-            setMensaje('Por favor completa al menos el nombre y usuario')
-            setIsLoading(false)
-            return
-        }
-
-        try {
+            // Si la verificación es exitosa, proceder con la actualización
             const updateData = {
-                currentUser,
-                currentPassword,
-                newName,
-                newUser,
+                currentUser: 'currentUser', // Esto debería venir del contexto
+                currentPassword: confirmPassword,
+                ...(newName && { newName }),
+                ...(newUser && { newUser }),
                 ...(newPassword && { newPassword })
             }
 
-            const server = await axios.put('http://localhost:5000/api/editarUsuario', updateData)
+            const updateResponse = await axios.put('http://localhost:5000/api/editarUsuario', updateData)
             
-            setMensaje('Usuario actualizado exitosamente')
+            setMensaje('Perfil actualizado exitosamente')
+            
+            // Limpiar formulario
+            setNewName('')
+            setNewUser('')
+            setNewPassword('')
+            setConfirmPassword('')
             
             // Redirigir después de 2 segundos
             setTimeout(() => {
-                onNavigate('login')
+                onNavigate('home')
             }, 2000)
             
         } catch (error) {
             if (error.response?.data?.mensaje) {
                 setMensaje(error.response.data.mensaje)
             } else {
-                setMensaje('Error al actualizar usuario')
+                setMensaje('Error al actualizar el perfil')
             }
         } finally {
             setIsLoading(false)
         }
-    }
-
-    const goBack = () => {
-        setStep(1)
-        setNewName('')
-        setNewUser('')
-        setNewPassword('')
-        setMensaje('')
     }
 
     return (
@@ -99,112 +82,73 @@ function EditUser({ onNavigate }) {
             <div className="login-card">
                 <div className="login-header">
                     <h1 className="login-title">ElectroShop</h1>
-                    <p className="login-subtitle">
-                        {step === 1 ? 'Verificar identidad' : 'Editar datos de usuario'}
-                    </p>
+                    <p className="login-subtitle">Editar mi perfil</p>
                 </div>
 
-                {step === 1 ? (
-                    // Paso 1: Verificar usuario actual
-                    <form className="login-form" onSubmit={verifyUser}>
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="currentUser">Usuario Actual</label>
-                            <input 
-                                type="text" 
-                                name="currentUser" 
-                                id="currentUser"
-                                className="form-input"
-                                placeholder="Ingresa tu usuario actual"
-                                value={currentUser}
-                                onChange={(e) => setCurrentUser(e.target.value)}
-                                required
-                            />
-                        </div>
-                        
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="currentPassword">Contraseña Actual</label>
-                            <input 
-                                type="password" 
-                                name="currentPassword" 
-                                id="currentPassword"
-                                className="form-input"
-                                placeholder="Ingresa tu contraseña actual"
-                                value={currentPassword}
-                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                required
-                            />
-                        </div>
+                <form className="login-form" onSubmit={updateProfile}>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="newName">Nuevo Nombre (Opcional)</label>
+                        <input 
+                            type="text" 
+                            name="newName" 
+                            id="newName"
+                            className="form-input"
+                            placeholder="Deja vacío para mantener el actual"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                        />
+                    </div>
 
-                        <button type="submit" className="login-button" disabled={isLoading}>
-                            {isLoading ? 'Verificando...' : 'Verificar Usuario'}
-                        </button>
-                        
-                        {mensaje && (
-                            <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') ? 'error' : 'success'}`}>
-                                {mensaje}
-                            </div>
-                        )}
-                    </form>
-                ) : (
-                    // Paso 2: Editar datos
-                    <form className="login-form" onSubmit={updateUser}>
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="newName">Nuevo Nombre</label>
-                            <input 
-                                type="text" 
-                                name="newName" 
-                                id="newName"
-                                className="form-input"
-                                placeholder="Ingresa tu nuevo nombre"
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                required
-                            />
-                        </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="newUser">Nuevo Usuario (Opcional)</label>
+                        <input 
+                            type="text" 
+                            name="newUser" 
+                            id="newUser"
+                            className="form-input"
+                            placeholder="Deja vacío para mantener el actual"
+                            value={newUser}
+                            onChange={(e) => setNewUser(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="newPassword">Nueva Contraseña (Opcional)</label>
+                        <input 
+                            type="password" 
+                            name="newPassword" 
+                            id="newPassword"
+                            className="form-input"
+                            placeholder="Deja vacío para mantener la actual"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                    </div>
 
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="newUser">Nuevo Usuario</label>
-                            <input 
-                                type="text" 
-                                name="newUser" 
-                                id="newUser"
-                                className="form-input"
-                                placeholder="Ingresa tu nuevo usuario"
-                                value={newUser}
-                                onChange={(e) => setNewUser(e.target.value)}
-                                required
-                            />
-                        </div>
-                        
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="newPassword">Nueva Contraseña (Opcional)</label>
-                            <input 
-                                type="password" 
-                                name="newPassword" 
-                                id="newPassword"
-                                className="form-input"
-                                placeholder="Deja vacío para mantener la actual"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                            />
-                        </div>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="confirmPassword">Contraseña Actual (Para confirmar)</label>
+                        <input 
+                            type="password" 
+                            name="confirmPassword" 
+                            id="confirmPassword"
+                            className="form-input"
+                            placeholder="Ingresa tu contraseña actual"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                        />
+                    </div>
 
-                        <div className="form-buttons">
-                            <button type="button" className="back-button" onClick={goBack}>
-                                Volver
-                            </button>
-                            <button type="submit" className="login-button" disabled={isLoading}>
-                                {isLoading ? 'Actualizando...' : 'Actualizar Datos'}
-                            </button>
+                    <button type="submit" className="login-button" disabled={isLoading}>
+                        {isLoading ? 'Actualizando...' : 'Guardar Cambios'}
+                    </button>
+                    
+                    {mensaje && (
+                        <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') || mensaje.includes('contraseña') ? 'error' : 'success'}`}>
+                            {mensaje}
                         </div>
-                        
-                        {mensaje && (
-                            <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') ? 'error' : 'success'}`}>
-                                {mensaje}
-                            </div>
-                        )}
-                    </form>
-                )}
+                    )}
+                </form>
 
                 <div className="auth-switch">
                     <p className="auth-switch-text">
@@ -212,7 +156,7 @@ function EditUser({ onNavigate }) {
                         <button 
                             type="button"
                             className="auth-switch-link"
-                            onClick={() => onNavigate('login')}
+                            onClick={() => onNavigate('home')}
                         >
                             Volver al inicio
                         </button>

@@ -17,13 +17,13 @@
 
 /* Delete Button */
 .delete-button {
-    background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
-    border: none;
-    color: #FFFFFF;
+    background: transparent;
+    border: 2px solid #FF6B6B;
+    color: #FF6B6B;
     padding: 14px 28px;
     border-radius: 8px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
     width: 100%;
@@ -31,16 +31,16 @@
 }
 
 .delete-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #FF5252 0%, #FF4444 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+    background: #FF6B6B;
+    color: #FFFFFF;
+    transform: translateY(-1px);
 }
 
 .delete-button:disabled {
-    background: #CCCCCC;
+    border-color: #CCCCCC;
+    color: #CCCCCC;
     cursor: not-allowed;
     transform: none;
-    box-shadow: none;
 }
 
 /* Modal Styles */
@@ -110,13 +110,15 @@
 }
 
 .modal-btn.confirm {
-    background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
-    color: #FFFFFF;
+    background: transparent;
+    border: 2px solid #FF6B6B;
+    color: #FF6B6B;
 }
 
 .modal-btn.confirm:hover {
-    background: linear-gradient(135deg, #FF5252 0%, #FF4444 100%);
-    transform: translateY(-2px);
+    background: #FF6B6B;
+    color: #FFFFFF;
+    transform: translateY(-1px);
 }
 
 /* Responsive Design */

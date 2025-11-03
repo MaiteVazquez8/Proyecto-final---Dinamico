@@ -90,23 +90,22 @@
 }
 
 .login-button {
-  background: linear-gradient(135deg, #333446 0%, #45465F 100%);
-  color: #EAEFEF;
-  border: none;
+  background: transparent;
+  color: #333446;
+  border: 2px solid #333446;
   padding: 16px 24px;
   border-radius: 12px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
   margin-top: 10px;
 }
 
 .login-button:hover {
-  background: linear-gradient(135deg, #45465F 0%, #585979 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(51, 52, 70, 0.3);
+  background: #333446;
+  color: #EAEFEF;
+  transform: translateY(-1px);
 }
 
 .login-button:active {
@@ -114,16 +113,17 @@
 }
 
 .login-button:disabled {
-  background: #A0A2BA;
+  border-color: #A0A2BA;
+  color: #A0A2BA;
   cursor: not-allowed;
   transform: none;
   opacity: 0.7;
 }
 
 .login-button:disabled:hover {
-  background: #A0A2BA;
+  background: transparent;
+  color: #A0A2BA;
   transform: none;
-  box-shadow: none;
 }
 
 .login-message {
@@ -166,7 +166,7 @@
   border: none;
   color: #333446;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: underline;
   transition: color 0.3s ease;

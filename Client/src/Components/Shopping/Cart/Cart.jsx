@@ -52,19 +52,8 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated }) {
     }
 
     const handleCheckout = () => {
-        if (!isAuthenticated) {
-            onNavigate('login')
-            return
-        }
-        
-        setIsLoading(true)
-        // Simular proceso de checkout
-        setTimeout(() => {
-            alert('¡Compra realizada exitosamente!')
-            clearCart()
-            setIsLoading(false)
-            onNavigate('products')
-        }, 2000)
+        console.log('Checkout button clicked, navigating to checkout')
+        onNavigate('checkout')
     }
 
     if (!isAuthenticated) {

@@ -31,7 +31,7 @@
     padding: 12px 20px;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -236,25 +236,27 @@
 
 .checkout-btn {
     width: 100%;
-    background: linear-gradient(135deg, #333446 0%, #45465F 100%);
-    color: #EAEFEF;
-    border: none;
+    background: transparent;
+    color: #333446;
+    border: 2px solid #333446;
     padding: 16px;
     border-radius: 12px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
     margin-bottom: 12px;
 }
 
 .checkout-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #45465F 0%, #585979 100%);
-    transform: translateY(-2px);
+    background: #333446;
+    color: #EAEFEF;
+    transform: translateY(-1px);
 }
 
 .checkout-btn:disabled {
-    background: #A0A2BA;
+    border-color: #A0A2BA;
+    color: #A0A2BA;
     cursor: not-allowed;
     transform: none;
 }
@@ -267,7 +269,7 @@
     padding: 12px;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -304,20 +306,21 @@
 }
 
 .shop-btn, .login-btn {
-    background: linear-gradient(135deg, #7F8CAA 0%, #B8CFCE 100%);
-    color: #333446;
-    border: none;
+    background: transparent;
+    color: #7F8CAA;
+    border: 2px solid #7F8CAA;
     padding: 16px 32px;
     border-radius: 12px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .shop-btn:hover, .login-btn:hover {
-    background: linear-gradient(135deg, #6B6D94 0%, #9EBDBB 100%);
-    transform: translateY(-2px);
+    background: #7F8CAA;
+    color: #EAEFEF;
+    transform: translateY(-1px);
 }
 
 /* Responsive Design */

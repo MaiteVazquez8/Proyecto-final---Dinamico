@@ -16,6 +16,7 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
   }
 
   const toggleMenu = () => {
+    console.log('Menu toggle clicked!', !isMenuOpen)
     setIsMenuOpen(!isMenuOpen)
   }
 
@@ -27,73 +28,20 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
           <span className="brand-name">ElectroShop</span>
         </div>
 
-        {/* Botón menú (solo móvil) */}
-        <button className="menu-toggle" onClick={toggleMenu}>
-          ☰
+        {/* BOTÓN MENÚ HAMBURGUESA - SIMPLE */}
+        <button 
+          className="menu-toggle" 
+          onClick={toggleMenu}
+          title={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+        >
+          {isMenuOpen ? '✕' : '☰'}
         </button>
-
-        {/* Menú desktop */}
-        <nav className="desktop-menu">
-          <button
-            className={`nav-link ${currentPage === 'home' ? 'active' : ''}`}
-            onClick={() => handleNavigation('home')}
-          >
-            Inicio
-          </button>
-          
-          <button
-            className={`nav-link ${currentPage === 'products' ? 'active' : ''}`}
-            onClick={() => handleNavigation('products')}
-          >
-            Productos
-          </button>
-          
-          {!isAuthenticated && (
-            <>
-              <button
-                className={`nav-link ${currentPage === 'login' ? 'active' : ''}`}
-                onClick={() => handleNavigation('login')}
-              >
-                Login
-              </button>
-              <button
-                className={`nav-link ${currentPage === 'register' ? 'active' : ''}`}
-                onClick={() => handleNavigation('register')}
-              >
-                Registrar Usuario
-              </button>
-            </>
-          )}
-          
-          {isAuthenticated && (
-            <>
-              <button
-                className={`nav-link ${currentPage === 'edit' ? 'active' : ''}`}
-                onClick={() => handleNavigation('edit')}
-              >
-                Editar Usuario
-              </button>
-              <button
-                className={`nav-link ${currentPage === 'delete' ? 'active' : ''}`}
-                onClick={() => handleNavigation('delete')}
-              >
-                Eliminar Usuario
-              </button>
-              <div className="user-info">
-                <span className="welcome-text">Hola, {currentUser?.username}</span>
-                <button className="logout-nav-btn" onClick={handleLogout}>
-                  Cerrar Sesión
-                </button>
-              </div>
-            </>
-          )}
-        </nav>
       </header>
 
-      {/* Overlay del menú móvil */}
+      {/* Overlay del menú */}
       {isMenuOpen && <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}></div>}
 
-      {/* Menú lateral móvil */}
+      {/* Menú lateral hamburguesa */}
       <div className={`sidebar-menu ${isMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
@@ -113,15 +61,14 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
             Inicio
           </button>
           
-          <button
-            className={`sidebar-nav-link ${currentPage === 'products' ? 'active' : ''}`}
-            onClick={() => handleNavigation('products')}
-          >
-            Productos
-          </button>
-          
           {!isAuthenticated && (
             <>
+              <button
+                className={`sidebar-nav-link ${currentPage === 'products' ? 'active' : ''}`}
+                onClick={() => handleNavigation('products')}
+              >
+                Catálogo
+              </button>
               <button
                 className={`sidebar-nav-link ${currentPage === 'login' ? 'active' : ''}`}
                 onClick={() => handleNavigation('login')}
@@ -132,7 +79,7 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
                 className={`sidebar-nav-link ${currentPage === 'register' ? 'active' : ''}`}
                 onClick={() => handleNavigation('register')}
               >
-                Registrar Usuario
+                Register
               </button>
             </>
           )}
@@ -143,16 +90,28 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
                 <span className="sidebar-welcome">Hola, {currentUser?.username}</span>
               </div>
               <button
-                className={`sidebar-nav-link ${currentPage === 'edit' ? 'active' : ''}`}
-                onClick={() => handleNavigation('edit')}
+                className={`sidebar-nav-link ${currentPage === 'products' ? 'active' : ''}`}
+                onClick={() => handleNavigation('products')}
               >
-                Editar Usuario
+                Productos
               </button>
               <button
-                className={`sidebar-nav-link ${currentPage === 'delete' ? 'active' : ''}`}
-                onClick={() => handleNavigation('delete')}
+                className={`sidebar-nav-link ${currentPage === 'cart' ? 'active' : ''}`}
+                onClick={() => handleNavigation('cart')}
               >
-                Eliminar Usuario
+                Carrito
+              </button>
+              <button
+                className={`sidebar-nav-link ${currentPage === 'favorites' ? 'active' : ''}`}
+                onClick={() => handleNavigation('favorites')}
+              >
+                Favoritos
+              </button>
+              <button
+                className={`sidebar-nav-link ${currentPage === 'profile' ? 'active' : ''}`}
+                onClick={() => handleNavigation('profile')}
+              >
+                Perfil
               </button>
               <button
                 className="sidebar-nav-link logout-link"

@@ -31,16 +31,12 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
             return
         }
         
+        // Solo agregar si el producto NO está en el carrito
         const existingItem = cart.find(item => item.id === productId)
-        if (existingItem) {
-            setCart(prev => prev.map(item => 
-                item.id === productId 
-                    ? { ...item, quantity: item.quantity + 1 }
-                    : item
-            ))
-        } else {
+        if (!existingItem) {
             setCart(prev => [...prev, { id: productId, quantity: 1 }])
         }
+        // Si ya está en el carrito, no hacer nada
     }
 
     const viewProductDetails = (productId) => {
@@ -117,58 +113,57 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                 </div>
             </div>
 
-            <div className="favorites-grid">
+            <div className="favorites-items">
                 {favoriteItems.map(product => (
-                    <div key={product.id} className="favorite-card">
-                        {product.isNew && <div className="new-badge">Nuevo</div>}
-                        
-                        <button 
-                            className="remove-favorite-btn"
-                            onClick={() => removeFromFavorites(product.id)}
-                            title="Quitar de favoritos"
-                        >
-                            ❤️
-                        </button>
-
-                        <div className="product-image-container">
-                            <div className="product-image">{product.image}</div>
+                    <div 
+                        key={product.id} 
+                        className="favorite-item"
+                        onClick={() => viewProductDetails(product.id)}
+                    >
+                        <div className="item-image">
+                            {product.image}
+                            {product.isNew && <div className="new-badge">Nuevo</div>}
                         </div>
-
-                        <div className="product-info">
-                            <div className="product-brand">{product.brand}</div>
-                            <h3 className="product-name">{product.name}</h3>
-                            <p className="product-description">{product.description}</p>
-                            
-                            <div className="product-rating">
+                        
+                        <div className="item-details">
+                            <div className="item-brand">{product.brand}</div>
+                            <h3 className="item-name">{product.name}</h3>
+                            <p className="item-description">{product.description}</p>
+                            <div className="item-rating">
                                 <span className="stars">⭐</span>
                                 <span className="rating-value">{product.rating}</span>
                             </div>
+                            <div className="item-price">${product.price.toLocaleString()}</div>
+                            <div className="item-stock">Stock disponible: {product.stock}</div>
+                        </div>
 
-                            <div className="product-price-section">
-                                <p className="product-price">${product.price.toLocaleString()}</p>
-                                <p className="product-stock">Stock: {product.stock}</p>
-                            </div>
-
-                            <div className="product-actions">
-                                <button 
-                                    className="view-details-btn"
-                                    onClick={() => viewProductDetails(product.id)}
-                                >
-                                    Ver Detalles
-                                </button>
-                                <button 
-                                    className={`add-to-cart-btn ${isInCart(product.id) ? 'in-cart' : ''}`}
-                                    onClick={() => addToCart(product.id)}
-                                    disabled={product.stock === 0}
-                                >
-                                    {product.stock === 0 
-                                        ? 'Sin Stock' 
-                                        : isInCart(product.id) 
-                                            ? 'En Carrito ✓' 
-                                            : 'Agregar al Carrito'
-                                    }
-                                </button>
-                            </div>
+                        <div className="item-controls">
+                            <button 
+                                className="remove-favorite-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeFromFavorites(product.id);
+                                }}
+                                title="Quitar de favoritos"
+                            >
+                                ❤️ Quitar
+                            </button>
+                            
+                            <button 
+                                className={`add-to-cart-btn ${isInCart(product.id) ? 'in-cart' : ''}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    addToCart(product.id);
+                                }}
+                                disabled={product.stock === 0}
+                            >
+                                {product.stock === 0 
+                                    ? 'Sin Stock' 
+                                    : isInCart(product.id) 
+                                        ? 'En Carrito ✓' 
+                                        : 'Agregar al Carrito'
+                                }
+                            </button>
                         </div>
                     </div>
                 ))}

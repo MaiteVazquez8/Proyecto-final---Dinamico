@@ -21,7 +21,7 @@ function Login({ onNavigate, onLogin }) {
     }
 
     try {
-      const server = await axios.post('http://localhost:3000/api/loginUsuario', {
+      const server = await axios.post('http://localhost:3000/api/login', {
         user,
         password
       })

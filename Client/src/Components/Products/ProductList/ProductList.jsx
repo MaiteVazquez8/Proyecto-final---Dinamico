@@ -133,16 +133,18 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
             onNavigate('login')
             return
         }
+        
+        // Solo agregar si el producto NO está en el carrito
         const existingItem = cart.find(item => item.id === productId)
-        if (existingItem) {
-            setCart(prev => prev.map(item =>
-                item.id === productId
-                    ? { ...item, quantity: item.quantity + 1 }
-                    : item
-            ))
-        } else {
+        if (!existingItem) {
             setCart(prev => [...prev, { id: productId, quantity: 1 }])
         }
+        // Si ya está en el carrito, no hacer nada
+    }
+
+    // Función para verificar si el producto está en el carrito
+    const isInCart = (productId) => {
+        return cart.some(item => item.id === productId)
     }
 
     const viewProductDetails = (productId) => {
@@ -312,14 +314,21 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 {/* Grid de productos */}
                 <div className="products-grid">
                     {filteredAndSortedProducts.map(product => (
-                        <div key={product.id} className="product-card">
+                        <div 
+                            key={product.id} 
+                            className="product-card"
+                            onClick={() => viewProductDetails(product.id)}
+                        >
                             {product.isNew && <div className="new-badge">Nuevo</div>}
 
                             <div className="product-image-container">
                                 <div className="product-image">{product.image}</div>
                                 <button
                                     className={`favorite-btn ${favorites.includes(product.id) ? 'active' : ''}`}
-                                    onClick={() => toggleFavorite(product.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleFavorite(product.id);
+                                    }}
                                 >
                                     {favorites.includes(product.id) ? '❤️' : '🤍'}
                                 </button>
@@ -342,17 +351,19 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
 
                                 <div className="product-actions">
                                     <button
-                                        className="view-details-btn"
-                                        onClick={() => viewProductDetails(product.id)}
-                                    >
-                                        Ver Detalles
-                                    </button>
-                                    <button
-                                        className="add-to-cart-btn"
-                                        onClick={() => addToCart(product.id)}
+                                        className={`add-to-cart-btn ${isInCart(product.id) ? 'in-cart' : ''}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addToCart(product.id);
+                                        }}
                                         disabled={product.stock === 0}
                                     >
-                                        {product.stock === 0 ? 'Sin Stock' : 'Agregar al Carrito'}
+                                        {product.stock === 0 
+                                            ? 'Sin Stock' 
+                                            : isInCart(product.id) 
+                                                ? 'Ya está en el carrito' 
+                                                : 'Agregar al Carrito'
+                                        }
                                     </button>
                                 </div>
                             </div>
@@ -369,23 +380,11 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 )}
             </div>
 
-            {/* Footer condicional */}
-            {isAuthenticated ? (
-                <div className="products-footer">
-                    <div className="user-welcome">
-                        <p>Bienvenido, <strong>{currentUser?.username}</strong></p>
-                    </div>
-                    <button
-                        className="logout-btn"
-                        onClick={onLogout}
-                    >
-                        Cerrar Sesión
-                    </button>
-                </div>
-            ) : (
-                <div className="products-footer">
+            {/* Mensaje para usuarios no autenticados */}
+            {!isAuthenticated && (
+                <div className="guest-footer">
                     <div className="guest-message">
-                        <p>¿Quieres comprar productos? <strong>Inicia sesión</strong> para acceder a todas las funciones</p>
+                        <p>¿Quieres poder comprar? <strong>Inicia sesión</strong></p>
                     </div>
                     <button
                         className="login-prompt-btn"
