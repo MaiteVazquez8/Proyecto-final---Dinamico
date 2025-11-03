@@ -1,13 +1,19 @@
 const express = require('express');
 const rutas = express.Router();
 
-const {Login, registroUsuario, VerUsuarios, EliminarUsuario, ModificarUsuario} = require('../Controllers/Login.Controller');
+const {login, registrarCliente, modificarCliente, eliminarCliente, registrarPersonal, modificarPersonal, eliminarPersonal} = require('../Controllers/Login.Controller');
 
-rutas.post('/Login', Login);
-rutas.post('/registroUsuario', registroUsuario);
+//LOGIN
+rutas.post('/Login', login);
 
-rutas.get('/usuarios', VerUsuarios);
-rutas.delete('/usuarios/:ID', EliminarUsuario);
-rutas.put('/usuarios/:ID', ModificarUsuario);
+// CLIENTE
+rutas.post('/registrarCliente', registrarCliente);
+rutas.put('/modificarCliente/:DNI', modificarCliente);
+rutas.delete('/eliminarCliente/:DNI', eliminarCliente);
+
+// PERSONAL
+rutas.post('/registrarPersonal', registrarPersonal);
+rutas.put('/modificarPersonal/:DNI', modificarPersonal);
+rutas.delete('/eliminarPersonal/:DNI', eliminarPersonal);
 
 module.exports = rutas;
