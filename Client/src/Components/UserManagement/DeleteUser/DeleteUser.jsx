@@ -1,5 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
+import PasswordInput from "../../Global/PasswordInput/PasswordInput"
 import "../../Auth/Login/Login.css"
 import "./DeleteUser.css"
 
@@ -80,12 +81,10 @@ function DeleteUser({ onNavigate }) {
                     </div>
                     
                     <div className="form-group">
-                        <label className="form-label" htmlFor="password">Contraseña</label>
-                        <input 
-                            type="password" 
-                            name="password" 
+                        <PasswordInput
                             id="password"
-                            className="form-input"
+                            name="password"
+                            label="Contraseña"
                             placeholder="Confirma tu contraseña"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -94,7 +93,7 @@ function DeleteUser({ onNavigate }) {
                     </div>
 
                     <div className="warning-message">
-                        <p>⚠️ Esta acción no se puede deshacer. Tu cuenta será eliminada permanentemente.</p>
+                        <p>⚠ Esta acción no se puede deshacer. Tu cuenta será eliminada permanentemente.</p>
                     </div>
 
                     <button type="submit" className="delete-button" disabled={isLoading}>

@@ -1,9 +1,10 @@
 import { useState } from "react"
 import axios from "axios"
+import PasswordInput from "../../Global/PasswordInput/PasswordInput"
 import "./Login.css"
 
 function Login({ onNavigate, onLogin }) {
-  const [user, setUser] = useState('')
+  const [mail, setMail] = useState('')
   const [password, setPassword] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -14,35 +15,51 @@ function Login({ onNavigate, onLogin }) {
     setIsLoading(true)
 
     // Validación simple
-    if (!user || !password) {
+    if (!mail || !password) {
       setMensaje('Por favor completa todos los campos')
       setIsLoading(false)
       return
     }
 
     try {
-      const server = await axios.post('http://localhost:3000/api/login', {
-        user,
-        password
+      console.log('Intentando iniciar sesión con:', { Mail: mail })
+      const response = await axios.post('http://localhost:3000/api/Login', {
+        Mail: mail,
+        Contraseña: password
       })
 
-      // Mostrar mensaje de éxito
-      setMensaje('¡Inicio de sesión exitoso! Redirigiendo...')
+      console.log('Respuesta del servidor:', response.data)
 
-      // Delay de 2 segundos antes de redirigir a productos
+      // Mostrar mensaje de éxito
+      const cargo = response.data.Cargo?.toLowerCase()
+      const mensajePersonalizado = response.data.Mensaje || '¡Inicio de sesión exitoso! Redirigiendo...'
+      setMensaje(mensajePersonalizado)
+
+      // Delay de 1.5 segundos antes de redirigir
       setTimeout(() => {
         // Llamar a onLogin con los datos del usuario
-        onLogin({
-          username: user,
-          ...server.data
+        console.log('Enviando datos de usuario al Layout:', {
+          DNI: response.data.DNI,
+          Nombre: response.data.Nombre,
+          Cargo: response.data.Cargo,
+          Mail: mail
         })
-      }, 2000)
+        onLogin({
+          DNI: response.data.DNI,
+          Nombre: response.data.Nombre,
+          Cargo: response.data.Cargo,
+          Mail: mail
+        })
+        setIsLoading(false)
+      }, 1500)
 
     } catch (error) {
-      if (error.response?.data?.mensaje) {
-        setMensaje(error.response.data.mensaje)
+      console.error('Error en login:', error)
+      console.error('Error response:', error.response)
+      if (error.response?.data?.Error) {
+        setMensaje(error.response.data.Error)
       } else {
-        setMensaje('Error al iniciar sesión')
+        setMensaje('Error al iniciar sesión. Verifica tu email y contraseña.')
       }
       setIsLoading(false)
     }
@@ -57,26 +74,24 @@ function Login({ onNavigate, onLogin }) {
 
         <form className="login-form" onSubmit={LoginSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="user">Usuario</label>
+            <label className="form-label" htmlFor="mail">Email</label>
             <input
-              type="text"
-              name="user"
-              id="user"
+              type="email"
+              name="mail"
+              id="mail"
               className="form-input"
-              placeholder="Ingresa tu usuario"
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
+              placeholder="Ingresa tu email"
+              value={mail}
+              onChange={(e) => setMail(e.target.value)}
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              name="password"
+            <PasswordInput
               id="password"
-              className="form-input"
+              name="password"
+              label="Contraseña"
               placeholder="Ingresa tu contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -85,11 +100,25 @@ function Login({ onNavigate, onLogin }) {
           </div>
 
           <button type="submit" className="login-button" disabled={isLoading}>
-            {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {(() => {
+              if (isLoading) {
+                return 'Iniciando sesión...'
+              } else {
+                return 'Iniciar Sesión'
+              }
+            })()}
           </button>
 
           {mensaje && (
-            <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') ? 'error' : 'success'}`}>
+            <div className={(() => {
+              let messageClass = "login-message"
+              if (mensaje.includes('Error') || mensaje.includes('completa')) {
+                messageClass += " error"
+              } else {
+                messageClass += " success"
+              }
+              return messageClass
+            })()}>
               {mensaje}
             </div>
           )}

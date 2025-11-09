@@ -1,18 +1,60 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import Swal from 'sweetalert2'
+import { AiFillStar } from "react-icons/ai"
 import "./Favorites.css"
 
-function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthenticated }) {
-    // Datos de productos para mostrar detalles completos
-    const productsData = {
-        1: { id: 1, name: 'iPhone 15 Pro Max', brand: 'Apple', price: 1199, image: '📱', description: 'El iPhone más avanzado con chip A17 Pro y cámara de 48MP', rating: 4.8, stock: 15, isNew: true },
-        2: { id: 2, name: 'MacBook Pro M3', brand: 'Apple', price: 1999, image: '💻', description: 'Potencia profesional con el nuevo chip M3 y pantalla Liquid Retina XDR', rating: 4.9, stock: 8, isNew: true },
-        3: { id: 3, name: 'AirPods Pro 2', brand: 'Apple', price: 249, image: '🎧', description: 'Audio espacial personalizado con cancelación activa de ruido', rating: 4.7, stock: 25, isNew: false },
-        4: { id: 4, name: 'iPad Pro 12.9"', brand: 'Apple', price: 1099, image: '📱', description: 'La experiencia iPad definitiva con chip M2 y pantalla Liquid Retina XDR', rating: 4.8, stock: 12, isNew: false },
-        5: { id: 5, name: 'Samsung Galaxy S24 Ultra', brand: 'Samsung', price: 1299, image: '📱', description: 'Smartphone premium con S Pen integrado y cámara de 200MP', rating: 4.6, stock: 20, isNew: true },
-        6: { id: 6, name: 'Dell XPS 13 Plus', brand: 'Dell', price: 1399, image: '💻', description: 'Ultrabook premium con procesador Intel Core i7 de 12va generación', rating: 4.5, stock: 10, isNew: false },
-        7: { id: 7, name: 'Sony WH-1000XM5', brand: 'Sony', price: 399, image: '🎧', description: 'Auriculares inalámbricos con la mejor cancelación de ruido del mercado', rating: 4.8, stock: 18, isNew: false },
-        8: { id: 8, name: 'Surface Pro 9', brand: 'Microsoft', price: 999, image: '📱', description: 'Tablet 2 en 1 con procesador Intel Core i5 y Windows 11', rating: 4.4, stock: 14, isNew: false }
-    }
+function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthenticated, currentUser }) {
+    const [productsData, setProductsData] = useState({})
+    const [loading, setLoading] = useState(true)
+
+    // Cargar productos del servidor
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                setLoading(true)
+                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                const products = response.data || []
+                
+                // Convertir array a objeto con ID como clave
+                const productsMap = {}
+                products.forEach(product => {
+                    const getBrand = (name) => {
+                        if (!name) return 'ElectroShop'
+                        if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
+                        if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
+                        if (name.includes('Dell')) return 'Dell'
+                        if (name.includes('Sony')) return 'Sony'
+                        if (name.includes('Google') || name.includes('Pixel')) return 'Google'
+                        return 'ElectroShop'
+                    }
+
+                    productsMap[product.ID_Producto] = {
+                        id: product.ID_Producto,
+                        name: product.Nombre || 'Producto sin nombre',
+                        brand: getBrand(product.Nombre),
+                        price: product.Precio || 0,
+                        image: product.Imagen_1 || null,
+                        image_1: product.Imagen_1 || null,
+                        Imagen_1: product.Imagen_1 || null,
+                        description: product.Descripcion || 'Sin descripción disponible',
+                        rating: product.Promedio_Calificacion || 4.5,
+                        stock: product.Stock || 0,
+                        isNew: false
+                    }
+                })
+                
+                setProductsData(productsMap)
+            } catch (err) {
+                console.error('Error al cargar productos:', err)
+                setProductsData({})
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadProducts()
+    }, [])
 
     // Obtener productos favoritos con detalles completos
     const favoriteItems = favorites.map(id => productsData[id]).filter(item => item)
@@ -25,18 +67,72 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
         setFavorites([])
     }
 
-    const addToCart = (productId) => {
+    const addToCart = async (productId) => {
         if (!isAuthenticated) {
             onNavigate('login')
             return
         }
         
-        // Solo agregar si el producto NO está en el carrito
+        // Solo agregar si el producto NO está en el carrito local
         const existingItem = cart.find(item => item.id === productId)
-        if (!existingItem) {
-            setCart(prev => [...prev, { id: productId, quantity: 1 }])
+        if (existingItem) {
+            console.log('El producto ya está en el carrito')
+            return
         }
-        // Si ya está en el carrito, no hacer nada
+
+        try {
+            // Obtener el producto de los datos cargados del servidor
+            const product = productsData[productId]
+            if (!product) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Producto no encontrado',
+                    confirmButtonColor: '#A0A2BA',
+                    confirmButtonText: 'Aceptar'
+                })
+                return
+            }
+
+            console.log('Agregando producto al carrito desde favoritos:', {
+                DNI: currentUser.DNI,
+                ID_Producto: productId,
+                Total: product.price
+            })
+
+            // Agregar al carrito usando el servidor (igual que ProductList)
+            const response = await axios.post('http://localhost:3000/api/compras/carrito', {
+                DNI: currentUser.DNI,
+                ID_Producto: productId,
+                Total: product.price
+            })
+            
+            console.log('Respuesta del servidor al agregar:', response.data)
+            
+            // Actualizar el estado local
+            setCart(prev => [...prev, { id: productId, quantity: 1 }])
+            console.log('Producto agregado al carrito exitosamente desde favoritos')
+        } catch (error) {
+            console.error('Error al agregar al carrito desde favoritos:', error)
+            if (error.response) {
+                console.error('Error del servidor:', error.response.data)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.response.data?.Error || 'No se pudo agregar el producto al carrito',
+                    confirmButtonColor: '#A0A2BA',
+                    confirmButtonText: 'Aceptar'
+                })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'Verifica que el servidor esté funcionando.',
+                    confirmButtonColor: '#A0A2BA',
+                    confirmButtonText: 'Aceptar'
+                })
+            }
+        }
     }
 
     const viewProductDetails = (productId) => {
@@ -47,11 +143,37 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
         return cart.some(item => item.id === productId)
     }
 
+    // Función para verificar si una imagen es Base64 o URL
+    const isImageUrl = (img) => {
+        if (!img || typeof img !== 'string') return false
+        return img.startsWith('data:image/') || img.startsWith('http://') || img.startsWith('https://')
+    }
+
+    // Función para renderizar imagen
+    const renderProductImage = (product) => {
+        const image = product.image || product.image_1 || product.Imagen_1
+        if (isImageUrl(image)) {
+            return <img src={image} alt={product.name} className="product-image-img" />
+        }
+        return <span className="product-image-emoji">{image || 'Imagen no disponible'}</span>
+    }
+
+    if (loading) {
+        return (
+            <div className="favorites-container">
+                <div className="favorites-empty">
+                    <div className="empty-icon">Cargando...</div>
+                    <h2>Cargando favoritos...</h2>
+                </div>
+            </div>
+        )
+    }
+
     if (!isAuthenticated) {
         return (
             <div className="favorites-container">
                 <div className="favorites-empty">
-                    <div className="empty-icon">❤️</div>
+                    <div className="empty-icon">Favoritos</div>
                     <h2>Inicia sesión para ver tus favoritos</h2>
                     <p>Necesitas estar autenticado para acceder a tu lista de favoritos</p>
                     <button 
@@ -79,7 +201,7 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                 </div>
                 
                 <div className="favorites-empty">
-                    <div className="empty-icon">❤️</div>
+                    <div className="empty-icon">Favoritos</div>
                     <h2>No tienes favoritos aún</h2>
                     <p>¡Agrega productos a tu lista de favoritos para verlos aquí!</p>
                     <button 
@@ -121,7 +243,7 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                         onClick={() => viewProductDetails(product.id)}
                     >
                         <div className="item-image">
-                            {product.image}
+                            {renderProductImage(product)}
                             {product.isNew && <div className="new-badge">Nuevo</div>}
                         </div>
                         
@@ -130,8 +252,8 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                             <h3 className="item-name">{product.name}</h3>
                             <p className="item-description">{product.description}</p>
                             <div className="item-rating">
-                                <span className="stars">⭐</span>
-                                <span className="rating-value">{product.rating}</span>
+                                <AiFillStar className="star-icon" />
+                                <span className="rating-value">{product.rating} estrellas</span>
                             </div>
                             <div className="item-price">${product.price.toLocaleString()}</div>
                             <div className="item-stock">Stock disponible: {product.stock}</div>
@@ -146,23 +268,32 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                                 }}
                                 title="Quitar de favoritos"
                             >
-                                ❤️ Quitar
+                                Quitar de favoritos
                             </button>
                             
                             <button 
-                                className={`add-to-cart-btn ${isInCart(product.id) ? 'in-cart' : ''}`}
+                                className={(() => {
+                                    let buttonClass = "add-to-cart-btn"
+                                    if (isInCart(product.id)) {
+                                        buttonClass += " in-cart"
+                                    }
+                                    return buttonClass
+                                })()}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     addToCart(product.id);
                                 }}
                                 disabled={product.stock === 0}
                             >
-                                {product.stock === 0 
-                                    ? 'Sin Stock' 
-                                    : isInCart(product.id) 
-                                        ? 'En Carrito ✓' 
-                                        : 'Agregar al Carrito'
-                                }
+                                {(() => {
+                                    if (product.stock === 0) {
+                                        return 'Sin Stock'
+                                    } else if (isInCart(product.id)) {
+                                        return 'En Carrito ✓'
+                                    } else {
+                                        return 'Agregar al Carrito'
+                                    }
+                                })()}
                             </button>
                         </div>
                     </div>

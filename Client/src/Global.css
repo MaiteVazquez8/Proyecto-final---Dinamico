@@ -1,5 +1,62 @@
-*{
+/* ElectroShop - Estilos Globales */
+
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #EAEFEF;
+  color: #333446;
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #EAEFEF;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0F0F4;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #B8CFCE;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7F8CAA;
+}
+
+/* Focus states para accesibilidad */
+*:focus-visible {
+  outline: 2px solid #7F8CAA;
+  outline-offset: 2px;
+}
+
+/* Selección de texto */
+::selection {
+  background-color: rgba(184, 207, 206, 0.3);
+  color: #333446;
+}
+
+::-moz-selection {
+  background-color: rgba(184, 207, 206, 0.3);
+  color: #333446;
 }

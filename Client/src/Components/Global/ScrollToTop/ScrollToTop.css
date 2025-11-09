@@ -1,34 +1,67 @@
-/* Scroll to Top Button */
+/* Scroll to Top Button - Estético con colores de ElectroShop */
+
 .scroll-to-top-btn {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 50px;
-  height: 50px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  border: 2px solid #667eea;
+  bottom: 32px;
+  right: 32px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #333446 0%, #7F8CAA 100%);
+  color: #EAEFEF;
+  border: none;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(51, 52, 70, 0.3);
+  overflow: hidden;
+  outline: none;
+}
+
+.scroll-to-top-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.scroll-to-top-btn:hover::before {
+  left: 100%;
 }
 
 .scroll-to-top-btn:hover {
-  background: #667eea;
-  color: white;
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #7F8CAA 0%, #B8CFCE 100%);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(51, 52, 70, 0.4);
+  color: #333446;
 }
 
 .scroll-to-top-btn:active {
-  transform: translateY(0) scale(0.95);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.3);
+}
+
+.scroll-to-top-btn:focus-visible {
+  outline: 3px solid rgba(127, 140, 170, 0.5);
+  outline-offset: 3px;
+}
+
+/* Icono SVG */
+.scroll-to-top-btn svg {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.scroll-to-top-btn:hover svg {
+  transform: translateY(-2px);
 }
 
 /* Animación de entrada */
@@ -43,44 +76,35 @@
   }
 }
 
-/* Animación de pulso sutil */
-@keyframes pulse {
-  0% {
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  }
-  50% {
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-  100% {
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  }
-}
-
 .scroll-to-top-btn {
-  animation: fadeInUp 0.3s ease-out, pulse 2s infinite;
-}
-
-.scroll-to-top-btn:hover {
-  animation: none;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .scroll-to-top-btn {
-    width: 45px;
-    height: 45px;
-    bottom: 20px;
-    right: 20px;
-    font-size: 18px;
+    width: 50px;
+    height: 50px;
+    bottom: 24px;
+    right: 24px;
+  }
+
+  .scroll-to-top-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .scroll-to-top-btn {
-    width: 40px;
-    height: 40px;
-    bottom: 15px;
-    right: 15px;
-    font-size: 16px;
+    width: 48px;
+    height: 48px;
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .scroll-to-top-btn svg {
+    width: 18px;
+    height: 18px;
   }
 }

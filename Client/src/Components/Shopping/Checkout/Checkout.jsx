@@ -1,156 +1,41 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import './Checkout.css';
 
-const Checkout = ({
-    cartItems = [],
-    directProduct = null,
-    onBack,
-    purchaseType = 'cart' // 'cart' o 'direct'
-}) => {
+const Checkout = ({ onNavigate, currentUser, isAuthenticated, purchaseType = 'cart', onBack }) => {
     // Estados principales
-    const [currentStep, setCurrentStep] = useState(1);
-    const [selectedCurrency, setSelectedCurrency] = useState('ARS');
+    const [cartItems, setCartItems] = useState([]);
     const [selectedShipping, setSelectedShipping] = useState('');
     const [selectedPayment, setSelectedPayment] = useState('');
     const [orderComplete, setOrderComplete] = useState(false);
     const [loading, setLoading] = useState(false);
-
-    // Datos del formulario
+    const [mensaje, setMensaje] = useState('');
+    const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
-        // Datos personales
         firstName: '',
         lastName: '',
         email: '',
         phone: '',
-
-        // Dirección de envío
         address: '',
         city: '',
         state: '',
         zipCode: '',
         country: 'Argentina',
-
-        // Datos de pago
         cardNumber: '',
         cardName: '',
         expiryDate: '',
         cvv: '',
-
-        // Transferencia
         bankAccount: '',
         accountHolder: ''
     });
 
-    // Configuración de monedas
-    const currencies = {
-        ARS: { name: 'Peso Argentino', symbol: '$', rate: 1 },
-        USD: { name: 'Dólar Estadounidense', symbol: 'US$', rate: 0.0028 },
-        EUR: { name: 'Euro', symbol: '€', rate: 0.0026 },
-        BRL: { name: 'Real Brasileño', symbol: 'R$', rate: 0.014 }
-    };
-
-    // Determinar qué productos usar según el tipo de compra
-    const getProductsToProcess = () => {
-        if (purchaseType === 'direct' && directProduct) {
-            return [directProduct];
-        }
-        return cartItems || [];
-    };
-
-    const productsToProcess = getProductsToProcess();
-
-    // Si no hay productos, mostrar mensaje
-    if (!productsToProcess || productsToProcess.length === 0) {
-        return (
-            <div className="checkout-container">
-                <div className="checkout-card">
-                    <h2>{purchaseType === 'direct' ? 'Producto No Disponible' : 'Carrito Vacío'}</h2>
-                    <p>
-                        {purchaseType === 'direct'
-                            ? 'No se pudo cargar la información del producto.'
-                            : 'No hay productos en tu carrito para procesar.'
-                        }
-                    </p>
-                    <button
-                        className="checkout-btn primary"
-                        onClick={() => onBack ? onBack() : window.history.back()}
-                    >
-                        Volver a Comprar
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // Opciones de envío
-    const shippingOptions = [
-        {
-            id: 'pickup',
-            name: 'Retiro en Sucursal',
-            description: 'Retirá tu pedido en nuestras sucursales',
-            cost: 0,
-            time: '1-2 días hábiles'
-        },
-        {
-            id: 'standard',
-            name: 'Envío Estándar',
-            description: 'Envío a domicilio',
-            cost: 2500,
-            time: '3-5 días hábiles'
-        },
-        {
-            id: 'express',
-            name: 'Envío Express',
-            description: 'Envío rápido a domicilio',
-            cost: 4500,
-            time: '1-2 días hábiles'
-        }
-    ];
-
-    // Opciones de pago
-    const paymentOptions = [
-        {
-            id: 'mercadopago',
-            name: 'Mercado Pago',
-            description: 'Tarjetas de crédito y débito',
-            currencies: ['ARS'],
-            recommended: true
-        },
-        {
-            id: 'credit_card',
-            name: 'Tarjeta de Crédito',
-            description: 'Visa, Mastercard, American Express',
-            currencies: ['ARS']
-        },
-        {
-            id: 'bank_transfer',
-            name: 'Transferencia Bancaria',
-            description: 'Transferencia o depósito bancario',
-            currencies: ['ARS']
-        },
-        {
-            id: 'paypal',
-            name: 'PayPal',
-            description: 'Solo para moneda extranjera',
-            currencies: ['USD', 'EUR', 'BRL']
-        }
-    ];
-
-    // Calcular totales
-    const calculateTotals = () => {
-        const subtotal = productsToProcess.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const shippingCost = selectedShipping ? shippingOptions.find(opt => opt.id === selectedShipping)?.cost || 0 : 0;
-        const total = subtotal + shippingCost;
-
-        const currency = currencies[selectedCurrency];
-
-        return {
-            subtotal: subtotal * currency.rate,
-            shipping: shippingCost * currency.rate,
-            total: total * currency.rate,
-            symbol: currency.symbol
-        };
-    };
+    // Definir productos a procesar basado en el tipo de compra
+    const productsToProcess = purchaseType === 'direct' ? [] : (cartItems || []).map(item => ({
+        id: item.ID_Producto || item.id,
+        name: item.Nombre || item.name || 'Producto',
+        price: item.Precio || item.price || item.Total || 0,
+        quantity: item.Cantidad || item.quantity || 1
+    }));
 
     // Manejar cambios en el formulario
     const handleInputChange = (e) => {
@@ -163,64 +48,338 @@ const Checkout = ({
 
     // Validar paso actual
     const validateCurrentStep = () => {
-        switch (currentStep) {
-            case 1: // Información personal
-                return formData.firstName && formData.lastName && formData.email && formData.phone;
-            case 2: // Envío
-                if (selectedShipping === 'pickup') return true;
-                return selectedShipping && formData.address && formData.city && formData.state && formData.zipCode;
-            case 3: // Pago
-                if (selectedPayment === 'paypal') return true;
-                if (selectedPayment === 'mercadopago') return true;
-                if (selectedPayment === 'credit_card') {
-                    return formData.cardNumber && formData.cardName && formData.expiryDate && formData.cvv;
-                }
-                if (selectedPayment === 'bank_transfer') {
-                    return formData.bankAccount && formData.accountHolder;
-                }
-                return false;
-            default:
-                return false;
+        if (currentStep === 1) {
+            // Only require firstName and email in the form; apellido and telefono will be fetched from DB on submit
+            return formData.firstName && formData.email;
         }
+        if (currentStep === 2) {
+            if (!selectedShipping) return false;
+            // Si es retiro en sucursal, no se requieren los campos de dirección
+            // Pero los campos siempre estarán disponibles para guardar en la DB
+            if (selectedShipping !== 'Retiro en Sucursal') {
+                return formData.address && formData.city && formData.state && formData.zipCode;
+            }
+            // Para retiro en sucursal, los campos son opcionales pero pueden llenarse
+            return true;
+        }
+        if (currentStep === 3) {
+            if (!selectedPayment) return false;
+            if (selectedPayment === 'Tarjeta de Crédito') {
+                return formData.cardNumber && formData.cardName && formData.expiryDate && formData.cvv;
+            }
+            if (selectedPayment === 'Transferencia Bancaria') {
+                return formData.bankAccount && formData.accountHolder;
+            }
+            return true;
+        }
+        return false;
     };
 
-    // Avanzar al siguiente paso
+    // Navegar al siguiente paso
     const nextStep = () => {
         if (validateCurrentStep() && currentStep < 3) {
-            setCurrentStep(currentStep + 1);
+            setCurrentStep(prev => prev + 1);
+            setMensaje('');
+        } else {
+            setMensaje('Por favor completa todos los campos requeridos');
         }
     };
 
-    // Retroceder al paso anterior
+    // Navegar al paso anterior
     const prevStep = () => {
         if (currentStep > 1) {
-            setCurrentStep(currentStep - 1);
+            setCurrentStep(prev => prev - 1);
+            setMensaje('');
         }
+    };
+
+    // Función para formatear precio
+    const formatPrice = (price, symbol = '$') => {
+        if (!price) return `${symbol}0`;
+        return `${symbol}${price.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    };
+
+    // Monedas y cambio (simplificado)
+    const [selectedCurrency, setSelectedCurrency] = useState('ARS');
+    const currencies = {
+        ARS: { name: 'Peso Argentino', symbol: '$', rate: 1 },
+        USD: { name: 'Dólar Estadounidense', symbol: 'USD $', rate: 0.001 }
+    };
+
+    // Helper: try many possible paths to extract a field from currentUser
+    const pick = (obj, ...paths) => {
+        for (const p of paths) {
+            if (!p) continue;
+            // if path is array of keys, try nested
+            if (Array.isArray(p)) {
+                let v = obj;
+                let ok = true;
+                for (const k of p) {
+                    if (v == null) { ok = false; break; }
+                    v = v[k];
+                }
+                if (ok && v != null) return v;
+            } else {
+                if (obj == null) continue;
+                if (obj[p] != null) return obj[p];
+            }
+        }
+        return undefined;
+    }
+
+    const normalizeFromCurrentUser = (cu) => {
+        if (!cu) return {};
+        // If currentUser is an array or wraps user inside .user or .data, normalize to a single object
+        let u = cu;
+        if (Array.isArray(u) && u.length > 0) u = u[0];
+        if (u.user) u = u.user;
+        if (u.data) u = u.data;
+        // if string that looks like JSON
+        if (typeof u === 'string') {
+            try { u = JSON.parse(u); } catch (e) { /* ignore */ }
+        }
+
+        return {
+            firstName: pick(u, 'Nombre', 'nombre', 'firstName', 'FirstName', ['user','Nombre'], ['data','Nombre']) || '',
+            lastName: pick(u, 'Apellido', 'apellido', 'lastName', ['user','Apellido'], ['data','Apellido']) || '',
+            email: pick(u, 'Mail', 'mail', 'Email', 'email', ['user','Mail']) || '',
+            phone: pick(u, 'Telefono', 'telefono', 'phone', ['user','Telefono']) || '',
+            address: pick(u, 'Direccion', 'direccion', 'Address', ['user','Direccion']) || '',
+            city: pick(u, 'Ciudad', 'ciudad', ['user','Ciudad']) || '',
+            state: pick(u, 'Provincia', 'provincia', 'State', ['user','Provincia']) || '',
+            zipCode: pick(u, 'Cod_Postal', 'CodPostal', 'cod_postal', 'zipCode', ['user','Cod_Postal']) || ''
+        }
+    }
+
+    // Cargar carrito del servidor y prellenar datos del usuario
+    useEffect(() => {
+        if (isAuthenticated && currentUser) {
+            loadCartFromServer();
+            const normalized = normalizeFromCurrentUser(currentUser);
+            // ensure phone is string
+            if (normalized.phone != null) normalized.phone = String(normalized.phone);
+            setFormData(prev => ({ ...prev, ...normalized }));
+        }
+    }, [isAuthenticated, currentUser])
+
+    // Cargar datos completos del usuario para autocompletar
+    const loadUserData = async () => {
+        try {
+            const response = await axios.get(`http://localhost:3000/api/Login/cliente/${currentUser.DNI}`)
+            const userData = response.data
+            
+            // Parsear dirección si está disponible (puede incluir ciudad, provincia, etc.)
+            const direccionCompleta = userData.Direccion || ''
+            const partesDireccion = direccionCompleta.split(',').map(s => s.trim())
+            
+            setFormData(prev => ({
+                ...prev,
+                firstName: userData.Nombre || prev.firstName,
+                lastName: userData.Apellido || prev.lastName,
+                email: userData.Mail || prev.email,
+                phone: userData.Telefono ? String(userData.Telefono) : prev.phone,
+                address: partesDireccion[0] || prev.address,
+                city: partesDireccion[1] || prev.city,
+                state: partesDireccion[2] || prev.state,
+                zipCode: userData.Cod_Postal ? String(userData.Cod_Postal) : prev.zipCode
+            }))
+        } catch (error) {
+            console.error('Error al cargar datos del usuario:', error)
+            // Si falla, usar los datos básicos del currentUser
+            if (currentUser) {
+                setFormData(prev => ({
+                    ...prev,
+                    firstName: currentUser.Nombre || prev.firstName,
+                    lastName: currentUser.Apellido || prev.lastName,
+                    email: currentUser.Email || prev.email,
+                    phone: currentUser.Telefono ? String(currentUser.Telefono) : prev.phone
+                }))
+            }
+        }
+    }
+
+    const loadCartFromServer = async () => {
+        try {
+            setLoading(true)
+            // GET /api/compras/carrito/:DNI
+            const response = await axios.get(`http://localhost:3000/api/compras/carrito/${currentUser.DNI}`)
+            setCartItems(response.data)
+        } catch (error) {
+            console.error('Error al cargar carrito:', error)
+            setMensaje('Error al cargar el carrito')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Si no está autenticado
+    if (!isAuthenticated) {
+        return (
+            <div className="checkout-container">
+                <div className="checkout-card">
+                    <h2>Inicia sesión para continuar</h2>
+                    <p>Necesitas estar autenticado para realizar una compra.</p>
+                    <button
+                        className="checkout-btn primary"
+                        onClick={() => onNavigate('login')}
+                    >
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Si no hay productos, mostrar mensaje
+    if (!cartItems || cartItems.length === 0) {
+        return (
+            <div className="checkout-container">
+                <div className="checkout-card">
+                    <h2>Carrito Vacío</h2>
+                    <p>No hay productos en tu carrito para procesar.</p>
+                    <button
+                        className="checkout-btn primary"
+                        onClick={() => onNavigate('products')}
+                    >
+                        Volver a Comprar
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Opciones de envío
+    const shippingOptions = [
+        { id: 'Retiro en Sucursal', name: 'Retiro en Sucursal', description: 'Retirá tu pedido en nuestras sucursales', cost: 0, time: 'Inmediato' },
+        { id: 'Envío Estándar', name: 'Envío Estándar', description: 'Envío a domicilio', cost: 3000, time: '3-5 días hábiles' },
+        { id: 'Envío Express', name: 'Envío Express', description: 'Envío rápido a domicilio', cost: 5000, time: '1-2 días hábiles' }
+    ];
+
+    // Opciones de pago
+    const paymentOptions = [
+        { id: 'Tarjeta de Crédito', name: 'Tarjeta de Crédito', description: 'Visa, Mastercard, American Express', recommended: true },
+        { id: 'Transferencia Bancaria', name: 'Transferencia Bancaria', description: 'Transferencia o depósito bancario' },
+        { id: 'Efectivo', name: 'Efectivo', description: 'Pago en efectivo al recibir' }
+    ];
+
+    // Obtener opciones de pago disponibles según la moneda
+    const getAvailablePaymentOptions = () => {
+        if (selectedCurrency === 'ARS') {
+            return paymentOptions;
+        }
+        // Para otras monedas, solo PayPal (aunque no está implementado completamente)
+        return paymentOptions.filter(opt => opt.id === 'Tarjeta de Crédito' || opt.id === 'Transferencia Bancaria');
+    };
+
+    // Calcular totales
+    const calculateTotals = () => {
+        // Compute in base currency (ARS) first, then apply selected currency rate for display
+        const rate = (currencies[selectedCurrency] && currencies[selectedCurrency].rate) || 1;
+        // If cart rows may represent single units, try to respect quantity fields when present
+        const subtotalARS = cartItems.reduce((sum, item) => {
+            const price = (item.Total ?? item.Precio ?? item.price ?? 0);
+            const qty = (item.Cantidad ?? item.quantity ?? 1);
+            return sum + (price * qty);
+        }, 0);
+    const shippingCostARS = !selectedShipping ? 0 : (selectedShipping === 'Retiro en Sucursal' ? 0 : (selectedShipping === 'Envío Express' ? 5000 : 3000));
+        const subtotal = Math.round(subtotalARS * rate);
+        const shipping = shippingCostARS === 0 ? 0 : Math.round(shippingCostARS * rate);
+        const total = subtotal + shipping;
+        return {
+            subtotal,
+            shipping,
+            total,
+            symbol: currencies[selectedCurrency].symbol,
+            // expose raw ARS for debugging if needed
+            _debug_rawSubtotalARS: subtotalARS,
+            _debug_shippingARS: shippingCostARS
+        };
+    };
+
+    // Validar formulario
+    const validateForm = () => {
+        return selectedShipping && selectedPayment;
     };
 
     // Procesar compra
     const processOrder = async () => {
-        if (!validateCurrentStep()) return;
+        if (!validateForm()) {
+            setMensaje('Por favor completa todos los campos requeridos');
+            return;
+        }
 
         setLoading(true);
+        setMensaje('');
 
-        // Simular procesamiento
-        setTimeout(() => {
-            setLoading(false);
+        try {
+                // Use data from currentUser (normalized) to populate Apellido and Telefono
+                const normalizedClient = normalizeFromCurrentUser(currentUser);
+                const apellidoToSend = normalizedClient.lastName || formData.lastName || '';
+                const telefonoToSend = normalizedClient.phone ? String(normalizedClient.phone) : (formData.phone || '');
+            // Preparar datos de pago según el método seleccionado
+            let datosPago = {};
+            if (selectedPayment === 'Tarjeta de Crédito') {
+                datosPago = {
+                    tipo: 'tarjeta',
+                    ultimosDigitos: formData.cardNumber.slice(-4),
+                    nombre: formData.cardName
+                };
+            } else if (selectedPayment === 'Transferencia Bancaria') {
+                datosPago = {
+                    tipo: 'transferencia',
+                    cbu: formData.bankAccount,
+                    titular: formData.accountHolder
+                };
+            } else {
+                datosPago = {
+                    tipo: 'efectivo'
+                };
+            }
+
+            // POST /api/compras/compra (Apellido y Telefono se toman desde DB si fue posible)
+            const response = await axios.post('http://localhost:3000/api/compras/compra', {
+                DNI: currentUser.DNI,
+                Tipo_Envio: selectedShipping,
+                Metodo_Pago: selectedPayment,
+                // Datos del formulario
+                Nombre: formData.firstName,
+                Apellido: apellidoToSend,
+                Email: formData.email,
+                Telefono: telefonoToSend,
+                Direccion: formData.address,
+                Ciudad: formData.city,
+                Provincia: formData.state,
+                CodigoPostal: formData.zipCode,
+                Pais: formData.country,
+                DatosPago: datosPago
+            });
+
+            setMensaje(response.data.Mensaje);
             setOrderComplete(true);
-        }, 2000);
-    };
 
-    // Filtrar opciones de pago según moneda
-    const getAvailablePaymentOptions = () => {
-        return paymentOptions.filter(option =>
-            option.currencies.includes(selectedCurrency)
-        );
-    };
-
-    // Formatear precio
-    const formatPrice = (price, symbol) => {
-        return `${symbol} ${price.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            // Notify other components/tabs that a purchase completed so they can refresh stock
+            try {
+                const ts = Date.now();
+                // global var for same-tab consumers
+                window.__lastPurchaseTime = ts;
+                // storage for other tabs
+                localStorage.setItem('lastPurchase', String(ts));
+                // dispatch event with list of product ids processed
+                const productIds = productsToProcess.map(p => p.id);
+                window.dispatchEvent(new CustomEvent('purchaseCompleted', { detail: { time: ts, productIds } }));
+            } catch (e) {
+                // ignore
+            }
+        } catch (error) {
+            console.error('Error al procesar compra:', error);
+            if (error.response?.data?.Error) {
+                setMensaje(error.response.data.Error);
+            } else {
+                setMensaje('Error al procesar la compra');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     const totals = calculateTotals();
@@ -229,14 +388,14 @@ const Checkout = ({
         return (
             <div className="checkout-container">
                 <div className="success-message">
-                    <div className="success-icon">✅</div>
+                    <div className="success-icon">✓</div>
                     <h2>¡Compra Realizada con Éxito!</h2>
                     <p>Tu pedido ha sido procesado correctamente</p>
                     <div className="order-details">
-                        <p><strong>Número de Orden:</strong> #ORD-{Date.now()}</p>
-                        <p><strong>Total:</strong> {formatPrice(totals.total, totals.symbol)}</p>
-                        <p><strong>Método de Pago:</strong> {paymentOptions.find(p => p.id === selectedPayment)?.name}</p>
-                        <p><strong>Envío:</strong> {shippingOptions.find(s => s.id === selectedShipping)?.name}</p>
+                        <p><strong>Número de Orden:</strong><span>#ORD-{Date.now()}</span></p>
+                        <p><strong>Total:</strong><span>{formatPrice(totals.total, totals.symbol)}</span></p>
+                        <p><strong>Método de Pago:</strong><span>{paymentOptions.find(p => p.id === selectedPayment)?.name}</span></p>
+                        <p><strong>Envío:</strong><span>{shippingOptions.find(s => s.id === selectedShipping)?.name}</span></p>
                     </div>
                     <button
                         className="checkout-btn primary"
@@ -253,7 +412,7 @@ const Checkout = ({
         <div className="checkout-container">
             {/* Header */}
             <div className="checkout-header">
-                <button className="back-btn" onClick={() => onBack ? onBack() : window.history.back()}>
+                <button className="back-btn" onClick={() => onNavigate('cart')}>
                     ← Volver
                 </button>
                 <h1>
@@ -286,20 +445,29 @@ const Checkout = ({
                     {/* Selector de Moneda - Solo mostrar en el primer paso */}
                     {currentStep === 1 && (
                         <div className="currency-selector">
-                            <label>Moneda:</label>
-                            <select
-                                value={selectedCurrency}
-                                onChange={(e) => {
-                                    setSelectedCurrency(e.target.value);
-                                    setSelectedPayment(''); // Reset payment when currency changes
-                                }}
-                            >
+                            <h3 className="currency-label">Moneda</h3>
+                            <div className="currency-options">
                                 {Object.entries(currencies).map(([code, currency]) => (
-                                    <option key={code} value={code}>
-                                        {currency.symbol} {currency.name}
-                                    </option>
+                                    <button
+                                        key={code}
+                                        type="button"
+                                        className={`currency-option ${selectedCurrency === code ? 'selected' : ''}`}
+                                        onClick={() => {
+                                            setSelectedCurrency(code);
+                                            setSelectedPayment(''); // Reset payment when currency changes
+                                        }}
+                                    >
+                                        <div className="currency-symbol">{currency.symbol}</div>
+                                        <div className="currency-info">
+                                            <div className="currency-name">{currency.name}</div>
+                                            <div className="currency-code">{code}</div>
+                                        </div>
+                                        {selectedCurrency === code && (
+                                            <div className="currency-check">✓</div>
+                                        )}
+                                    </button>
                                 ))}
-                            </select>
+                            </div>
                         </div>
                     )}
 
@@ -318,32 +486,12 @@ const Checkout = ({
                                         required
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label>Apellido *</label>
-                                    <input
-                                        type="text"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
+                                <div className="form-group full-width">
                                     <label>Email *</label>
                                     <input
                                         type="email"
                                         name="email"
                                         value={formData.email}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Teléfono *</label>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
                                         onChange={handleInputChange}
                                         required
                                     />
@@ -384,50 +532,55 @@ const Checkout = ({
                                 ))}
                             </div>
 
-                            {/* Dirección de envío (solo si no es retiro en sucursal) */}
-                            {selectedShipping && selectedShipping !== 'pickup' && (
+                            {/* Dirección de envío - Siempre visible para guardar en DB del cliente */}
+                            {selectedShipping && (
                                 <div className="address-form">
-                                    <h3>Dirección de Envío</h3>
+                                    <h3>Dirección {selectedShipping === 'Retiro en Sucursal' ? '(Opcional - Se guardará en tu perfil)' : 'de Envío *'}</h3>
+                                    {selectedShipping === 'Retiro en Sucursal' && (
+                                        <p className="address-info">
+                                            Puedes completar tu dirección para guardarla en tu perfil. No es obligatorio para retiro en sucursal.
+                                        </p>
+                                    )}
                                     <div className="form-grid">
                                         <div className="form-group full-width">
-                                            <label>Dirección *</label>
+                                            <label>Dirección {selectedShipping !== 'Retiro en Sucursal' ? '*' : ''}</label>
                                             <input
                                                 type="text"
                                                 name="address"
                                                 value={formData.address}
                                                 onChange={handleInputChange}
                                                 placeholder="Calle y número"
-                                                required
+                                                required={selectedShipping !== 'Retiro en Sucursal'}
                                             />
                                         </div>
                                         <div className="form-group">
-                                            <label>Ciudad *</label>
+                                            <label>Ciudad {selectedShipping !== 'Retiro en Sucursal' ? '*' : ''}</label>
                                             <input
                                                 type="text"
                                                 name="city"
                                                 value={formData.city}
                                                 onChange={handleInputChange}
-                                                required
+                                                required={selectedShipping !== 'Retiro en Sucursal'}
                                             />
                                         </div>
                                         <div className="form-group">
-                                            <label>Provincia *</label>
+                                            <label>Provincia {selectedShipping !== 'Retiro en Sucursal' ? '*' : ''}</label>
                                             <input
                                                 type="text"
                                                 name="state"
                                                 value={formData.state}
                                                 onChange={handleInputChange}
-                                                required
+                                                required={selectedShipping !== 'Retiro en Sucursal'}
                                             />
                                         </div>
                                         <div className="form-group">
-                                            <label>Código Postal *</label>
+                                            <label>Código Postal {selectedShipping !== 'Retiro en Sucursal' ? '*' : ''}</label>
                                             <input
                                                 type="text"
                                                 name="zipCode"
                                                 value={formData.zipCode}
                                                 onChange={handleInputChange}
-                                                required
+                                                required={selectedShipping !== 'Retiro en Sucursal'}
                                             />
                                         </div>
                                         <div className="form-group">
@@ -490,7 +643,7 @@ const Checkout = ({
                             {/* Formularios de pago específicos */}
                             {selectedPayment && (
                                 <div className="payment-form">
-                                    {selectedPayment === 'credit_card' && (
+                                    {selectedPayment === 'Tarjeta de Crédito' && (
                                         <>
                                             <h3>Datos de la Tarjeta</h3>
                                             <div className="form-grid">
@@ -545,7 +698,7 @@ const Checkout = ({
                                         </>
                                     )}
 
-                                    {selectedPayment === 'bank_transfer' && (
+                                    {selectedPayment === 'Transferencia Bancaria' && (
                                         <>
                                             <h3>Datos para Transferencia</h3>
                                             <div className="form-grid">
@@ -575,15 +728,9 @@ const Checkout = ({
                                         </>
                                     )}
 
-                                    {selectedPayment === 'mercadopago' && (
+                                    {selectedPayment === 'Efectivo' && (
                                         <div className="paypal-info">
-                                            <p>Serás redirigido a Mercado Pago para completar el pago de forma segura.</p>
-                                        </div>
-                                    )}
-
-                                    {selectedPayment === 'paypal' && (
-                                        <div className="paypal-info">
-                                            <p>Serás redirigido a PayPal para completar el pago en {currencies[selectedCurrency].name}.</p>
+                                            <p>El pago se realizará en efectivo al recibir el producto. Asegúrate de tener el monto exacto.</p>
                                         </div>
                                     )}
                                 </div>

@@ -1,87 +1,260 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import Swal from 'sweetalert2'
+import { AiFillStar, AiOutlineStar } from "react-icons/ai"
 import "./ProductDetail.css"
 
-function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, favorites, setFavorites }) {
+function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, favorites, setFavorites, currentUser }) {
     const [quantity, setQuantity] = useState(1)
     const [activeTab, setActiveTab] = useState('description') // description, reviews
+    const [currentImageIndex, setCurrentImageIndex] = useState(0) // 0 para imagen 1, 1 para imagen 2
+    const [product, setProduct] = useState(null)
+    const [loading, setLoading] = useState(true)
     const [newReview, setNewReview] = useState({
         rating: 5,
         comment: '',
         title: ''
     })
-    const [reviews, setReviews] = useState([
-        {
-            id: 1,
-            user: 'Juan Pérez',
-            rating: 5,
-            title: 'Excelente producto',
-            comment: 'Muy buena calidad, llegó rápido y funciona perfecto. Lo recomiendo totalmente.',
-            date: '2024-01-15',
-            verified: true
-        },
-        {
-            id: 2,
-            user: 'María González',
-            rating: 4,
-            title: 'Buena compra',
-            comment: 'El producto cumple con las expectativas. La batería dura bastante y la pantalla se ve muy bien.',
-            date: '2024-01-10',
-            verified: true
-        },
-        {
-            id: 3,
-            user: 'Carlos López',
-            rating: 5,
-            title: 'Increíble',
-            comment: 'Superó mis expectativas. La calidad de construcción es excelente y el rendimiento es muy bueno.',
-            date: '2024-01-08',
-            verified: false
-        }
-    ])
+    const [reviews, setReviews] = useState([])
+    const [loadingReviews, setLoadingReviews] = useState(false)
 
-    // Base de datos de productos simplificada
-    const productsDatabase = {
-        1: {
-            id: 1,
-            name: 'iPhone 15 Pro Max',
-            brand: 'Apple',
-            price: 1199,
-            image: '📱',
-            description: 'El iPhone más avanzado hasta la fecha con el revolucionario chip A17 Pro.',
-            rating: 4.8,
-            stock: 15,
-            category: 'Smartphones',
-            isNew: true
-        },
-        2: {
-            id: 2,
-            name: 'MacBook Pro M3',
-            brand: 'Apple',
-            price: 1999,
-            image: '💻',
-            description: 'Potencia profesional con el nuevo chip M3 y pantalla Liquid Retina XDR.',
-            rating: 4.9,
-            stock: 8,
-            category: 'Laptops',
-            isNew: true
-        },
-        3: {
-            id: 3,
-            name: 'AirPods Pro 2',
-            brand: 'Apple',
-            price: 249,
-            image: '🎧',
-            description: 'Audio espacial personalizado con cancelación activa de ruido.',
-            rating: 4.7,
-            stock: 25,
-            category: 'Audio',
-            isNew: false
+    // Cargar producto del servidor
+    useEffect(() => {
+        const loadProduct = async () => {
+            try {
+                setLoading(true)
+                // Obtener todos los productos y buscar el que coincide con productId
+                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                const productsData = response.data || []
+                const productData = productsData.find(p => p.ID_Producto === productId)
+                
+                if (productData) {
+                    // Extraer marca del nombre del producto
+                    const getBrand = (name) => {
+                        if (!name) return 'ElectroShop'
+                        if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
+                        if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
+                        if (name.includes('Dell')) return 'Dell'
+                        if (name.includes('Sony')) return 'Sony'
+                        if (name.includes('Google') || name.includes('Pixel')) return 'Google'
+                        return 'ElectroShop'
+                    }
+
+                    const mappedProduct = {
+                        id: productData.ID_Producto,
+                        name: productData.Nombre || 'Producto sin nombre',
+                        brand: getBrand(productData.Nombre),
+                        price: productData.Precio || 0,
+                        image_1: productData.Imagen_1 || 'Imagen no disponible',
+                        image_2: productData.Imagen_2 || null,
+                        description: productData.Descripcion || 'Sin descripción disponible',
+                        rating: productData.Promedio_Calificacion || 4.5,
+                        stock: productData.Stock || 0,
+                        category: productData.Categoria || 'Otros',
+                        isNew: false,
+                        color: productData.Color,
+                        subcategoria: productData.Subcategoria
+                    }
+                    
+                    setProduct(mappedProduct)
+                } else {
+                    // Si no se encuentra, crear un producto por defecto
+                    setProduct({
+                        id: productId,
+                        name: 'Producto no encontrado',
+                        brand: 'ElectroShop',
+                        price: 0,
+                        image_1: 'Imagen no disponible',
+                        image_2: null,
+                        description: 'El producto solicitado no está disponible',
+                        rating: 0,
+                        stock: 0,
+                        category: 'Otros',
+                        isNew: false
+                    })
+                }
+            } catch (err) {
+                console.error('Error al cargar producto:', err)
+                    setProduct({
+                        id: productId,
+                        name: 'Error al cargar producto',
+                        brand: 'ElectroShop',
+                        price: 0,
+                        image_1: 'Imagen no disponible',
+                        image_2: null,
+                        description: 'No se pudo cargar la información del producto',
+                        rating: 0,
+                        stock: 0,
+                        category: 'Otros',
+                        isNew: false
+                    })
+            } finally {
+                setLoading(false)
+            }
         }
+
+        if (productId) {
+            loadProduct()
+        }
+    }, [productId])
+
+    // Listen for purchase events so we can refresh stock if this product was bought
+    useEffect(() => {
+        const onPurchase = (e) => {
+            try {
+                const detail = e?.detail || {};
+                const productIds = detail.productIds || [];
+                // If this product was among purchased products, reload
+                if (productId && productIds.includes(productId)) {
+                    // re-run loading
+                    (async () => {
+                        try {
+                            const response = await axios.get('http://localhost:3000/api/productos/productos')
+                            const productsData = response.data || []
+                            const productData = productsData.find(p => p.ID_Producto === productId)
+                            if (productData) {
+                                const getBrand = (name) => {
+                                    if (!name) return 'ElectroShop'
+                                    if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
+                                    if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
+                                    if (name.includes('Dell')) return 'Dell'
+                                    if (name.includes('Sony')) return 'Sony'
+                                    if (name.includes('Google') || name.includes('Pixel')) return 'Google'
+                                    return 'ElectroShop'
+                                }
+                                const mappedProduct = {
+                                    id: productData.ID_Producto,
+                                    name: productData.Nombre || 'Producto sin nombre',
+                                    brand: getBrand(productData.Nombre),
+                                    price: productData.Precio || 0,
+                                    image_1: productData.Imagen_1 || 'Imagen no disponible',
+                                    image_2: productData.Imagen_2 || null,
+                                    description: productData.Descripcion || 'Sin descripción disponible',
+                                    rating: productData.Promedio_Calificacion || 4.5,
+                                    stock: productData.Stock || 0,
+                                    category: productData.Categoria || 'Otros',
+                                    isNew: false,
+                                    color: productData.Color,
+                                    subcategoria: productData.Subcategoria
+                                }
+                                setProduct(mappedProduct)
+                            }
+                        } catch (err) {
+                            console.error('Error al recargar producto tras compra:', err)
+                        }
+                    })()
+                }
+            } catch (err) {
+                // ignore
+            }
+        }
+
+        window.addEventListener('purchaseCompleted', onPurchase)
+
+        // also listen to localStorage changes (other tabs)
+        const onStorage = (ev) => {
+            if (ev.key === 'lastPurchase') {
+                try {
+                    const productIds = []
+                    // If product was part of last purchase we don't have ids here, but reload just in case
+                    if (productId) {
+                        // reload product
+                        (async () => {
+                            try {
+                                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                                const productsData = response.data || []
+                                const productData = productsData.find(p => p.ID_Producto === productId)
+                                if (productData) {
+                                    const getBrand = (name) => {
+                                        if (!name) return 'ElectroShop'
+                                        if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
+                                        if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
+                                        if (name.includes('Dell')) return 'Dell'
+                                        if (name.includes('Sony')) return 'Sony'
+                                        if (name.includes('Google') || name.includes('Pixel')) return 'Google'
+                                        return 'ElectroShop'
+                                    }
+                                    const mappedProduct = {
+                                        id: productData.ID_Producto,
+                                        name: productData.Nombre || 'Producto sin nombre',
+                                        brand: getBrand(productData.Nombre),
+                                        price: productData.Precio || 0,
+                                        image_1: productData.Imagen_1 || 'Imagen no disponible',
+                                        image_2: productData.Imagen_2 || null,
+                                        description: productData.Descripcion || 'Sin descripción disponible',
+                                        rating: productData.Promedio_Calificacion || 4.5,
+                                        stock: productData.Stock || 0,
+                                        category: productData.Categoria || 'Otros',
+                                        isNew: false,
+                                        color: productData.Color,
+                                        subcategoria: productData.Subcategoria
+                                    }
+                                    setProduct(mappedProduct)
+                                }
+                            } catch (err) {
+                                console.error('Error al recargar producto tras storage event:', err)
+                            }
+                        })()
+                    }
+                } catch (err) {
+                    // ignore
+                }
+            }
+        }
+
+        window.addEventListener('storage', onStorage)
+
+        return () => {
+            window.removeEventListener('purchaseCompleted', onPurchase)
+            window.removeEventListener('storage', onStorage)
+        }
+    }, [productId])
+
+    // Cargar comentarios del servidor
+    useEffect(() => {
+        const loadComments = async () => {
+            if (!productId) return
+            
+            try {
+                setLoadingReviews(true)
+                const response = await axios.get(`http://localhost:3000/api/compras/comentarios/${productId}`)
+                const comments = response.data || []
+                
+                // Mapear comentarios del servidor al formato esperado
+                const mappedReviews = comments.map(comment => ({
+                    id: comment.ID_Comentario,
+                    user: comment.Nombre_Usuario || 'Usuario',
+                    rating: comment.Puntuacion || 5,
+                    title: comment.Titulo || 'Sin título',
+                    comment: comment.Texto || '',
+                    date: comment.Fecha || new Date().toISOString().split('T')[0],
+                    verified: false // Por ahora no verificamos compras
+                }))
+                
+                setReviews(mappedReviews)
+            } catch (err) {
+                console.error('Error al cargar comentarios:', err)
+                setReviews([])
+            } finally {
+                setLoadingReviews(false)
+            }
+        }
+
+        loadComments()
+    }, [productId])
+
+    // Si no hay producto o está cargando, mostrar loading
+    if (loading || !product) {
+        return (
+            <div className="product-detail-container">
+                <div className="loading-container">
+                    <p>Cargando producto...</p>
+                </div>
+            </div>
+        )
     }
 
-    const product = productsDatabase[productId] || productsDatabase[1]
-
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!isAuthenticated) {
             onNavigate('login')
             return
@@ -89,11 +262,25 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
         
         // Solo agregar si el producto NO está en el carrito
         const existingItem = cart.find(item => item.id === productId)
-        if (!existingItem) {
+        if (existingItem) {
+            console.log('El producto ya está en el carrito')
+            return
+        }
+
+        try {
+            // Agregar al servidor (igual que favoritos)
+            await axios.post('http://localhost:3000/api/compras/carrito', {
+                DNI: currentUser?.DNI,
+                ID_Producto: productId,
+                Total: product.price * quantity
+            })
+            
+            // Actualizar el estado local (igual que favoritos)
             setCart(prev => [...prev, { id: productId, quantity: quantity }])
             console.log(`Agregado al carrito: ${quantity} x ${product.name}`)
+        } catch (error) {
+            console.error('Error al agregar al carrito:', error)
         }
-        // Si ya está en el carrito, no hacer nada
     }
 
     const handleBuyNow = () => {
@@ -102,17 +289,34 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
             return
         }
         
-        // Ir directamente al checkout con el producto específico
-        console.log('Buy now clicked, navigating to checkout with product:', product)
-        onNavigate('checkout', { 
-            directProduct: {
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                quantity: quantity
-            },
-            purchaseType: 'direct'
-        })
+        // Si ya está en el carrito, simplemente navegar al checkout
+        const existingItem = cart.find(item => item.id === productId)
+        if (existingItem) {
+            onNavigate('checkout')
+            return
+        }
+
+        // Agregar al carrito primero (una unidad por cantidad seleccionada) y luego ir al checkout
+        // Esto permite reutilizar la lógica existente del Checkout que lee el carrito del servidor
+        (async () => {
+            try {
+                await axios.post('http://localhost:3000/api/compras/carrito', {
+                    DNI: currentUser?.DNI,
+                    ID_Producto: productId,
+                    Total: product.price * quantity
+                })
+
+                // Actualizar estado local del carrito para sincronizar UI
+                setCart(prev => [...prev, { id: productId, quantity }])
+
+                // Navegar al checkout (uso flujo de carrito)
+                onNavigate('checkout')
+            } catch (error) {
+                console.error('Error al agregar al carrito para comprar ahora:', error)
+                // Si hay error, aún navegar al checkout para que el usuario pueda intentar desde allí
+                onNavigate('checkout')
+            }
+        })()
     }
 
     const toggleFavorite = () => {
@@ -138,7 +342,150 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
     }
 
     const renderStars = (rating) => {
-        return '⭐'.repeat(Math.floor(rating))
+        const full = Math.floor(rating)
+        const stars = []
+        for (let i = 1; i <= 5; i++) {
+            stars.push(i <= full ? <AiFillStar key={i} className="star-icon" /> : <AiOutlineStar key={i} className="star-icon" />)
+        }
+        return <span className="stars-icon-list">{stars}</span>
+    }
+
+    // Funciones auxiliares para simplificar el código
+    const getStockStatusClass = () => {
+        let statusClass = "stock-status"
+        if (product.stock > 0) {
+            statusClass += " in-stock"
+        } else {
+            statusClass += " out-stock"
+        }
+        return statusClass
+    }
+
+    const getStockStatusText = () => {
+        if (product.stock > 0) {
+            return `En stock (${product.stock} disponibles)`
+        } else {
+            return 'Sin stock'
+        }
+    }
+
+    const getFavoriteButtonClass = () => {
+        let buttonClass = "favorite-btn-large"
+        if (isInFavorites()) {
+            buttonClass += " active"
+        }
+        return buttonClass
+    }
+
+    const getFavoriteButtonText = () => {
+        if (isInFavorites()) {
+            return 'En Favoritos'
+        } else {
+            return 'Agregar a Favoritos'
+        }
+    }
+
+    const getAddToCartButtonClass = () => {
+        let buttonClass = "add-to-cart-btn-large"
+        if (isInCart()) {
+            buttonClass += " in-cart"
+        }
+        return buttonClass
+    }
+
+    const getAddToCartButtonText = () => {
+        if (product.stock === 0) {
+            return 'Sin Stock'
+        } else if (isInCart()) {
+            return 'Ya está en el carrito'
+        } else {
+            return 'Agregar al Carrito'
+        }
+    }
+
+    const getTabHeaderClass = (tabName) => {
+        let tabClass = "tab-header"
+        if (activeTab === tabName) {
+            tabClass += " active"
+        }
+        return tabClass
+    }
+
+    const getStarButtonClass = (star, currentRating) => {
+        let starClass = "star-btn"
+        if (star <= currentRating) {
+            starClass += " active"
+        }
+        return starClass
+    }
+
+    // Funciones para manejar el cambio de imágenes
+    const getCurrentImage = () => {
+        const images = getProductImages()
+        if (images.length > 0) {
+            return images[currentImageIndex] || images[0]
+        }
+        return 'Imagen no disponible' // Imagen por defecto si no hay ninguna
+    }
+
+    const getProductImages = () => {
+        const images = []
+        // Primero intentar con image_1 e image_2 (formato del mock)
+        if (product.image_1) images.push(product.image_1)
+        if (product.image_2) images.push(product.image_2)
+        
+        // Si no hay image_1/image_2, usar image (formato del servidor)
+        // Si solo hay una imagen, duplicarla para tener dos (opcional)
+        if (images.length === 0 && product.image) {
+            images.push(product.image)
+            // Si hay Imagen_2 en el producto original, agregarla también
+            if (product.Imagen_2) {
+                images.push(product.Imagen_2)
+            }
+        }
+        
+        return images
+    }
+
+    // Función para verificar si una imagen es Base64 o URL
+    const isImageUrl = (img) => {
+        if (!img || typeof img !== 'string') return false
+        return img.startsWith('data:image/') || img.startsWith('http://') || img.startsWith('https://')
+    }
+
+    // Función para renderizar una imagen correctamente
+    const renderImage = (img, alt = product.name, className = 'product-image-large') => {
+        if (isImageUrl(img)) {
+            return <img src={img} alt={alt} className={className} />
+        }
+        // Si no es una URL Base64, mostrar como texto
+        return <div className={className}>{img}</div>
+    }
+
+    // Función para renderizar miniatura
+    const renderThumbnail = (img, index) => {
+        if (isImageUrl(img)) {
+            return <img src={img} alt={`Imagen ${index + 1}`} className="thumbnail-img" />
+        }
+        return <div className="thumbnail-image">{img}</div>
+    }
+
+    const handleImageChange = (index) => {
+        setCurrentImageIndex(index)
+    }
+
+    const handleNextImage = () => {
+        const images = getProductImages()
+        if (images.length > 1) {
+            setCurrentImageIndex((prev) => (prev + 1) % images.length)
+        }
+    }
+
+    const handlePrevImage = () => {
+        const images = getProductImages()
+        if (images.length > 1) {
+            setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+        }
     }
 
     // Funciones para reseñas
@@ -149,17 +496,17 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                     <button
                         key={star}
                         type="button"
-                        className={`star-btn ${star <= currentRating ? 'active' : ''}`}
+                        className={getStarButtonClass(star, currentRating)}
                         onClick={() => onRatingChange(star)}
                     >
-                        ⭐
+                        <AiFillStar />
                     </button>
                 ))}
             </div>
         )
     }
 
-    const handleReviewSubmit = (e) => {
+    const handleReviewSubmit = async (e) => {
         e.preventDefault()
         
         if (!isAuthenticated) {
@@ -168,31 +515,91 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
         }
 
         if (!newReview.title.trim() || !newReview.comment.trim()) {
-            alert('Por favor completa todos los campos')
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos incompletos',
+                text: 'Por favor completa todos los campos',
+                confirmButtonColor: '#B8CFCE',
+                confirmButtonText: 'Aceptar'
+            })
             return
         }
 
-        const review = {
-            id: reviews.length + 1,
-            user: 'Usuario Actual', // En una app real vendría del usuario logueado
-            rating: newReview.rating,
-            title: newReview.title,
-            comment: newReview.comment,
-            date: new Date().toISOString().split('T')[0],
-            verified: true
-        }
+        try {
+            // Guardar comentario en el servidor
+            await axios.post('http://localhost:3000/api/compras/comentario', {
+                DNI: currentUser?.DNI,
+                ID_Producto: productId,
+                Texto: newReview.comment.trim(),
+                Titulo: newReview.title.trim(),
+                Puntuacion: newReview.rating
+            })
 
-        setReviews(prev => [review, ...prev])
-        setNewReview({ rating: 5, comment: '', title: '' })
-        
-        // Actualizar rating promedio del producto (simulado)
-        const newAverage = (reviews.reduce((sum, r) => sum + r.rating, 0) + review.rating) / (reviews.length + 1)
-        console.log('Nuevo rating promedio:', newAverage.toFixed(1))
+            // Crear el review local con los datos del usuario actual
+            const review = {
+                id: Date.now(), // ID temporal hasta que se recargue desde el servidor
+                user: `${currentUser?.Nombre || ''} ${currentUser?.Apellido || ''}`.trim() || 'Usuario',
+                rating: newReview.rating,
+                title: newReview.title.trim(),
+                comment: newReview.comment.trim(),
+                date: new Date().toISOString().split('T')[0],
+                verified: false
+            }
+
+            // Agregar a la lista local inmediatamente
+            setReviews(prev => [review, ...prev])
+            setNewReview({ rating: 5, comment: '', title: '' })
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Tu comentario ha sido guardado correctamente',
+                confirmButtonColor: '#B8CFCE',
+                confirmButtonText: 'Aceptar'
+            })
+
+            // Recargar comentarios desde el servidor para obtener el ID real
+            setTimeout(() => {
+                axios.get(`http://localhost:3000/api/compras/comentarios/${productId}`)
+                    .then(response => {
+                        const comments = response.data || []
+                        const mappedReviews = comments.map(comment => ({
+                            id: comment.ID_Comentario,
+                            user: comment.Nombre_Usuario || 'Usuario',
+                            rating: comment.Puntuacion || 5,
+                            title: comment.Titulo || 'Sin título',
+                            comment: comment.Texto || '',
+                            date: comment.Fecha || new Date().toISOString().split('T')[0],
+                            verified: false
+                        }))
+                        setReviews(mappedReviews)
+                    })
+                    .catch(err => console.error('Error al recargar comentarios:', err))
+            }, 500)
+
+        } catch (error) {
+            console.error('Error al guardar comentario:', error)
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.response?.data?.Error || 'No se pudo guardar el comentario',
+                confirmButtonColor: '#A0A2BA',
+                confirmButtonText: 'Aceptar'
+            })
+        }
     }
 
     const getAverageRating = () => {
-        if (reviews.length === 0) return product.rating
-        return (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+        if (reviews.length === 0) {
+            return product?.rating || 0
+        }
+        // Calcular promedio solo de comentarios con puntuación
+        const reviewsWithRating = reviews.filter(r => r.rating && r.rating > 0)
+        if (reviewsWithRating.length === 0) {
+            return product?.rating || 0
+        }
+        const average = reviewsWithRating.reduce((sum, review) => sum + review.rating, 0) / reviewsWithRating.length
+        return parseFloat(average.toFixed(1))
     }
 
     const getRatingDistribution = () => {
@@ -218,11 +625,66 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                 {/* Imagen del producto */}
                 <div className="product-gallery">
                     <div className="main-image">
-                        <div className="product-image-large">
-                            {product.image}
-                        </div>
+                        {renderImage(getCurrentImage(), product.name, 'product-image-large')}
+                        
+                        {/* Botón anterior (solo si hay más de una imagen) */}
+                        {(() => {
+                            const images = getProductImages()
+                            if (images.length > 1) {
+                                return (
+                                    <button 
+                                        className="image-nav-btn prev-btn"
+                                        onClick={handlePrevImage}
+                                        title="Imagen anterior"
+                                    >
+                                        ‹
+                                    </button>
+                                )
+                            }
+                            return null
+                        })()}
+                        
+                        {/* Botón siguiente (solo si hay más de una imagen) */}
+                        {(() => {
+                            const images = getProductImages()
+                            if (images.length > 1) {
+                                return (
+                                    <button 
+                                        className="image-nav-btn next-btn"
+                                        onClick={handleNextImage}
+                                        title="Siguiente imagen"
+                                    >
+                                        ›
+                                    </button>
+                                )
+                            }
+                            return null
+                        })()}
+                        
                         {product.isNew && <div className="new-badge-large">Nuevo</div>}
                     </div>
+                    
+                    {/* Miniaturas de imágenes */}
+                    {(() => {
+                        const images = getProductImages()
+                        if (images.length > 1) {
+                            return (
+                                <div className="image-thumbnails">
+                                    {images.map((img, index) => (
+                                        <button
+                                            key={index}
+                                            className={`thumbnail ${currentImageIndex === index ? 'active' : ''}`}
+                                            onClick={() => handleImageChange(index)}
+                                            title={`Ver imagen ${index + 1}`}
+                                        >
+                                            {renderThumbnail(img, index)}
+                                        </button>
+                                    ))}
+                                </div>
+                            )
+                        }
+                        return null
+                    })()}
                 </div>
 
                 {/* Información del producto */}
@@ -241,8 +703,8 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                     <div className="product-pricing">
                         <span className="current-price">${product.price.toLocaleString()}</span>
                         <div className="stock-info">
-                            <span className={`stock-status ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}>
-                                {product.stock > 0 ? `✅ En stock (${product.stock} disponibles)` : '❌ Sin stock'}
+                            <span className={getStockStatusClass()}>
+                                {getStockStatusText()}
                             </span>
                         </div>
                     </div>
@@ -253,7 +715,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
 
                     {/* Controles de compra */}
                     <div className="purchase-controls">
-                        <div className="quantity-selector">
+            <div className="quantity-selector">
                             <label>Cantidad:</label>
                             <div className="quantity-controls">
                                 <button 
@@ -275,23 +737,18 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
 
                         <div className="action-buttons">
                             <button 
-                                className={`favorite-btn-large ${isInFavorites() ? 'active' : ''}`}
+                                className={getFavoriteButtonClass()}
                                 onClick={toggleFavorite}
                             >
-                                {isInFavorites() ? '❤️' : '🤍'} {isInFavorites() ? 'En Favoritos' : 'Agregar a Favoritos'}
+                                {getFavoriteButtonText()}
                             </button>
                             
                             <button 
-                                className={`add-to-cart-btn-large ${isInCart() ? 'in-cart' : ''}`}
+                                className={getAddToCartButtonClass()}
                                 onClick={handleAddToCart}
                                 disabled={product.stock === 0}
                             >
-                                {product.stock === 0 
-                                    ? '❌ Sin Stock' 
-                                    : isInCart() 
-                                        ? '✅ Ya está en el carrito' 
-                                        : '🛒 Agregar al Carrito'
-                                }
+                                {getAddToCartButtonText()}
                             </button>
                             
                             <button 
@@ -299,7 +756,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                                 onClick={handleBuyNow}
                                 disabled={product.stock === 0}
                             >
-                                💳 Comprar Ahora
+                                Comprar Ahora
                             </button>
                         </div>
                     </div>
@@ -310,13 +767,13 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
             <div className="product-tabs">
                 <div className="tab-headers">
                     <button 
-                        className={`tab-header ${activeTab === 'description' ? 'active' : ''}`}
+                        className={getTabHeaderClass('description')}
                         onClick={() => setActiveTab('description')}
                     >
                         Descripción
                     </button>
                     <button 
-                        className={`tab-header ${activeTab === 'reviews' ? 'active' : ''}`}
+                        className={getTabHeaderClass('reviews')}
                         onClick={() => setActiveTab('reviews')}
                     >
                         Reseñas ({reviews.length})
@@ -360,7 +817,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                                             const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0
                                             return (
                                                 <div key={star} className="rating-bar">
-                                                    <span className="star-label">{star} ⭐</span>
+                                                    <span className="star-label">{star} <AiFillStar /></span>
                                                     <div className="progress-bar">
                                                         <div 
                                                             className="progress-fill" 
@@ -432,7 +889,9 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                             {/* Lista de Reseñas */}
                             <div className="reviews-list">
                                 <h3>Todas las Reseñas</h3>
-                                {reviews.length === 0 ? (
+                                {loadingReviews ? (
+                                    <p className="no-reviews">Cargando comentarios...</p>
+                                ) : reviews.length === 0 ? (
                                     <p className="no-reviews">Aún no hay reseñas para este producto. ¡Sé el primero en escribir una!</p>
                                 ) : (
                                     reviews.map(review => (

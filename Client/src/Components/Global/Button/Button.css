@@ -1,0 +1,231 @@
+/* Botón Estético - ElectroShop Style */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-primary, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  outline: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Tamaños */
+.btn-small {
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.btn-medium {
+  padding: 14px 28px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.btn-large {
+  padding: 18px 36px;
+  font-size: 18px;
+  border-radius: 10px;
+}
+
+/* Variante Primary - Azul Oscuro */
+.btn-primary {
+  background: linear-gradient(135deg, #333446 0%, #45465F 100%);
+  color: #EAEFEF;
+  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #45465F 0%, #585979 100%);
+  box-shadow: 0 6px 20px rgba(51, 52, 70, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(51, 52, 70, 0.25);
+}
+
+/* Variante Secondary - Azul Medio */
+.btn-secondary {
+  background: linear-gradient(135deg, #7F8CAA 0%, #8687A7 100%);
+  color: #EAEFEF;
+  box-shadow: 0 4px 12px rgba(127, 140, 170, 0.25);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8687A7 0%, #A0A2BA 100%);
+  box-shadow: 0 6px 20px rgba(127, 140, 170, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(127, 140, 170, 0.25);
+}
+
+/* Variante Accent - Verde Suave */
+.btn-accent {
+  background: linear-gradient(135deg, #B8CFCE 0%, #9EBDBB 100%);
+  color: #333446;
+  box-shadow: 0 4px 12px rgba(184, 207, 206, 0.3);
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: linear-gradient(135deg, #9EBDBB 0%, #83AAA8 100%);
+  color: #1E1F29;
+  box-shadow: 0 6px 20px rgba(184, 207, 206, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-accent:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(184, 207, 206, 0.3);
+}
+
+/* Variante Outline */
+.btn-outline {
+  background: transparent;
+  color: #333446;
+  border: 2px solid #333446;
+  box-shadow: 0 2px 8px rgba(51, 52, 70, 0.1);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #333446;
+  color: #EAEFEF;
+  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.25);
+  transform: translateY(-2px);
+}
+
+.btn-outline:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(51, 52, 70, 0.1);
+}
+
+/* Variante Ghost */
+.btn-ghost {
+  background: transparent;
+  color: #7F8CAA;
+  border: 2px solid transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(127, 140, 170, 0.1);
+  color: #333446;
+  border-color: rgba(127, 140, 170, 0.3);
+}
+
+.btn-ghost:active:not(:disabled) {
+  background: rgba(127, 140, 170, 0.15);
+}
+
+/* Estado Disabled */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn:disabled::before {
+  display: none;
+}
+
+/* Focus para accesibilidad */
+.btn:focus-visible {
+  outline: 3px solid rgba(127, 140, 170, 0.5);
+  outline-offset: 2px;
+}
+
+/* Animación de carga (opcional) */
+.btn-loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .btn-medium {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  .btn-large {
+    padding: 16px 32px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-small {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .btn-medium {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .btn-large {
+    padding: 14px 28px;
+    font-size: 15px;
+  }
+}
+

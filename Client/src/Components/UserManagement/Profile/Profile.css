@@ -1,3 +1,23 @@
+/* Logo Header Container */
+.logo-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.login-logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.login-header .login-title {
+    margin: 0;
+    display: inline-block;
+}
+
 .profile-info {
     margin: 1.5rem 0;
 }
@@ -7,7 +27,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid #B8CFCE;
 }
 
 .profile-field:last-child {
@@ -16,12 +36,12 @@
 
 .profile-label {
     font-weight: 600;
-    color: #333;
+    color: #333446;
     font-size: 0.9rem;
 }
 
 .profile-value {
-    color: #666;
+    color: #585979;
     font-size: 0.9rem;
 }
 
@@ -34,7 +54,7 @@
 
 .profile-button {
     padding: 0.75rem 1.5rem;
-    border: 2px solid;
+    border: 1px solid;
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 500;
@@ -45,25 +65,29 @@
 }
 
 .edit-button {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: #7F8CAA;
+    color: #333446;
 }
 
 .edit-button:hover {
-    background-color: #667eea;
-    color: white;
+    background-color: #7F8CAA;
+    color: #EAEFEF;
+    border-color: #6B6D94;
     transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(127, 140, 170, 0.3);
 }
 
 .delete-button {
-    border-color: #ff6b6b;
-    color: #ff6b6b;
+    border-color: #A0A2BA;
+    color: #333446;
 }
 
 .delete-button:hover {
-    background-color: #ff6b6b;
-    color: white;
+    background-color: #8687A7;
+    color: #EAEFEF;
+    border-color: #6B6D94;
     transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(134, 135, 167, 0.3);
 }
 
 .profile-button:active {

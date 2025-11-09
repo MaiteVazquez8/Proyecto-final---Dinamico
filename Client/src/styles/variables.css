@@ -1,0 +1,185 @@
+/* ElectroShop - Variables de Colores Globales */
+
+:root {
+  /* Paleta Principal */
+  --color-primary-dark: #333446;      /* Azul Oscuro - Confianza y estabilidad */
+  --color-primary-medium: #7F8CAA;    /* Azul Medio - Calma y tecnología */
+  --color-primary-light: #B8CFCE;     /* Verde Suave - Paz y armonía */
+  --color-neutral-light: #EAEFEF;     /* Gris Claro/Blanco Azulado - Neutralidad */
+
+  /* Degradados Azul */
+  --color-blue-lightest: #F0F0F4;
+  --color-blue-lighter: #D6D6E1;
+  --color-blue-light: #BBBCCE;
+  --color-blue-medium-light: #A0A2BA;
+  --color-blue-medium: #8687A7;
+  --color-blue-medium-dark: #6B6D94;
+  --color-blue-dark: #585979;
+  --color-blue-darker: #45465F;
+  --color-blue-darkest: #1E1F29;
+  --color-blue-black: #0B0B0F;
+
+  /* Degradados Verde */
+  --color-green-lightest: #F0F5F4;
+  --color-green-lighter: #D5E2E1;
+  --color-green-light: #B8CFCE;
+  --color-green-medium-light: #9EBDBB;
+  --color-green-medium: #83AAA8;
+  --color-green-medium-dark: #679895;
+  --color-green-dark: #557C7A;
+  --color-green-darker: #426160;
+  --color-green-darkest: #304645;
+  --color-green-black: #1D2A2A;
+
+  /* Colores Complementarios */
+  --color-comp-blue-dark: #463C33;
+  --color-comp-blue-green: #3D4633;
+  --color-comp-medium-orange: #AA887F;
+  --color-comp-medium-yellow: #A1AA7F;
+  --color-comp-light-pink: #CFB8C5;
+  --color-comp-light-beige: #CFC2B8;
+
+  /* Sombras y Efectos */
+  --shadow-light: 0 2px 8px rgba(51, 52, 70, 0.1);
+  --shadow-medium: 0 4px 12px rgba(51, 52, 70, 0.15);
+  --shadow-heavy: 0 8px 24px rgba(51, 52, 70, 0.2);
+  
+  /* Transiciones */
+  --transition-fast: 0.2s ease;
+  --transition-medium: 0.3s ease;
+  --transition-slow: 0.5s ease;
+
+  /* Bordes */
+  --border-radius-small: 4px;
+  --border-radius-medium: 8px;
+  --border-radius-large: 12px;
+  --border-radius-xl: 20px;
+
+  /* Espaciado */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* Tipografía */
+  --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-xxl: 32px;
+}
+
+/* Reset básico con colores de marca */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-primary);
+  background-color: var(--color-neutral-light);
+  color: var(--color-primary-dark);
+  line-height: 1.6;
+}
+
+/* Clases utilitarias para colores */
+.text-primary { color: var(--color-primary-dark); }
+.text-secondary { color: var(--color-primary-medium); }
+.text-accent { color: var(--color-primary-light); }
+.text-muted { color: var(--color-blue-medium-light); }
+
+.bg-primary { background-color: var(--color-primary-dark); }
+.bg-secondary { background-color: var(--color-primary-medium); }
+.bg-accent { background-color: var(--color-primary-light); }
+.bg-light { background-color: var(--color-neutral-light); }
+.bg-surface { background-color: var(--color-blue-lightest); }
+
+/* Botones base con colores de marca */
+.btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-medium);
+  font-family: var(--font-family-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-medium);
+  border: 2px solid transparent;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: var(--color-primary-dark);
+  color: var(--color-neutral-light);
+  border-color: var(--color-primary-dark);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-blue-darker);
+  border-color: var(--color-blue-darker);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-primary-dark);
+  color: var(--color-neutral-light);
+}
+
+.btn-accent {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border-color: var(--color-primary-light);
+}
+
+.btn-accent:hover {
+  background-color: var(--color-green-medium-dark);
+  border-color: var(--color-green-medium-dark);
+  color: var(--color-neutral-light);
+}
+
+/* Cards base */
+.card {
+  background-color: var(--color-neutral-light);
+  border: 1px solid var(--color-blue-lighter);
+  border-radius: var(--border-radius-medium);
+  box-shadow: var(--shadow-light);
+  transition: var(--transition-medium);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-medium);
+  border-color: var(--color-primary-medium);
+}
+
+/* Inputs base */
+.input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--color-blue-lighter);
+  border-radius: var(--border-radius-medium);
+  background-color: var(--color-blue-lightest);
+  color: var(--color-primary-dark);
+  font-family: var(--font-family-primary);
+  transition: var(--transition-medium);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary-medium);
+  background-color: var(--color-neutral-light);
+  box-shadow: 0 0 0 3px rgba(127, 140, 170, 0.1);
+}
+
+.input::placeholder {
+  color: var(--color-blue-medium-light);
+}

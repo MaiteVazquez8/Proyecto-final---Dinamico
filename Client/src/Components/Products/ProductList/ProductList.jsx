@@ -1,148 +1,310 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import Swal from 'sweetalert2'
+import { 
+    AiOutlineShoppingCart, 
+    AiOutlineHeart, 
+    AiOutlineSearch,
+    AiOutlineLoading3Quarters,
+    AiOutlineExclamationCircle,
+    AiOutlineInbox
+} from "react-icons/ai"
+import ProductCard from "../ProductCard/ProductCard"
 import "./ProductList.css"
 
 function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart, setCart, favorites, setFavorites }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('all')
+    const [selectedSubcategory, setSelectedSubcategory] = useState('all')
     const [priceRange, setPriceRange] = useState('all')
     const [sortBy, setSortBy] = useState('name')
+    const [products, setProducts] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
 
-    // Base de datos de productos
-    const products = [
-        {
-            id: 1,
-            name: 'iPhone 15 Pro Max',
-            category: 'phones',
-            price: 1199,
-            image: '📱',
-            description: 'El iPhone más avanzado con chip A17 Pro y cámara de 48MP',
-            brand: 'Apple',
-            rating: 4.8,
-            stock: 15,
-            isNew: true
-        },
-        {
-            id: 2,
-            name: 'MacBook Pro M3',
-            category: 'laptops',
-            price: 1999,
-            image: '💻',
-            description: 'Potencia profesional con el nuevo chip M3 y pantalla Liquid Retina XDR',
-            brand: 'Apple',
-            rating: 4.9,
-            stock: 8,
-            isNew: true
-        },
-        {
-            id: 3,
-            name: 'AirPods Pro 2',
-            category: 'audio',
-            price: 249,
-            image: '🎧',
-            description: 'Audio espacial personalizado con cancelación activa de ruido',
-            brand: 'Apple',
-            rating: 4.7,
-            stock: 25,
-            isNew: false
-        },
-        {
-            id: 4,
-            name: 'iPad Pro 12.9"',
-            category: 'tablets',
-            price: 1099,
-            image: '📱',
-            description: 'La experiencia iPad definitiva con chip M2 y pantalla Liquid Retina XDR',
-            brand: 'Apple',
-            rating: 4.8,
-            stock: 12,
-            isNew: false
-        },
-        {
-            id: 5,
-            name: 'Samsung Galaxy S24 Ultra',
-            category: 'phones',
-            price: 1299,
-            image: '📱',
-            description: 'Smartphone premium con S Pen integrado y cámara de 200MP',
-            brand: 'Samsung',
-            rating: 4.6,
-            stock: 20,
-            isNew: true
-        },
-        {
-            id: 6,
-            name: 'Dell XPS 13 Plus',
-            category: 'laptops',
-            price: 1399,
-            image: '💻',
-            description: 'Ultrabook premium con procesador Intel Core i7 de 12va generación',
-            brand: 'Dell',
-            rating: 4.5,
-            stock: 10,
-            isNew: false
-        },
-        {
-            id: 7,
-            name: 'Sony WH-1000XM5',
-            category: 'audio',
-            price: 399,
-            image: '🎧',
-            description: 'Auriculares inalámbricos con la mejor cancelación de ruido del mercado',
-            brand: 'Sony',
-            rating: 4.8,
-            stock: 18,
-            isNew: false
-        },
-        {
-            id: 8,
-            name: 'Surface Pro 9',
-            category: 'tablets',
-            price: 999,
-            image: '📱',
-            description: 'Tablet 2 en 1 con procesador Intel Core i5 y Windows 11',
-            brand: 'Microsoft',
-            rating: 4.4,
-            stock: 14,
-            isNew: false
+    // Cargar productos del servidor
+    const loadProducts = async () => {
+        try {
+            setLoading(true)
+            // Obtener productos del servidor
+            const response = await axios.get('http://localhost:3000/api/productos/productos')
+            const productsData = response.data || []
+
+            // Mapear los productos del servidor al formato esperado por el frontend
+            const mappedProducts = productsData.map(product => {
+                    // Extraer marca del nombre del producto
+                    const getBrand = (name) => {
+                        if (!name) return 'ElectroShop'
+                        if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
+                        if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
+                        if (name.includes('Dell')) return 'Dell'
+                        if (name.includes('Sony')) return 'Sony'
+                        if (name.includes('Google') || name.includes('Pixel')) return 'Google'
+                        return 'ElectroShop'
+                    }
+
+                    return {
+                        id: product.ID_Producto,
+                        name: product.Nombre || 'Producto sin nombre',
+                        category: product.Categoria?.toLowerCase() || 'other',
+                        price: product.Precio || 0,
+                        image: product.Imagen_1 || null,
+                        image_1: product.Imagen_1 || null,
+                        image_2: product.Imagen_2 || null,
+                        Imagen_2: product.Imagen_2 || null,
+                        description: product.Descripcion || 'Sin descripción disponible',
+                        brand: getBrand(product.Nombre),
+                        rating: product.Promedio_Calificacion || 4.5,
+                        stock: product.Stock || 0,
+                        isNew: false, // Por defecto no es nuevo, se puede actualizar según lógica de negocio
+                        color: product.Color,
+                        subcategoria: product.Subcategoria
+                    }
+                })
+                
+            setProducts(mappedProducts)
+            setError('')
+        } catch (err) {
+            console.error('Error al cargar productos:', err)
+            setError('Error al cargar productos del servidor')
+            setProducts([])
+        } finally {
+            setLoading(false)
         }
-    ]
-
-    const categories = [
-        { value: 'all', label: 'Todas las categorías' },
-        { value: 'phones', label: 'Smartphones' },
-        { value: 'laptops', label: 'Laptops' },
-        { value: 'tablets', label: 'Tablets' },
-        { value: 'audio', label: 'Audio y Sonido' }
-    ]
-
-    // Funciones para manejar favoritos y carrito
-    const toggleFavorite = (productId) => {
-        if (!isAuthenticated) {
-            onNavigate('login')
-            return
-        }
-        setFavorites(prev =>
-            prev.includes(productId)
-                ? prev.filter(id => id !== productId)
-                : [...prev, productId]
-        )
     }
 
-    const addToCart = (productId) => {
+    useEffect(() => {
+        loadProducts()
+
+        const onPurchase = (e) => {
+            // Reload products when a purchase happens
+            loadProducts()
+        }
+
+        const onStorage = (ev) => {
+            if (ev.key === 'lastPurchase') {
+                loadProducts()
+            }
+        }
+
+        window.addEventListener('purchaseCompleted', onPurchase)
+        window.addEventListener('storage', onStorage)
+
+        return () => {
+            window.removeEventListener('purchaseCompleted', onPurchase)
+            window.removeEventListener('storage', onStorage)
+        }
+    }, [])
+
+    // Estructura de categorías y subcategorías
+    const categoriesData = {
+        'all': { label: 'Todas las categorías', subcategories: [] },
+        'Cables': {
+            label: 'Cables',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Baja Tensión', label: 'Baja Tensión' },
+                { value: 'Media y Alta Tensión', label: 'Media y Alta Tensión' },
+                { value: 'Telefonía y Estructurales', label: 'Telefonía y Estructurales' },
+                { value: 'Especiales', label: 'Especiales' }
+            ]
+        },
+        'Morseteria y Herrajes': {
+            label: 'Morseteria y Herrajes',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Morseteria', label: 'Morseteria' },
+                { value: 'Herrajes', label: 'Herrajes' },
+                { value: 'Conectores', label: 'Conectores' },
+                { value: 'Empalmes y Terminales', label: 'Empalmes y Terminales' },
+                { value: 'Aisladores', label: 'Aisladores' },
+                { value: 'Seleccionadores', label: 'Seleccionadores' }
+            ]
+        },
+        'Accesorios': {
+            label: 'Accesorios',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Cintas Aislantes', label: 'Cintas Aislantes' },
+                { value: 'Accesorios de Protección', label: 'Accesorios de Protección' }
+            ]
+        },
+        'Iluminación': {
+            label: 'Iluminación',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Lámparas Led', label: 'Lámparas Led' },
+                { value: 'Decorativas', label: 'Decorativas' },
+                { value: 'Industriales Led', label: 'Industriales Led' },
+                { value: 'Luminarias Vacias', label: 'Luminarias Vacias' },
+                { value: 'Domótica', label: 'Domótica' }
+            ]
+        },
+        'Linea Industrial': {
+            label: 'Linea Industrial',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Interruptores', label: 'Interruptores' },
+                { value: 'Fichas y Bases', label: 'Fichas y Bases' },
+                { value: 'Motores Eléctricos', label: 'Motores Eléctricos' },
+                { value: 'Arranque y Protección de Motores', label: 'Arranque y Protección de Motores' },
+                { value: 'Mando y Señalización', label: 'Mando y Señalización' },
+                { value: 'Automatización', label: 'Automatización' },
+                { value: 'Capacitores y Reles Varimetricos', label: 'Capacitores y Reles Varimetricos' },
+                { value: 'Seccionadores', label: 'Seccionadores' }
+            ]
+        },
+        'Linea Domiciliaria': {
+            label: 'Linea Domiciliaria',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Teclas de Embutir', label: 'Teclas de Embutir' },
+                { value: 'Térmicas y Disyuntores', label: 'Térmicas y Disyuntores' },
+                { value: 'Cañería', label: 'Cañería' },
+                { value: 'Cajas', label: 'Cajas' }
+            ]
+        },
+        'Cajas y Gabinetes': {
+            label: 'Cajas y Gabinetes',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Metálicos', label: 'Metálicos' },
+                { value: 'PVC', label: 'PVC' }
+            ]
+        },
+        'Herramientas': {
+            label: 'Herramientas',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'De Mano', label: 'De Mano' },
+                { value: 'Eléctricas', label: 'Eléctricas' }
+            ]
+        },
+        'Tableros y Obras': {
+            label: 'Tableros y Obras',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Tableros', label: 'Tableros' }
+            ]
+        },
+        'Energías Renovables': {
+            label: 'Energías Renovables',
+            subcategories: [
+                { value: 'all', label: 'Todas las subcategorías' },
+                { value: 'Equipos', label: 'Equipos' }
+            ]
+        }
+    }
+
+    const categories = Object.keys(categoriesData).map(key => ({
+        value: key,
+        label: categoriesData[key].label
+    }))
+
+    // Obtener subcategorías según la categoría seleccionada
+    const getSubcategories = () => {
+        if (selectedCategory === 'all') return []
+        return categoriesData[selectedCategory]?.subcategories || []
+    }
+
+    // Resetear subcategoría cuando cambia la categoría
+    const handleCategoryChange = (e) => {
+        setSelectedCategory(e.target.value)
+        setSelectedSubcategory('all')
+    }
+
+    // Funciones para manejar favoritos y carrito
+    const toggleFavorite = async (productId) => {
         if (!isAuthenticated) {
             onNavigate('login')
             return
         }
-        
-        // Solo agregar si el producto NO está en el carrito
-        const existingItem = cart.find(item => item.id === productId)
-        if (!existingItem) {
-            setCart(prev => [...prev, { id: productId, quantity: 1 }])
+
+        try {
+            if (favorites.includes(productId)) {
+                // Remover de favoritos (localmente por ahora)
+                setFavorites(prev => prev.filter(id => id !== productId))
+            } else {
+                // Agregar a favoritos usando el servidor
+                await axios.post('http://localhost:3000/api/compras/me-gusta', {
+                    DNI: currentUser.DNI,
+                    ID_Producto: productId
+                })
+                setFavorites(prev => [...prev, productId])
+            }
+        } catch (error) {
+            console.error('Error al manejar favoritos:', error)
         }
-        // Si ya está en el carrito, no hacer nada
+    }
+
+    const addToCart = async (productId) => {
+        if (!isAuthenticated) {
+            onNavigate('login')
+            return
+        }
+
+        // Solo agregar si el producto NO está en el carrito local
+        const existingItem = cart.find(item => item.id === productId)
+        if (existingItem) {
+            console.log('El producto ya está en el carrito')
+            return
+        }
+
+        try {
+            const product = products.find(p => p.id === productId)
+            if (!product) {
+                console.error('Producto no encontrado')
+                return
+            }
+
+            console.log('Agregando producto al carrito:', {
+                DNI: currentUser.DNI,
+                ID_Producto: productId,
+                Total: product.price
+            })
+
+            // Agregar al carrito usando el servidor (igual que favoritos)
+            const response = await axios.post('http://localhost:3000/api/compras/carrito', {
+                DNI: currentUser.DNI,
+                ID_Producto: productId,
+                Total: product.price
+            })
+            
+            console.log('Respuesta del servidor al agregar:', response.data)
+            
+            // Actualizar el estado local (igual que favoritos)
+            setCart(prev => [...prev, { id: productId, quantity: 1 }])
+            console.log('Producto agregado al carrito exitosamente. Estado local actualizado.')
+            
+            // Pequeño delay para asegurar que el servidor procesó la inserción
+            setTimeout(() => {
+                console.log('Recargando carrito después de agregar producto...')
+            }, 300)
+        } catch (error) {
+            console.error('Error al agregar al carrito:', error)
+            if (error.response) {
+                console.error('Error del servidor:', error.response.data)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.response.data?.Error || 'No se pudo agregar el producto al carrito',
+                    confirmButtonColor: '#A0A2BA',
+                    confirmButtonText: 'Aceptar'
+                })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'Verifica que el servidor esté funcionando.',
+                    confirmButtonColor: '#A0A2BA',
+                    confirmButtonText: 'Aceptar'
+                })
+            }
+        }
     }
 
     // Función para verificar si el producto está en el carrito
+    // Esta función verifica en el estado local, pero el servidor es la fuente de verdad
     const isInCart = (productId) => {
         return cart.some(item => item.id === productId)
     }
@@ -155,13 +317,24 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
         return cart.reduce((total, item) => total + item.quantity, 0)
     }
 
+    // Función auxiliar para simplificar el texto de resultados
+    const getResultsText = (count) => {
+        let productText = "producto"
+        let foundText = "encontrado"
+        if (count !== 1) {
+            productText = "productos"
+            foundText = "encontrados"
+        }
+        return `${count} ${productText} ${foundText}`
+    }
+
     const priceRanges = [
         { value: 'all', label: 'Todos los precios' },
-        { value: '0-300', label: '$0 - $300' },
-        { value: '300-600', label: '$300 - $600' },
-        { value: '600-1000', label: '$600 - $1,000' },
-        { value: '1000-1500', label: '$1,000 - $1,500' },
-        { value: '1500+', label: '$1,500+' }
+        { value: '0-300000', label: 'Hasta $300.000' },
+        { value: '300000-600000', label: '$300.000 - $600.000' },
+        { value: '600000-1000000', label: '$600.000 - $1.000.000' },
+        { value: '1000000-1500000', label: '$1.000.000 - $1.500.000' },
+        { value: '1500000+', label: 'Más de $1.500.000' }
     ]
 
     const sortOptions = [
@@ -176,8 +349,17 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
     const filteredAndSortedProducts = products
         .filter(product => {
             const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.brand.toLowerCase().includes(searchTerm.toLowerCase())
-            const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
+                product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (product.subcategoria && product.subcategoria.toLowerCase().includes(searchTerm.toLowerCase()))
+            
+            const matchesCategory = selectedCategory === 'all' || 
+                product.category?.toLowerCase() === selectedCategory.toLowerCase() ||
+                product.Categoria?.toLowerCase() === selectedCategory.toLowerCase()
+            
+            const matchesSubcategory = selectedSubcategory === 'all' || 
+                !selectedSubcategory ||
+                product.subcategoria?.toLowerCase() === selectedSubcategory.toLowerCase() ||
+                product.Subcategoria?.toLowerCase() === selectedSubcategory.toLowerCase()
 
             let matchesPrice = true
             if (priceRange !== 'all') {
@@ -189,7 +371,7 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 }
             }
 
-            return matchesSearch && matchesCategory && matchesPrice
+            return matchesSearch && matchesCategory && matchesSubcategory && matchesPrice
         })
         .sort((a, b) => {
             switch (sortBy) {
@@ -224,8 +406,26 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
         onNavigate('favorites')
     }
 
+    if (loading) {
+        return (
+            <div className="products-container">
+                <div className="loading-container">
+                    <div className="loading-spinner"><AiOutlineLoading3Quarters /></div>
+                    <p>Cargando productos...</p>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="products-container">
+            {error && (
+                <div className="error-message">
+                    <AiOutlineExclamationCircle />
+                    <p>Error: {error}</p>
+                </div>
+            )}
+            
             {/* Header de Productos */}
             <div className="products-header">
                 <div className="products-title-section">
@@ -234,10 +434,10 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 </div>
                 <div className="cart-summary">
                     <button className="cart-btn" onClick={handleCartClick}>
-                        🛒 Carrito ({getCartItemCount()})
+                        <AiOutlineShoppingCart /> Carrito ({getCartItemCount()})
                     </button>
                     <button className="favorites-btn" onClick={handleFavoritesClick}>
-                        ❤️ Favoritos ({favorites.length})
+                        <AiOutlineHeart /> Favoritos ({favorites.length})
                     </button>
                 </div>
             </div>
@@ -252,7 +452,7 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <span className="search-icon">🔍</span>
+                    <span className="search-icon"><AiOutlineSearch /></span>
                 </div>
 
                 <div className="filters-row">
@@ -261,7 +461,7 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                         <select
                             className="filter-select"
                             value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            onChange={handleCategoryChange}
                         >
                             {categories.map(category => (
                                 <option key={category.value} value={category.value}>
@@ -270,6 +470,23 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                             ))}
                         </select>
                     </div>
+
+                    {getSubcategories().length > 0 && (
+                        <div className="filter-group">
+                            <label className="filter-label">Subcategoría</label>
+                            <select
+                                className="filter-select"
+                                value={selectedSubcategory}
+                                onChange={(e) => setSelectedSubcategory(e.target.value)}
+                            >
+                                {getSubcategories().map(subcategory => (
+                                    <option key={subcategory.value} value={subcategory.value}>
+                                        {subcategory.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div className="filter-group">
                         <label className="filter-label">Precio</label>
@@ -307,73 +524,29 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
             <div className="products-results">
                 <div className="results-header">
                     <span className="results-count">
-                        {filteredAndSortedProducts.length} producto{filteredAndSortedProducts.length !== 1 ? 's' : ''} encontrado{filteredAndSortedProducts.length !== 1 ? 's' : ''}
+                        {getResultsText(filteredAndSortedProducts.length)}
                     </span>
                 </div>
 
                 {/* Grid de productos */}
                 <div className="products-grid">
                     {filteredAndSortedProducts.map(product => (
-                        <div 
-                            key={product.id} 
-                            className="product-card"
-                            onClick={() => viewProductDetails(product.id)}
-                        >
-                            {product.isNew && <div className="new-badge">Nuevo</div>}
-
-                            <div className="product-image-container">
-                                <div className="product-image">{product.image}</div>
-                                <button
-                                    className={`favorite-btn ${favorites.includes(product.id) ? 'active' : ''}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleFavorite(product.id);
-                                    }}
-                                >
-                                    {favorites.includes(product.id) ? '❤️' : '🤍'}
-                                </button>
-                            </div>
-
-                            <div className="product-info">
-                                <div className="product-brand">{product.brand}</div>
-                                <h3 className="product-name">{product.name}</h3>
-                                <p className="product-description">{product.description}</p>
-
-                                <div className="product-rating">
-                                    <span className="stars">⭐</span>
-                                    <span className="rating-value">{product.rating}</span>
-                                </div>
-
-                                <div className="product-price-section">
-                                    <p className="product-price">${product.price.toLocaleString()}</p>
-                                    <p className="product-stock">Stock: {product.stock}</p>
-                                </div>
-
-                                <div className="product-actions">
-                                    <button
-                                        className={`add-to-cart-btn ${isInCart(product.id) ? 'in-cart' : ''}`}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            addToCart(product.id);
-                                        }}
-                                        disabled={product.stock === 0}
-                                    >
-                                        {product.stock === 0 
-                                            ? 'Sin Stock' 
-                                            : isInCart(product.id) 
-                                                ? 'Ya está en el carrito' 
-                                                : 'Agregar al Carrito'
-                                        }
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onAddToCart={addToCart}
+                            onToggleFavorite={toggleFavorite}
+                            onViewDetails={viewProductDetails}
+                            isFavorite={favorites.includes(product.id)}
+                            isInCart={isInCart(product.id)}
+                            isAuthenticated={isAuthenticated}
+                        />
                     ))}
                 </div>
 
                 {filteredAndSortedProducts.length === 0 && (
                     <div className="no-results">
-                        <div className="no-results-icon">🔍</div>
+                        <div className="no-results-icon"><AiOutlineInbox /></div>
                         <h3>No se encontraron productos</h3>
                         <p>Intenta ajustar tus filtros de búsqueda</p>
                     </div>

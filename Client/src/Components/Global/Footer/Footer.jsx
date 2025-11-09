@@ -1,4 +1,4 @@
-import { AiFillOpenAI } from "react-icons/ai";
+import logoImagen from "../../../assets/imgs/tuercav4.png";
 import "./Footer.css";
 
 function Footer() {
@@ -10,7 +10,7 @@ function Footer() {
         {/* Logo y descripción */}
         <div className="footer-section">
           <div className="footer-logo">
-            <AiFillOpenAI />
+            <img src={logoImagen} alt="ElectroShop Logo" className="footer-logo-img" />
             <span className="footer-brand">ElectroShop</span>
           </div>
           <p className="footer-description">
@@ -34,15 +34,15 @@ function Footer() {
         <div className="footer-section">
           <h3 className="footer-title">Contacto</h3>
           <div className="footer-contact">
-            <p>📧 info@electroshop.com</p>
-            <p>📞 +1 (555) 123-4567</p>
-            <p>📍 123 Tech Street, Digital City</p>
+            <p><strong>Email:</strong> info@electroshop.com</p>
+            <p><strong>Teléfono:</strong> +1 (555) 123-4567</p>
+            <p><strong>Dirección:</strong> 123 Tech Street, Digital City</p>
           </div>
           <div className="footer-social">
-            <a href="#facebook" className="social-link">📘</a>
-            <a href="#twitter" className="social-link">🐦</a>
-            <a href="#instagram" className="social-link">📷</a>
-            <a href="#linkedin" className="social-link">💼</a>
+            <a href="#facebook" className="social-link">Facebook</a>
+            <a href="#twitter" className="social-link">Twitter</a>
+            <a href="#instagram" className="social-link">Instagram</a>
+            <a href="#linkedin" className="social-link">LinkedIn</a>
           </div>
         </div>
       </div>

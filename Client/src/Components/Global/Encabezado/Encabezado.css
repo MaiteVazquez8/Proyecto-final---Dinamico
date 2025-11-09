@@ -1,14 +1,15 @@
-/* Header Styles */
+/* Header Styles - Azul Oscuro para confianza y profesionalismo */
 .encabezado {
-  background: linear-gradient(135deg, #333446 0%, #45465F 100%);
+  background: #333446;
   padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(30, 31, 41, 0.2);
   position: relative;
   z-index: 1000;
   min-height: 70px;
+  border-bottom: 1px solid #45465F;
 }
 
 /* Logo Container */
@@ -19,10 +20,22 @@
   color: #EAEFEF;
 }
 
+.logo-container { cursor: pointer; }
+.logo-container:hover .brand-name { color: #B8CFCE; }
+
 .logo-container h1 {
   margin: 0;
   font-size: 28px;
   color: #B8CFCE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .brand-name {
@@ -67,15 +80,15 @@
   backdrop-filter: blur(2px);
 }
 
-/* Sidebar Menu */
+/* Sidebar Menu - Azul Medio para elementos destacados */
 .sidebar-menu {
   position: fixed;
   top: 0;
   right: -400px;
   width: 350px;
   height: 100vh;
-  background: linear-gradient(180deg, #2c3e50 0%, #34495e 50%, #3d566e 100%);
-  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.4);
+  background: #7F8CAA;
+  box-shadow: -5px 0 25px rgba(30, 31, 41, 0.3);
   transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   z-index: 1002;
   overflow-y: auto;
@@ -92,8 +105,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 25px 30px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(135deg, #333446 0%, #45465F 100%);
+  border-bottom: 2px solid rgba(184, 207, 206, 0.2);
+  background: #333446;
   backdrop-filter: blur(5px);
 }
 
@@ -104,9 +117,10 @@
   color: #EAEFEF;
 }
 
-.sidebar-logo svg {
-  font-size: 24px;
-  color: #B8CFCE;
+.sidebar-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .sidebar-logo span {
@@ -146,7 +160,7 @@
   padding: 20px 30px;
   background: none;
   border: none;
-  color: #ecf0f1;
+  color: #EAEFEF;
   font-size: 17px;
   font-weight: 500;
   text-align: left;
@@ -158,17 +172,17 @@
 }
 
 .sidebar-nav-link:hover {
-  background: rgba(52, 152, 219, 0.15);
-  color: #3498db;
-  border-left-color: #3498db;
+  background: rgba(234, 239, 239, 0.1);
+  color: #B8CFCE;
+  border-left-color: #B8CFCE;
   padding-left: 35px;
   transform: translateX(5px);
 }
 
 .sidebar-nav-link.active {
-  background: rgba(52, 152, 219, 0.2);
-  color: #3498db;
-  border-left-color: #3498db;
+  background: rgba(184, 207, 206, 0.15);
+  color: #B8CFCE;
+  border-left-color: #B8CFCE;
   font-weight: 600;
 }
 
@@ -176,7 +190,7 @@
   content: '●';
   position: absolute;
   left: 15px;
-  color: #3498db;
+  color: #B8CFCE;
 }
 
 /* User Info Styles */
@@ -298,4 +312,37 @@
   .sidebar-menu.open {
     right: 0;
   }
+}
+/* Sideba
+r Admin Styles */
+.sidebar-role {
+  font-size: 12px;
+  color: #7F8CAA;
+  font-weight: normal;
+  margin-left: 5px;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: #D6D6E1;
+  margin: 15px 0;
+}
+
+.sidebar-section-title {
+  color: #7F8CAA;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 10px 0 5px 0;
+  padding: 0 20px;
+}
+
+.sidebar-nav-link.admin-link {
+  background: rgba(127, 140, 170, 0.1);
+  border-left: 3px solid #7F8CAA;
+}
+
+.sidebar-nav-link.admin-link:hover {
+  background: rgba(127, 140, 170, 0.2);
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AiFillOpenAI } from "react-icons/ai";
+import logoImagen from "../../../assets/imgs/tuercav4.png";
 import "./Encabezado.css";
 
 function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onLogout }) {
@@ -20,11 +20,44 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
     setIsMenuOpen(!isMenuOpen)
   }
 
+  // Funciones auxiliares para simplificar las clases de navegación
+  const getNavLinkClass = (page) => {
+    let linkClass = "sidebar-nav-link"
+    if (currentPage === page) {
+      linkClass += " active"
+    }
+    return linkClass
+  }
+
+  const getMenuIcon = () => {
+    if (isMenuOpen) {
+      return '✕'
+    } else {
+      return '☰'
+    }
+  }
+
+  const getMenuTitle = () => {
+    if (isMenuOpen) {
+      return "Cerrar menú"
+    } else {
+      return "Abrir menú"
+    }
+  }
+
+  const getSidebarMenuClass = () => {
+    let menuClass = "sidebar-menu"
+    if (isMenuOpen) {
+      menuClass += " open"
+    }
+    return menuClass
+  }
+
   return (
     <>
       <header className="encabezado">
-        <div className="logo-container">
-          <h1><AiFillOpenAI /></h1>
+        <div className="logo-container" role="button" tabIndex={0} onClick={() => onNavigate('menu')} onKeyDown={(e)=>{ if(e.key==='Enter') onNavigate('menu') }}>
+          <h1><img src={logoImagen} alt="ElectroShop Logo" className="logo-img" /></h1>
           <span className="brand-name">ElectroShop</span>
         </div>
 
@@ -32,9 +65,9 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
         <button 
           className="menu-toggle" 
           onClick={toggleMenu}
-          title={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+          title={getMenuTitle()}
         >
-          {isMenuOpen ? '✕' : '☰'}
+          {getMenuIcon()}
         </button>
       </header>
 
@@ -42,10 +75,10 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
       {isMenuOpen && <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}></div>}
 
       {/* Menú lateral hamburguesa */}
-      <div className={`sidebar-menu ${isMenuOpen ? 'open' : ''}`}>
+      <div className={getSidebarMenuClass()}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <AiFillOpenAI />
+            <img src={logoImagen} alt="ElectroShop Logo" className="sidebar-logo-img" />
             <span>ElectroShop</span>
           </div>
           <button className="close-menu" onClick={() => setIsMenuOpen(false)}>
@@ -55,7 +88,7 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
         
         <nav className="sidebar-nav">
           <button
-            className={`sidebar-nav-link ${currentPage === 'home' ? 'active' : ''}`}
+            className={getNavLinkClass('home')}
             onClick={() => handleNavigation('home')}
           >
             Inicio
@@ -64,19 +97,19 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
           {!isAuthenticated && (
             <>
               <button
-                className={`sidebar-nav-link ${currentPage === 'products' ? 'active' : ''}`}
+                className={getNavLinkClass('products')}
                 onClick={() => handleNavigation('products')}
               >
                 Catálogo
               </button>
               <button
-                className={`sidebar-nav-link ${currentPage === 'login' ? 'active' : ''}`}
+                className={getNavLinkClass('login')}
                 onClick={() => handleNavigation('login')}
               >
                 Login
               </button>
               <button
-                className={`sidebar-nav-link ${currentPage === 'register' ? 'active' : ''}`}
+                className={getNavLinkClass('register')}
                 onClick={() => handleNavigation('register')}
               >
                 Register
@@ -87,32 +120,83 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
           {isAuthenticated && (
             <>
               <div className="sidebar-user-info">
-                <span className="sidebar-welcome">Hola, {currentUser?.username}</span>
+                <span className="sidebar-welcome">Hola, {currentUser?.Nombre || currentUser?.username}</span>
+                {currentUser?.Cargo && (
+                  <span className="sidebar-role">({currentUser.Cargo})</span>
+                )}
               </div>
-              <button
-                className={`sidebar-nav-link ${currentPage === 'products' ? 'active' : ''}`}
-                onClick={() => handleNavigation('products')}
-              >
-                Productos
-              </button>
-              <button
-                className={`sidebar-nav-link ${currentPage === 'cart' ? 'active' : ''}`}
-                onClick={() => handleNavigation('cart')}
-              >
-                Carrito
-              </button>
-              <button
-                className={`sidebar-nav-link ${currentPage === 'favorites' ? 'active' : ''}`}
-                onClick={() => handleNavigation('favorites')}
-              >
-                Favoritos
-              </button>
-              <button
-                className={`sidebar-nav-link ${currentPage === 'profile' ? 'active' : ''}`}
-                onClick={() => handleNavigation('profile')}
-              >
-                Perfil
-              </button>
+              {/* Mostrar opciones de cliente solo si no es personal */}
+              {(currentUser?.Cargo?.toLowerCase() === 'cliente' || !currentUser?.Cargo) && (
+                <>
+                  <button
+                    className={getNavLinkClass('products')}
+                    onClick={() => handleNavigation('products')}
+                  >
+                    Productos
+                  </button>
+                  <button
+                    className={getNavLinkClass('cart')}
+                    onClick={() => handleNavigation('cart')}
+                  >
+                    Carrito
+                  </button>
+                  <button
+                    className={getNavLinkClass('favorites')}
+                    onClick={() => handleNavigation('favorites')}
+                  >
+                    Favoritos
+                  </button>
+                  <button
+                    className={getNavLinkClass('profile')}
+                    onClick={() => handleNavigation('profile')}
+                  >
+                    Perfil
+                  </button>
+                </>
+              )}
+              
+              {/* Enlaces de administración según rol */}
+              {(currentUser?.Cargo?.toLowerCase() === 'empleado' || 
+                currentUser?.Cargo?.toLowerCase() === 'gerente' || 
+                currentUser?.Cargo?.toLowerCase() === 'super admin' ||
+                currentUser?.Cargo?.toLowerCase() === 'administrador') && (
+                <button
+                  className={getNavLinkClass('product-management')}
+                  onClick={() => handleNavigation('product-management')}
+                >
+                  Gestión de Productos
+                </button>
+              )}
+              
+              {(currentUser?.Cargo?.toLowerCase() === 'gerente' || 
+                currentUser?.Cargo?.toLowerCase() === 'super admin' ||
+                currentUser?.Cargo?.toLowerCase() === 'administrador') && (
+                <>
+                  <button
+                    className={getNavLinkClass('employee-management')}
+                    onClick={() => handleNavigation('employee-management')}
+                  >
+                    Gestión de Empleados
+                  </button>
+                  <button
+                    className={getNavLinkClass('suppliers')}
+                    onClick={() => handleNavigation('suppliers')}
+                  >
+                    Gestión de Proveedores
+                  </button>
+                </>
+              )}
+              
+              {(currentUser?.Cargo?.toLowerCase() === 'super admin' ||
+                currentUser?.Cargo?.toLowerCase() === 'administrador') && (
+                <button
+                  className={getNavLinkClass('manager-management')}
+                  onClick={() => handleNavigation('manager-management')}
+                >
+                  Gestión de Gerentes
+                </button>
+              )}
+              
               <button
                 className="sidebar-nav-link logout-link"
                 onClick={handleLogout}

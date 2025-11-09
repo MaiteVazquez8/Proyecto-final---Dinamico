@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axios from "axios"
 import Encabezado from "../Global/Encabezado/Encabezado"
 import Footer from "../Global/Footer/Footer"
 import ScrollToTop from "../Global/ScrollToTop/ScrollToTop"
@@ -13,6 +14,11 @@ import DeleteUser from "../UserManagement/DeleteUser/DeleteUser"
 import EditUser from "../UserManagement/EditUser/EditUser"
 import Profile from "../UserManagement/Profile/Profile"
 import Checkout from "../Shopping/Checkout/Checkout"
+import ServerStatus from "../Global/ServerStatus/ServerStatus"
+import ProductManagement from "../Admin/ProductManagement/ProductManagement"
+import EmployeeManagement from "../Admin/EmployeeManagement/EmployeeManagement"
+import ManagerManagement from "../Admin/ManagerManagement/ManagerManagement"
+import SuppliersManagement from "../Admin/SuppliersManagement/SuppliersManagement"
 import "./Layout.css"
 
 function Layout() {
@@ -22,16 +28,127 @@ function Layout() {
   const [currentUser, setCurrentUser] = useState(null)
   const [cart, setCart] = useState([])
   const [favorites, setFavorites] = useState([])
+  const [serverInitialized, setServerInitialized] = useState(false)
+
+  // Inicializar datos del servidor al cargar la aplicación
+  useEffect(() => {
+    const initServer = async () => {
+      try {
+        // Intentar inicializar datos de ejemplo
+        // En un entorno de producción, esto no sería necesario
+        console.log('Inicializando datos del servidor...')
+        setServerInitialized(true)
+      } catch (error) {
+        console.error('Error al inicializar servidor:', error)
+        setServerInitialized(true) // Continuar aunque falle
+      }
+    }
+
+    initServer()
+  }, [])
+
+  // Cambiar título de la pestaña según la página actual
+  useEffect(() => {
+    const pageTitles = {
+      'home': 'ElectroShop - Inicio',
+      'products': 'ElectroShop - Productos',
+      'product-detail': 'ElectroShop - Detalle del Producto',
+      'cart': 'ElectroShop - Carrito',
+      'favorites': 'ElectroShop - Favoritos',
+      'checkout': 'ElectroShop - Checkout',
+      'login': 'ElectroShop - Iniciar Sesión',
+      'register': 'ElectroShop - Registrarse',
+      'profile': 'ElectroShop - Mi Perfil',
+      'edit': 'ElectroShop - Editar Perfil',
+      'delete': 'ElectroShop - Eliminar Cuenta',
+      'product-management': 'ElectroShop - Gestión de Productos',
+      'employee-management': 'ElectroShop - Gestión de Empleados',
+      'manager-management': 'ElectroShop - Gestión de Gerentes',
+      'suppliers': 'ElectroShop - Gestión de Proveedores'
+    }
+    
+    const title = pageTitles[currentPage] || 'ElectroShop - Tu tienda de electrónica'
+    document.title = title
+  }, [currentPage])
+
+  // Al montar, intentar restaurar sesión desde localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('currentUser')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (parsed?.DNI) {
+          // Restaurar estado de autenticación
+          setIsAuthenticated(true)
+          setCurrentUser(parsed)
+          // Cargar carrito si es cliente
+          const cargo = parsed.Cargo?.toLowerCase()
+          if (cargo === 'cliente') {
+            axios.get(`http://localhost:3000/api/compras/carrito/${parsed.DNI}`)
+              .then(response => {
+                const localCart = response.data.map(item => ({ id: item.ID_Producto, quantity: 1 }))
+                setCart(localCart)
+              })
+              .catch(err => console.error('Error al restaurar carrito desde localStorage:', err))
+          }
+        }
+      } catch (err) {
+        console.error('Error parseando currentUser desde localStorage:', err)
+        localStorage.removeItem('currentUser')
+      }
+    }
+  }, [])
+
+  const [cartRefreshKey, setCartRefreshKey] = useState(0)
 
   const handleNavigation = (page, data = null) => {
     setCurrentPage(page)
     setPageData(data)
+    // Si navegamos al carrito, forzar recarga
+    if (page === 'cart' && isAuthenticated) {
+      setCartRefreshKey(prev => prev + 1)
+    }
   }
 
-  const handleLogin = (userData) => {
+  const handleLogin = async (userData) => {
+    console.log('handleLogin recibió:', userData)
     setIsAuthenticated(true)
     setCurrentUser(userData)
-    setCurrentPage('home')
+    // Persistir sesión en localStorage para mantener login entre recargas
+    try {
+      localStorage.setItem('currentUser', JSON.stringify(userData))
+    } catch (err) {
+      console.warn('No se pudo persistir currentUser en localStorage:', err)
+    }
+    
+    // Solo cargar carrito si es cliente (no personal)
+    const cargo = userData.Cargo?.toLowerCase()
+    console.log('Cargo del usuario:', cargo)
+    
+    if (cargo === 'cliente') {
+      try {
+        const response = await axios.get(`http://localhost:3000/api/compras/carrito/${userData.DNI}`)
+        // Mapear los datos del servidor al formato local
+        const localCart = response.data.map(item => ({
+          id: item.ID_Producto,
+          quantity: 1 // Por ahora asumimos cantidad 1
+        }))
+        setCart(localCart)
+      } catch (error) {
+        console.error('Error al cargar carrito:', error)
+      }
+    }
+    
+    // Redirigir según el tipo de usuario
+    if (cargo === 'empleado' || cargo === 'gerente' || cargo === 'super admin' || cargo === 'administrador') {
+      // Personal: redirigir a gestión de productos
+      console.log('Redirigiendo personal a product-management')
+      setCurrentPage('product-management')
+    } else {
+      // Cliente: redirigir a home
+      console.log('Redirigiendo cliente a home')
+      setCurrentPage('home')
+    }
   }
 
   const handleLogout = () => {
@@ -40,10 +157,62 @@ function Layout() {
     setCart([])
     setFavorites([])
     setCurrentPage('home')
+    // Limpiar sesión persistida
+    try {
+      localStorage.removeItem('currentUser')
+    } catch (err) {
+      console.warn('Error al limpiar currentUser de localStorage:', err)
+    }
+  }
+
+  // Función auxiliar para determinar si la página debe estar centrada
+  const shouldCenterPage = () => {
+    if (currentPage === 'login') return true
+    if (currentPage === 'register') return true
+    if (currentPage === 'delete') return true
+    if (currentPage === 'edit') return true
+    if (currentPage === 'profile') return true
+    if (currentPage === 'checkout') return true
+    if (currentPage === 'product-management') return false
+    if (currentPage === 'employee-management') return false
+    if (currentPage === 'manager-management') return false
+    return false
   }
 
   const renderPage = () => {
     console.log('Rendering page:', currentPage)
+    
+    // Páginas de administración según rol
+    const userRole = currentUser?.Cargo?.toLowerCase()
+    
+    if (currentPage === 'product-management') {
+      if (userRole === 'empleado' || userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
+        return <ProductManagement currentUser={currentUser} />
+      }
+      return <Home onNavigate={handleNavigation} />
+    }
+    
+    if (currentPage === 'employee-management') {
+      if (userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
+        return <EmployeeManagement currentUser={currentUser} />
+      }
+      return <Home onNavigate={handleNavigation} />
+    }
+    
+    if (currentPage === 'manager-management') {
+      if (userRole === 'super admin' || userRole === 'administrador') {
+        return <ManagerManagement currentUser={currentUser} />
+      }
+      return <Home onNavigate={handleNavigation} />
+    }
+
+    if (currentPage === 'suppliers') {
+      if (userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
+        return <SuppliersManagement currentUser={currentUser} />
+      }
+      return <Home onNavigate={handleNavigation} />
+    }
+    
     switch(currentPage) {
       case 'login':
         return <Login onNavigate={handleNavigation} onLogin={handleLogin} />
@@ -69,13 +238,16 @@ function Layout() {
           setCart={setCart}
           favorites={favorites}
           setFavorites={setFavorites}
+          currentUser={currentUser}
         />
       case 'cart':
         return <Cart 
+          key={`cart-${currentUser?.DNI || 'guest'}-${cartRefreshKey}`}
           onNavigate={handleNavigation}
           cart={cart}
           setCart={setCart}
           isAuthenticated={isAuthenticated}
+          currentUser={currentUser}
         />
       case 'favorites':
         return <Favorites 
@@ -85,48 +257,18 @@ function Layout() {
           cart={cart}
           setCart={setCart}
           isAuthenticated={isAuthenticated}
+          currentUser={currentUser}
         />
       case 'checkout':
-        // Datos de productos (centralizados)
-        const productsData = {
-          1: { id: 1, name: 'iPhone 15 Pro Max', brand: 'Apple', price: 1199, image: '📱', stock: 15 },
-          2: { id: 2, name: 'MacBook Pro M3', brand: 'Apple', price: 1999, image: '💻', stock: 8 },
-          3: { id: 3, name: 'AirPods Pro 2', brand: 'Apple', price: 249, image: '🎧', stock: 25 },
-          4: { id: 4, name: 'iPad Pro 12.9"', brand: 'Apple', price: 1099, image: '📱', stock: 12 },
-          5: { id: 5, name: 'Samsung Galaxy S24 Ultra', brand: 'Samsung', price: 1299, image: '📱', stock: 20 },
-          6: { id: 6, name: 'Dell XPS 13 Plus', brand: 'Dell', price: 1399, image: '💻', stock: 10 },
-          7: { id: 7, name: 'Sony WH-1000XM5', brand: 'Sony', price: 399, image: '🎧', stock: 18 },
-          8: { id: 8, name: 'Surface Pro 9', brand: 'Microsoft', price: 999, image: '📱', stock: 14 }
-        };
-
-        // Verificar si es compra directa o desde carrito
-        if (pageData?.purchaseType === 'direct' && pageData?.directProduct) {
-          // Compra directa desde producto
-          return <Checkout 
-            directProduct={pageData.directProduct}
-            purchaseType="direct"
-            onBack={() => handleNavigation('product-detail', { productId: pageData.directProduct.id })}
-          />
-        } else {
-          // Compra desde carrito
-          return <Checkout 
-            cartItems={cart.map(item => {
-              const productData = productsData[item.id];
-              return {
-                id: item.id,
-                name: productData?.name || 'Producto Desconocido',
-                price: productData?.price || 0,
-                quantity: item.quantity
-              };
-            })}
-            purchaseType="cart"
-            onBack={() => handleNavigation('cart')}
-          />
-        }
+        return <Checkout 
+          onNavigate={handleNavigation}
+          currentUser={currentUser}
+          isAuthenticated={isAuthenticated}
+        />
       case 'delete':
         return <DeleteUser onNavigate={handleNavigation} />
       case 'edit':
-        return <EditUser onNavigate={handleNavigation} />
+        return <EditUser onNavigate={handleNavigation} currentUser={currentUser} />
       case 'profile':
         return <Profile onNavigate={handleNavigation} currentUser={currentUser} />
       case 'home':
@@ -138,6 +280,7 @@ function Layout() {
 
   return (
     <div className="app-container">
+      <ServerStatus />
       <Encabezado 
         onNavigate={handleNavigation} 
         currentPage={currentPage} 
@@ -145,7 +288,7 @@ function Layout() {
         currentUser={currentUser}
         onLogout={handleLogout}
       />
-      <main className={`main-content ${currentPage === 'login' || currentPage === 'register' || currentPage === 'delete' || currentPage === 'edit' || currentPage === 'profile' || currentPage === 'checkout' ? 'centered' : 'full-width'}`}>
+      <main className={`main-content ${shouldCenterPage() ? 'centered' : 'full-width'}`}>
         {renderPage()}
       </main>
       <Footer />
