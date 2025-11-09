@@ -1,7 +1,7 @@
 /* ElectroShop - Variables de Colores Globales */
 
 :root {
-  /* Paleta Principal */
+  /* Paleta Principal - Modo Claro */
   --color-primary-dark: #333446;      /* Azul Oscuro - Confianza y estabilidad */
   --color-primary-medium: #7F8CAA;    /* Azul Medio - Calma y tecnología */
   --color-primary-light: #B8CFCE;     /* Verde Suave - Paz y armonía */
@@ -39,6 +39,22 @@
   --color-comp-light-pink: #CFB8C5;
   --color-comp-light-beige: #CFC2B8;
 
+  /* Variables de Tema - Modo Claro */
+  --bg-primary: #EAEFEF;
+  --bg-secondary: #F0F0F4;
+  --bg-card: #FFFFFF;
+  --bg-header: #333446;
+  --text-primary: #333446;
+  --text-secondary: #7F8CAA;
+  --text-muted: #A0A2BA;
+  --text-inverse: #EAEFEF;
+  --border-color: #D6D6E1;
+  --shadow-color: rgba(51, 52, 70, 0.1);
+
+  /* Header específico */
+  --header-bg-color: #333446;
+  --header-text-color: #EAEFEF;
+
   /* Sombras y Efectos */
   --shadow-light: 0 2px 8px rgba(51, 52, 70, 0.1);
   --shadow-medium: 0 4px 12px rgba(51, 52, 70, 0.15);
@@ -73,6 +89,30 @@
   --font-size-xxl: 32px;
 }
 
+/* Modo Oscuro */
+[data-theme="dark"] {
+  /* Variables de Tema - Modo Oscuro */
+  --bg-primary: #1E1F29;
+  --bg-secondary: #2A2B3A;
+  --bg-card: #333446;
+  --bg-header: #1E1F29;
+  --text-primary: #EAEFEF;
+  --text-secondary: #B8CFCE;
+  --text-muted: #7F8CAA;
+  --text-inverse: #333446;
+  --border-color: #45465F;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+
+  /* Header específico - Modo Oscuro */
+  --header-bg-color: #1E1F29;
+  --header-text-color: #B8CFCE;
+
+  /* Sombras más pronunciadas en modo oscuro */
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-heavy: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
 /* Reset básico con colores de marca */
 * {
   box-sizing: border-box;
@@ -82,22 +122,23 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--font-family-primary);
-  background-color: var(--color-neutral-light);
-  color: var(--color-primary-dark);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   line-height: 1.6;
+  transition: background-color var(--transition-medium), color var(--transition-medium);
 }
 
 /* Clases utilitarias para colores */
-.text-primary { color: var(--color-primary-dark); }
-.text-secondary { color: var(--color-primary-medium); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
 .text-accent { color: var(--color-primary-light); }
-.text-muted { color: var(--color-blue-medium-light); }
+.text-muted { color: var(--text-muted); }
 
-.bg-primary { background-color: var(--color-primary-dark); }
-.bg-secondary { background-color: var(--color-primary-medium); }
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
 .bg-accent { background-color: var(--color-primary-light); }
-.bg-light { background-color: var(--color-neutral-light); }
-.bg-surface { background-color: var(--color-blue-lightest); }
+.bg-light { background-color: var(--bg-card); }
+.bg-surface { background-color: var(--bg-secondary); }
 
 /* Botones base con colores de marca */
 .btn {
@@ -114,9 +155,9 @@ body {
 }
 
 .btn-primary {
-  background-color: var(--color-primary-dark);
-  color: var(--color-neutral-light);
-  border-color: var(--color-primary-dark);
+  background-color: var(--bg-header);
+  color: var(--text-inverse);
+  border-color: var(--bg-header);
 }
 
 .btn-primary:hover {
@@ -127,34 +168,35 @@ body {
 
 .btn-secondary {
   background-color: transparent;
-  color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  color: var(--text-primary);
+  border-color: var(--border-color);
 }
 
 .btn-secondary:hover {
-  background-color: var(--color-primary-dark);
-  color: var(--color-neutral-light);
+  background-color: var(--bg-header);
+  color: var(--text-inverse);
 }
 
 .btn-accent {
   background-color: var(--color-primary-light);
-  color: var(--color-primary-dark);
+  color: var(--text-primary);
   border-color: var(--color-primary-light);
 }
 
 .btn-accent:hover {
   background-color: var(--color-green-medium-dark);
   border-color: var(--color-green-medium-dark);
-  color: var(--color-neutral-light);
+  color: var(--text-inverse);
 }
 
 /* Cards base */
 .card {
-  background-color: var(--color-neutral-light);
-  border: 1px solid var(--color-blue-lighter);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius-medium);
   box-shadow: var(--shadow-light);
   transition: var(--transition-medium);
+  color: var(--text-primary);
 }
 
 .card:hover {
@@ -165,10 +207,10 @@ body {
 /* Inputs base */
 .input {
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 2px solid var(--color-blue-lighter);
+  border: 2px solid var(--border-color);
   border-radius: var(--border-radius-medium);
-  background-color: var(--color-blue-lightest);
-  color: var(--color-primary-dark);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
   font-family: var(--font-family-primary);
   transition: var(--transition-medium);
 }
@@ -176,10 +218,10 @@ body {
 .input:focus {
   outline: none;
   border-color: var(--color-primary-medium);
-  background-color: var(--color-neutral-light);
-  box-shadow: 0 0 0 3px rgba(127, 140, 170, 0.1);
+  background-color: var(--bg-secondary);
+  box-shadow: 0 0 0 3px var(--shadow-color);
 }
 
 .input::placeholder {
-  color: var(--color-blue-medium-light);
+  color: var(--text-muted);
 }

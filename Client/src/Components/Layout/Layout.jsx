@@ -29,6 +29,46 @@ function Layout() {
   const [cart, setCart] = useState([])
   const [favorites, setFavorites] = useState([])
   const [serverInitialized, setServerInitialized] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    // Leer preferencia desde localStorage o detectar preferencia del sistema
+    const saved = localStorage.getItem('darkMode')
+    if (saved !== null) {
+      return saved === 'true'
+    }
+    // Detectar preferencia del sistema
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return true
+    }
+    return false
+  })
+
+  // Aplicar modo oscuro al documento
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
+    // Guardar preferencia en localStorage
+    localStorage.setItem('darkMode', darkMode.toString())
+  }, [darkMode])
+
+  // Escuchar cambios en la preferencia del sistema
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleChange = (e) => {
+      // Solo actualizar si no hay preferencia guardada
+      if (localStorage.getItem('darkMode') === null) {
+        setDarkMode(e.matches)
+      }
+    }
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  const toggleDarkMode = () => {
+    setDarkMode(prev => !prev)
+  }
 
   // Inicializar datos del servidor al cargar la aplicación
   useEffect(() => {
@@ -287,6 +327,8 @@ function Layout() {
         isAuthenticated={isAuthenticated}
         currentUser={currentUser}
         onLogout={handleLogout}
+        darkMode={darkMode}
+        onToggleDarkMode={toggleDarkMode}
       />
       <main className={`main-content ${shouldCenterPage() ? 'centered' : 'full-width'}`}>
         {renderPage()}

@@ -5,8 +5,9 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #EAEFEF;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary);
+  font-family: var(--font-family-primary);
+  transition: background-color var(--transition-medium);
 }
 
 /* Header ElectroShop */
@@ -199,10 +200,11 @@
 /* Main Content ElectroShop */
 .main-content {
     flex: 1;
-    background: #EAEFEF;
+    background: var(--bg-primary);
     padding: 0;
     width: 100%;
     overflow-x: hidden;
+    transition: background-color var(--transition-medium);
 }
 
 /* Contenedor centrado para login */
@@ -210,13 +212,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #EAEFEF;
+    background: var(--bg-primary);
 }
 
 /* Contenedor full-width para home/productos */
 .main-content.full-width {
     display: block;
-    background: #EAEFEF;
+    background: var(--bg-primary);
 }
 
 /* Responsive */

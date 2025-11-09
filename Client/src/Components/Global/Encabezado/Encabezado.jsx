@@ -1,8 +1,9 @@
 import { useState } from "react";
 import logoImagen from "../../../assets/imgs/tuercav4.png";
+import DarkModeToggle from "../DarkModeToggle/DarkModeToggle";
 import "./Encabezado.css";
 
-function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onLogout }) {
+function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onLogout, darkMode, onToggleDarkMode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleNavigation = (page) => {
@@ -56,19 +57,22 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
   return (
     <>
       <header className="encabezado">
-        <div className="logo-container" role="button" tabIndex={0} onClick={() => onNavigate('menu')} onKeyDown={(e)=>{ if(e.key==='Enter') onNavigate('menu') }}>
+        <div className="logo-container" role="button" tabIndex={0} onClick={() => onNavigate('home')} onKeyDown={(e)=>{ if(e.key==='Enter') onNavigate('home') }}>
           <h1><img src={logoImagen} alt="ElectroShop Logo" className="logo-img" /></h1>
           <span className="brand-name">ElectroShop</span>
         </div>
 
-        {/* BOTÓN MENÚ HAMBURGUESA - SIMPLE */}
-        <button 
-          className="menu-toggle" 
-          onClick={toggleMenu}
-          title={getMenuTitle()}
-        >
-          {getMenuIcon()}
-        </button>
+        <div className="header-controls">
+          <DarkModeToggle darkMode={darkMode} onToggle={onToggleDarkMode} />
+          {/* BOTÓN MENÚ HAMBURGUESA - SIMPLE */}
+          <button 
+            className="menu-toggle" 
+            onClick={toggleMenu}
+            title={getMenuTitle()}
+          >
+            {getMenuIcon()}
+          </button>
+        </div>
       </header>
 
       {/* Overlay del menú */}

@@ -1,15 +1,16 @@
 /* Header Styles - Azul Oscuro para confianza y profesionalismo */
 .encabezado {
-  background: #333446;
+  background: var(--header-bg-color);
   padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(30, 31, 41, 0.2);
+  box-shadow: var(--shadow-medium);
   position: relative;
   z-index: 1000;
   min-height: 70px;
-  border-bottom: 1px solid #45465F;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color var(--transition-medium), border-color var(--transition-medium);
 }
 
 /* Logo Container */
@@ -17,19 +18,28 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #EAEFEF;
+  color: var(--header-text-color);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
 }
 
-.logo-container { cursor: pointer; }
-.logo-container:hover .brand-name { color: #B8CFCE; }
+.logo-container:hover {
+  opacity: 0.9;
+}
+
+.logo-container:hover .brand-name { 
+  color: var(--color-primary-light);
+  transition: color var(--transition-fast);
+}
 
 .logo-container h1 {
   margin: 0;
   font-size: 28px;
-  color: #B8CFCE;
+  color: var(--color-primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color var(--transition-medium);
 }
 
 .logo-img {
@@ -41,7 +51,15 @@
 .brand-name {
   font-size: 24px;
   font-weight: 700;
-  color: #EAEFEF;
+  color: var(--header-text-color);
+  transition: color var(--transition-medium);
+}
+
+/* Header Controls */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* Menu Toggle Button (Hamburger) - SIMPLE */
@@ -56,11 +74,15 @@
   width: 40px;
   height: 40px;
   font-size: 24px;
-  color: #B8CFCE;
+  color: var(--header-text-color);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+  border-radius: var(--border-radius-small);
 }
 
 .menu-toggle:hover {
-  color: #EAEFEF;
+  color: var(--color-primary-light);
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
 }
 
 /* Desktop Menu - Hidden by default, will show hamburger menu */
@@ -75,9 +97,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 1001;
   backdrop-filter: blur(2px);
+  transition: background-color var(--transition-medium);
 }
 
 /* Sidebar Menu - Azul Medio para elementos destacados */
@@ -87,12 +110,13 @@
   right: -400px;
   width: 350px;
   height: 100vh;
-  background: #7F8CAA;
-  box-shadow: -5px 0 25px rgba(30, 31, 41, 0.3);
-  transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-heavy);
+  transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color var(--transition-medium);
   z-index: 1002;
   overflow-y: auto;
   backdrop-filter: blur(10px);
+  border-left: 1px solid var(--border-color);
 }
 
 .sidebar-menu.open {
@@ -105,16 +129,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 25px 30px;
-  border-bottom: 2px solid rgba(184, 207, 206, 0.2);
-  background: #333446;
+  border-bottom: 2px solid var(--border-color);
+  background: var(--bg-header);
   backdrop-filter: blur(5px);
+  transition: background-color var(--transition-medium), border-color var(--transition-medium);
 }
 
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #EAEFEF;
+  color: var(--header-text-color);
 }
 
 .sidebar-logo-img {
@@ -126,12 +151,14 @@
 .sidebar-logo span {
   font-size: 20px;
   font-weight: 700;
+  color: var(--header-text-color);
+  transition: color var(--transition-medium);
 }
 
 .close-menu {
   background: none;
   border: none;
-  color: #EAEFEF;
+  color: var(--header-text-color);
   font-size: 20px;
   cursor: pointer;
   padding: 8px;
@@ -145,8 +172,9 @@
 }
 
 .close-menu:hover {
-  background: rgba(234, 239, 239, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   transform: rotate(90deg);
+  color: var(--color-primary-light);
 }
 
 /* Sidebar Navigation */
@@ -160,7 +188,7 @@
   padding: 20px 30px;
   background: none;
   border: none;
-  color: #EAEFEF;
+  color: var(--text-primary);
   font-size: 17px;
   font-weight: 500;
   text-align: left;
@@ -172,17 +200,17 @@
 }
 
 .sidebar-nav-link:hover {
-  background: rgba(234, 239, 239, 0.1);
-  color: #B8CFCE;
-  border-left-color: #B8CFCE;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-primary-light);
+  border-left-color: var(--color-primary-light);
   padding-left: 35px;
   transform: translateX(5px);
 }
 
 .sidebar-nav-link.active {
   background: rgba(184, 207, 206, 0.15);
-  color: #B8CFCE;
-  border-left-color: #B8CFCE;
+  color: var(--color-primary-light);
+  border-left-color: var(--color-primary-light);
   font-weight: 600;
 }
 
@@ -190,7 +218,7 @@
   content: '●';
   position: absolute;
   left: 15px;
-  color: #B8CFCE;
+  color: var(--color-primary-light);
 }
 
 /* User Info Styles */
@@ -201,16 +229,18 @@
 /* Sidebar User Info */
 .sidebar-user-info {
   padding: 20px 30px;
-  border-bottom: 1px solid rgba(234, 239, 239, 0.2);
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 10px;
-  background: rgba(51, 52, 70, 0.3);
+  background: var(--bg-secondary);
+  transition: background-color var(--transition-medium), border-color var(--transition-medium);
 }
 
 .sidebar-welcome {
-  color: #B8CFCE;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   display: block;
+  transition: color var(--transition-medium);
 }
 
 /* Logout Link */
@@ -313,34 +343,36 @@
     right: 0;
   }
 }
-/* Sideba
-r Admin Styles */
+/* Sidebar Admin Styles */
 .sidebar-role {
   font-size: 12px;
-  color: #7F8CAA;
+  color: var(--text-muted);
   font-weight: normal;
   margin-left: 5px;
+  transition: color var(--transition-medium);
 }
 
 .sidebar-divider {
   height: 1px;
-  background: #D6D6E1;
+  background: var(--border-color);
   margin: 15px 0;
+  transition: background-color var(--transition-medium);
 }
 
 .sidebar-section-title {
-  color: #7F8CAA;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 10px 0 5px 0;
   padding: 0 20px;
+  transition: color var(--transition-medium);
 }
 
 .sidebar-nav-link.admin-link {
-  background: rgba(127, 140, 170, 0.1);
-  border-left: 3px solid #7F8CAA;
+  background: var(--bg-secondary);
+  border-left: 3px solid var(--color-primary-medium);
 }
 
 .sidebar-nav-link.admin-link:hover {
