@@ -27,21 +27,22 @@
 
 .back-button {
     background: transparent;
-    border: 2px solid #7F8CAA;
-    color: #7F8CAA;
+    border: 2px solid var(--color-primary-medium);
+    color: var(--color-primary-medium);
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
     flex: 1;
 }
 
 .back-button:hover {
-    background: #7F8CAA;
-    color: #EAEFEF;
+    background: var(--color-primary-medium);
+    color: var(--text-inverse);
     transform: translateY(-2px);
+    box-shadow: var(--shadow-light);
 }
 
 .form-buttons .login-button {

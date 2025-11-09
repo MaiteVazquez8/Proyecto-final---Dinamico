@@ -3,7 +3,7 @@ import logoImagen from "../../../assets/imgs/tuercav4.png";
 import DarkModeToggle from "../DarkModeToggle/DarkModeToggle";
 import "./Encabezado.css";
 
-function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onLogout, darkMode, onToggleDarkMode }) {
+function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onLogout, darkMode, onToggleDarkMode, canUseDarkMode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleNavigation = (page) => {
@@ -63,7 +63,10 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
         </div>
 
         <div className="header-controls">
-          <DarkModeToggle darkMode={darkMode} onToggle={onToggleDarkMode} />
+          {/* Solo mostrar toggle de modo oscuro si está permitido */}
+          {canUseDarkMode && (
+            <DarkModeToggle darkMode={darkMode} onToggle={onToggleDarkMode} />
+          )}
           {/* BOTÓN MENÚ HAMBURGUESA - SIMPLE */}
           <button 
             className="menu-toggle" 

@@ -6,21 +6,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-family-primary);
   min-height: calc(100vh - 80px);
   margin: 0 auto;
-  background: #EAEFEF;
+  background: var(--bg-primary);
+  transition: background-color var(--transition-medium);
 }
 
 .login-card {
-  background: #EAEFEF;
-  border-radius: 12px;
-  border: 1px solid #B8CFCE;
-  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.1);
+  background: var(--bg-card);
+  border-radius: var(--border-radius-large);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-medium);
   padding: 40px;
   width: 100%;
   max-width: 400px;
   position: relative;
+  transition: background-color var(--transition-medium), border-color var(--transition-medium);
 }
 
 .login-card::before {
@@ -30,7 +32,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #333446, #7F8CAA, #B8CFCE);
+  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary-medium), var(--color-primary-light));
 }
 
 .login-header {
@@ -39,16 +41,18 @@
 }
 
 .login-title {
-  color: #333446;
+  color: var(--text-primary);
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 8px 0;
+  transition: color var(--transition-medium);
 }
 
 .login-subtitle {
-  color: #6B6D94;
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
+  transition: color var(--transition-medium);
 }
 
 .login-form {
@@ -63,33 +67,34 @@
 
 .form-label {
   display: block;
-  color: #333446;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 8px;
+  transition: color var(--transition-medium);
 }
 
 .form-input {
   width: 100%;
   padding: 16px 20px;
-  border: 1px solid #B8CFCE;
-  border-radius: 8px;
-  background: #F0F0F4;
-  color: #333446;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-medium);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-size: 16px;
-  transition: all 0.3s ease;
+  transition: all var(--transition-medium);
   box-sizing: border-box;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #7F8CAA;
-  background: #EAEFEF;
-  box-shadow: 0 0 0 3px rgba(127, 140, 170, 0.1);
+  border-color: var(--color-primary-medium);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px var(--shadow-color);
 }
 
 .form-input::placeholder {
-  color: #A0A2BA;
+  color: var(--text-muted);
 }
 
 .password-error {
@@ -100,24 +105,24 @@
 }
 
 .login-button {
-  background: #B8CFCE;
-  color: #333446;
-  border: 1px solid #9EBDBB;
+  background: var(--color-primary-light);
+  color: var(--text-primary);
+  border: 1px solid var(--color-green-medium-light);
   padding: 16px 24px;
-  border-radius: 8px;
+  border-radius: var(--border-radius-medium);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-medium);
   margin-top: 10px;
 }
 
 .login-button:hover {
-  background: #9EBDBB;
-  color: #1E1F29;
-  border-color: #83AAA8;
+  background: var(--color-green-medium-light);
+  color: var(--text-primary);
+  border-color: var(--color-green-medium);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(184, 207, 206, 0.3);
+  box-shadow: var(--shadow-medium);
 }
 
 .login-button:active {
@@ -127,16 +132,17 @@
 .login-message {
   text-align: center;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--border-radius-medium);
   font-size: 14px;
   font-weight: 500;
   margin-top: 15px;
+  transition: all var(--transition-medium);
 }
 
 .login-message.success {
   background: rgba(184, 207, 206, 0.2);
-  color: #304645;
-  border: 1px solid #B8CFCE;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .login-message.error {
@@ -150,30 +156,32 @@
   text-align: center;
   margin-top: 25px;
   padding-top: 20px;
-  border-top: 1px solid #B8CFCE;
+  border-top: 1px solid var(--border-color);
+  transition: border-color var(--transition-medium);
 }
 
 .auth-switch-text {
-  color: #6B6D94;
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
+  transition: color var(--transition-medium);
 }
 
 .auth-switch-link {
   background: none;
   border: none;
-  color: #333446;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   text-decoration: underline;
-  transition: color 0.3s ease;
+  transition: color var(--transition-medium);
   padding: 0;
   margin-left: 4px;
 }
 
 .auth-switch-link:hover {
-  color: #7F8CAA;
+  color: var(--color-primary-medium);
 }
 
 /* Responsive Design */

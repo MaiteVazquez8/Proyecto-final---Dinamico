@@ -30,44 +30,66 @@ function Layout() {
   const [favorites, setFavorites] = useState([])
   const [serverInitialized, setServerInitialized] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
-    // Leer preferencia desde localStorage o detectar preferencia del sistema
+    // Leer preferencia desde el DOM (ya aplicada en main.jsx) o localStorage
+    const hasDarkTheme = document.documentElement.hasAttribute('data-theme')
+    if (hasDarkTheme) {
+      return true
+    }
     const saved = localStorage.getItem('darkMode')
     if (saved !== null) {
       return saved === 'true'
     }
-    // Detectar preferencia del sistema
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return true
-    }
     return false
   })
 
-  // Aplicar modo oscuro al documento
+  // Determinar si el usuario puede usar modo oscuro basado en rol y página actual
+  const canUseDarkMode = (() => {
+    const userRole = currentUser?.Cargo?.toLowerCase()
+    // Clientes y usuarios no autenticados pueden usar modo oscuro en todas las páginas
+    if (userRole === 'cliente' || !currentUser) {
+      return true
+    }
+    // Empleados, gerentes y superadmin solo pueden usar modo oscuro en home
+    if (userRole === 'empleado' || userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
+      return currentPage === 'home'
+    }
+    return true
+  })()
+
+  // Efecto para desactivar modo oscuro cuando no está permitido
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    } else {
+    if (!canUseDarkMode && darkMode) {
+      // Si el modo oscuro no está permitido pero está activo, desactivarlo
+      setDarkMode(false)
       document.documentElement.removeAttribute('data-theme')
     }
-    // Guardar preferencia en localStorage
-    localStorage.setItem('darkMode', darkMode.toString())
-  }, [darkMode])
+  }, [canUseDarkMode, darkMode])
 
-  // Escuchar cambios en la preferencia del sistema
+  // Aplicar modo oscuro al documento y guardar preferencia
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = (e) => {
-      // Solo actualizar si no hay preferencia guardada
-      if (localStorage.getItem('darkMode') === null) {
-        setDarkMode(e.matches)
+    // Solo aplicar modo oscuro si está permitido
+    if (canUseDarkMode && darkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark')
+      // Solo guardar preferencia para clientes o usuarios no autenticados
+      const userRole = currentUser?.Cargo?.toLowerCase()
+      if (userRole === 'cliente' || !currentUser) {
+        localStorage.setItem('darkMode', 'true')
+      }
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+      // Solo guardar preferencia para clientes o usuarios no autenticados
+      const userRole = currentUser?.Cargo?.toLowerCase()
+      if (userRole === 'cliente' || !currentUser) {
+        localStorage.setItem('darkMode', 'false')
       }
     }
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
+  }, [darkMode, canUseDarkMode, currentUser])
 
   const toggleDarkMode = () => {
-    setDarkMode(prev => !prev)
+    // Solo permitir toggle si está permitido
+    if (canUseDarkMode) {
+      setDarkMode(prev => !prev)
+    }
   }
 
   // Inicializar datos del servidor al cargar la aplicación
@@ -329,6 +351,7 @@ function Layout() {
         onLogout={handleLogout}
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
+        canUseDarkMode={canUseDarkMode}
       />
       <main className={`main-content ${shouldCenterPage() ? 'centered' : 'full-width'}`}>
         {renderPage()}

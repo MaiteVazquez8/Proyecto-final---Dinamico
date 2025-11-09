@@ -5,8 +5,9 @@
     margin: 0 auto;
     padding: 40px 20px;
     min-height: calc(100vh - 160px);
-    background: #EAEFEF;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    font-family: var(--font-family-primary);
+    transition: background-color var(--transition-medium);
 }
 
 /* Favorites Header */
@@ -20,11 +21,12 @@
 }
 
 .favorites-title {
-    color: #333446;
+    color: var(--text-primary);
     font-size: 32px;
     font-weight: 700;
     margin: 0;
-    text-shadow: 0 1px 2px rgba(30, 31, 41, 0.1);
+    text-shadow: 0 1px 2px var(--shadow-color);
+    transition: color var(--transition-medium);
 }
 
 .header-actions {
@@ -35,37 +37,37 @@
 
 .back-btn {
     background: transparent;
-    border: 1px solid #7F8CAA;
-    color: #7F8CAA;
+    border: 1px solid var(--color-primary-medium);
+    color: var(--color-primary-medium);
     padding: 12px 20px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
 }
 
 .back-btn:hover {
-    background: #7F8CAA;
-    color: #EAEFEF;
+    background: var(--color-primary-medium);
+    color: var(--text-inverse);
 }
 
 .clear-favorites-btn {
     background: transparent;
-    border: 1px solid #B8CFCE;
-    color: #333446;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
     padding: 12px 20px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
 }
 
 .clear-favorites-btn:hover {
-    background: #7F8CAA;
-    color: #EAEFEF;
-    border-color: #7F8CAA;
+    background: var(--color-primary-medium);
+    color: var(--text-inverse);
+    border-color: var(--color-primary-medium);
 }
 
 /* Favorites Items */
@@ -77,12 +79,12 @@
 }
 
 .favorite-item {
-    background: #EAEFEF;
-    border: 1px solid #B8CFCE;
-    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-large);
     padding: 24px;
-    box-shadow: 0 2px 8px rgba(51, 52, 70, 0.1);
-    transition: all 0.3s ease;
+    box-shadow: var(--shadow-light);
+    transition: all var(--transition-medium);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -92,8 +94,8 @@
 
 .favorite-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(51, 52, 70, 0.15);
-    border-color: #7F8CAA;
+    box-shadow: var(--shadow-medium);
+    border-color: var(--color-primary-medium);
 }
 
 .favorite-item .item-image {
@@ -103,11 +105,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #F0F0F4;
-    border-radius: 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-large);
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
+    transition: background-color var(--transition-medium);
 }
 
 .favorite-item .item-image .product-image-img {
@@ -129,26 +132,29 @@
 }
 
 .favorite-item .item-brand {
-    color: #7F8CAA;
+    color: var(--text-secondary);
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     margin: 0;
+    transition: color var(--transition-medium);
 }
 
 .favorite-item .item-name {
-    color: #333446;
+    color: var(--text-primary);
     font-size: 18px;
     font-weight: 600;
     margin: 0;
     line-height: 1.3;
+    transition: color var(--transition-medium);
 }
 
 .favorite-item .item-description {
-    color: #6B6D94;
+    color: var(--text-secondary);
     font-size: 14px;
     margin: 0;
     line-height: 1.4;
+    transition: color var(--transition-medium);
 }
 
 .favorite-item .item-rating {
@@ -162,22 +168,25 @@
 }
 
 .favorite-item .rating-value {
-    color: #333446;
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: 600;
+    transition: color var(--transition-medium);
 }
 
 .favorite-item .item-price {
-    color: #333446;
+    color: var(--text-primary);
     font-size: 20px;
     font-weight: 700;
     margin: 0;
+    transition: color var(--transition-medium);
 }
 
 .favorite-item .item-stock {
-    color: #7F8CAA;
+    color: var(--text-secondary);
     font-size: 12px;
     margin: 0;
+    transition: color var(--transition-medium);
 }
 
 .favorite-item .item-controls {
@@ -189,44 +198,45 @@
 
 .favorite-item .remove-favorite-btn {
     background: transparent;
-    border: 1px solid #B8CFCE;
-    color: #333446;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: var(--border-radius-small);
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
 }
 
 .favorite-item .remove-favorite-btn:hover {
-    background: #7F8CAA;
-    color: #EAEFEF;
-    border-color: #7F8CAA;
+    background: var(--color-primary-medium);
+    color: var(--text-inverse);
+    border-color: var(--color-primary-medium);
 }
 
 .favorite-item .add-to-cart-btn {
-    background: #B8CFCE;
-    color: #333446;
-    border: 1px solid #9EBDBB;
+    background: var(--color-primary-light);
+    color: var(--text-primary);
+    border: 1px solid var(--color-green-medium-light);
     padding: 10px 16px;
-    border-radius: 6px;
+    border-radius: var(--border-radius-small);
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
     white-space: nowrap;
 }
 
 .favorite-item .add-to-cart-btn:hover {
-    background: #9EBDBB;
-    color: #1E1F29;
-    border-color: #83AAA8;
-    box-shadow: 0 2px 8px rgba(184, 207, 206, 0.3);
+    background: var(--color-green-medium-light);
+    color: var(--text-primary);
+    border-color: var(--color-green-medium);
+    box-shadow: var(--shadow-light);
 }
 
 .favorite-item .add-to-cart-btn.in-cart {
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
 }
 
 .favorite-item .add-to-cart-btn.in-cart:hover {
@@ -234,8 +244,9 @@
 }
 
 .favorite-item .add-to-cart-btn:disabled {
-    background: #A0A2BA;
+    background: var(--text-muted);
     cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .favorite-item .new-badge {
@@ -245,14 +256,12 @@
     background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
     color: white;
     padding: 4px 8px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     z-index: 2;
 }
-
-
 
 .product-image-container {
     text-align: center;
@@ -263,28 +272,31 @@
     font-size: 48px;
     margin-bottom: 16px;
     padding: 20px;
-    background: #F0F0F4;
-    border-radius: 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-large);
+    transition: background-color var(--transition-medium);
 }
 
 .product-brand {
-    color: #7F8CAA;
+    color: var(--text-secondary);
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     margin-bottom: 4px;
+    transition: color var(--transition-medium);
 }
 
 .product-name {
-    color: #333446;
+    color: var(--text-primary);
     font-size: 18px;
     font-weight: 600;
     margin: 0 0 8px 0;
     line-height: 1.3;
+    transition: color var(--transition-medium);
 }
 
 .product-description {
-    color: #6B6D94;
+    color: var(--text-secondary);
     font-size: 14px;
     line-height: 1.4;
     margin-bottom: 12px;
@@ -292,6 +304,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    transition: color var(--transition-medium);
 }
 
 .product-rating {
@@ -306,9 +319,10 @@
 }
 
 .rating-value {
-    color: #333446;
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: 600;
+    transition: color var(--transition-medium);
 }
 
 .product-price-section {
@@ -319,16 +333,18 @@
 }
 
 .product-price {
-    color: #7F8CAA;
+    color: var(--color-primary-medium);
     font-size: 20px;
     font-weight: 700;
     margin: 0;
+    transition: color var(--transition-medium);
 }
 
 .product-stock {
-    color: #6B6D94;
+    color: var(--text-muted);
     font-size: 12px;
     margin: 0;
+    transition: color var(--transition-medium);
 }
 
 .product-actions {
@@ -339,22 +355,20 @@
 
 .view-details-btn {
     background: transparent;
-    border: 2px solid #7F8CAA;
-    color: #7F8CAA;
+    border: 2px solid var(--color-primary-medium);
+    color: var(--color-primary-medium);
     padding: 10px 16px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
 }
 
 .view-details-btn:hover {
-    background: #7F8CAA;
-    color: #EAEFEF;
+    background: var(--color-primary-medium);
+    color: var(--text-inverse);
 }
-
-
 
 /* Favorites Actions */
 .favorites-actions {
@@ -362,45 +376,46 @@
     justify-content: center;
     gap: 20px;
     padding-top: 40px;
-    border-top: 1px solid #B8CFCE;
+    border-top: 1px solid var(--border-color);
     flex-wrap: wrap;
+    transition: border-color var(--transition-medium);
 }
 
 .add-all-to-cart-btn {
-    background: #B8CFCE;
-    color: #333446;
-    border: 1px solid #9EBDBB;
+    background: var(--color-primary-light);
+    color: var(--text-primary);
+    border: 1px solid var(--color-green-medium-light);
     padding: 16px 32px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
 }
 
 .add-all-to-cart-btn:hover {
-    background: #9EBDBB;
-    color: #1E1F29;
-    border-color: #83AAA8;
+    background: var(--color-green-medium-light);
+    color: var(--text-primary);
+    border-color: var(--color-green-medium);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(184, 207, 206, 0.3);
+    box-shadow: var(--shadow-medium);
 }
 
 .view-cart-btn {
     background: transparent;
-    color: #333446;
-    border: 1px solid #333446;
+    color: var(--text-primary);
+    border: 1px solid var(--text-primary);
     padding: 16px 32px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
 }
 
 .view-cart-btn:hover {
-    background: #333446;
-    color: #EAEFEF;
+    background: var(--text-primary);
+    color: var(--bg-primary);
     transform: translateY(-2px);
 }
 
@@ -408,43 +423,49 @@
 .favorites-empty {
     text-align: center;
     padding: 80px 20px;
-    color: #6B6D94;
+    color: var(--text-muted);
+    transition: color var(--transition-medium);
 }
 
 .empty-icon {
     font-size: 80px;
     margin-bottom: 24px;
     opacity: 0.5;
+    color: var(--text-muted);
+    transition: color var(--transition-medium);
 }
 
 .favorites-empty h2 {
-    color: #333446;
+    color: var(--text-primary);
     font-size: 28px;
     font-weight: 700;
     margin: 0 0 16px 0;
+    transition: color var(--transition-medium);
 }
 
 .favorites-empty p {
     font-size: 16px;
     margin: 0 0 32px 0;
     opacity: 0.8;
+    color: var(--text-secondary);
+    transition: color var(--transition-medium);
 }
 
 .shop-btn, .login-btn {
     background: transparent;
-    color: #333446;
-    border: 1px solid #333446;
+    color: var(--text-primary);
+    border: 1px solid var(--text-primary);
     padding: 16px 32px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
 }
 
 .shop-btn:hover, .login-btn:hover {
-    background: #333446;
-    color: #EAEFEF;
+    background: var(--text-primary);
+    color: var(--bg-primary);
     transform: translateY(-2px);
 }
 

@@ -27,7 +27,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #B8CFCE;
+    border-bottom: 1px solid var(--border-color);
+    transition: border-color var(--transition-medium);
 }
 
 .profile-field:last-child {
@@ -36,13 +37,15 @@
 
 .profile-label {
     font-weight: 600;
-    color: #333446;
+    color: var(--text-primary);
     font-size: 0.9rem;
+    transition: color var(--transition-medium);
 }
 
 .profile-value {
-    color: #585979;
+    color: var(--text-secondary);
     font-size: 0.9rem;
+    transition: color var(--transition-medium);
 }
 
 .profile-actions {
@@ -55,39 +58,39 @@
 .profile-button {
     padding: 0.75rem 1.5rem;
     border: 1px solid;
-    border-radius: 8px;
+    border-radius: var(--border-radius-medium);
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-medium);
     text-align: center;
     background: transparent;
 }
 
 .edit-button {
-    border-color: #7F8CAA;
-    color: #333446;
+    border-color: var(--color-primary-medium);
+    color: var(--text-primary);
 }
 
 .edit-button:hover {
-    background-color: #7F8CAA;
-    color: #EAEFEF;
-    border-color: #6B6D94;
+    background-color: var(--color-primary-medium);
+    color: var(--text-inverse);
+    border-color: var(--color-blue-medium-dark);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(127, 140, 170, 0.3);
+    box-shadow: var(--shadow-light);
 }
 
 .delete-button {
-    border-color: #A0A2BA;
-    color: #333446;
+    border-color: var(--text-muted);
+    color: var(--text-primary);
 }
 
 .delete-button:hover {
-    background-color: #8687A7;
-    color: #EAEFEF;
-    border-color: #6B6D94;
+    background-color: var(--text-muted);
+    color: var(--text-inverse);
+    border-color: var(--text-muted);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(134, 135, 167, 0.3);
+    box-shadow: var(--shadow-light);
 }
 
 .profile-button:active {
