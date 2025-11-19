@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { PRODUCT_ENDPOINTS, HEALTH_ENDPOINT } from "../../../config/api"
 import Swal from 'sweetalert2'
 import "./ProductManagement.css"
 
@@ -44,7 +45,7 @@ function ProductManagement({ currentUser }) {
     const loadProducts = async () => {
         try {
             setLoading(true)
-            const response = await axios.get('http://localhost:3000/api/productos/productos')
+            const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
             const productsData = response.data || []
             
             // Asegurar que los IDs sean números válidos
@@ -66,7 +67,7 @@ function ProductManagement({ currentUser }) {
 
     const loadSuppliers = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/api/productos/proveedor')
+            const response = await axios.get(PRODUCT_ENDPOINTS.GET_SUPPLIERS)
             console.log('Proveedores cargados del servidor:', response.data)
             setSuppliers(response.data || [])
         } catch (error) {
@@ -176,7 +177,7 @@ function ProductManagement({ currentUser }) {
             
             // Validar que el servidor esté disponible antes de enviar
             try {
-                await axios.get('http://localhost:3000/api')
+                await axios.get(HEALTH_ENDPOINT)
             } catch (serverCheckError) {
                 Swal.fire({
                     icon: 'error',
@@ -199,7 +200,7 @@ function ProductManagement({ currentUser }) {
                 
                 console.log('Enviando datos para modificar producto:', productoData)
                 
-                await axios.put(`http://localhost:3000/api/productos/productos/${editingProduct.ID_Producto}`, productoData, {
+                await axios.put(PRODUCT_ENDPOINTS.UPDATE_PRODUCT(editingProduct.ID_Producto), productoData, {
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -227,7 +228,7 @@ function ProductManagement({ currentUser }) {
                 
                 console.log('Enviando datos del producto:', productoData)
                 
-                await axios.post('http://localhost:3000/api/productos/productos', productoData, {
+                await axios.post(PRODUCT_ENDPOINTS.CREATE_PRODUCT, productoData, {
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -352,7 +353,7 @@ function ProductManagement({ currentUser }) {
         
         try {
             // Construir la URL de forma explícita para evitar problemas con el formato del ID
-            const url = `http://localhost:3000/api/productos/productos/${String(productId)}`
+            const url = PRODUCT_ENDPOINTS.DELETE_PRODUCT(String(productId))
             console.log('URL de eliminación:', url)
             
             const response = await axios.delete(url)
@@ -405,7 +406,7 @@ function ProductManagement({ currentUser }) {
         e.preventDefault()
         try {
             setLoading(true)
-            const response = await axios.post('http://localhost:3000/api/productos/proveedor', {
+            const response = await axios.post(PRODUCT_ENDPOINTS.CREATE_SUPPLIER, {
                 Nombre: supplierFormData.Nombre,
                 Mail: supplierFormData.Mail,
                 Telefono: supplierFormData.Telefono,

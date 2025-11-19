@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { PRODUCT_ENDPOINTS, SHOPPING_ENDPOINTS } from "../../../config/api"
+import Swal from 'sweetalert2'
 import { 
     AiOutlineShoppingCart, 
     AiOutlineArrowLeft,
@@ -17,7 +19,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
     useEffect(() => {
         const loadProducts = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
                 const products = response.data || []
                 
                 // Convertir array a objeto con ID como clave
@@ -105,7 +107,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
         try {
             console.log('Cargando carrito del servidor para DNI:', currentUser.DNI)
             // GET /api/compras/carrito/:DNI
-            const response = await axios.get(`http://localhost:3000/api/compras/carrito/${currentUser.DNI}`)
+            const response = await axios.get(SHOPPING_ENDPOINTS.GET_CART(currentUser.DNI))
             console.log('Respuesta completa del servidor:', response)
             console.log('Carrito cargado del servidor:', response.data)
             console.log('Tipo de datos:', typeof response.data, Array.isArray(response.data))
@@ -206,7 +208,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
     const increaseQty = async (item) => {
         try {
             // POST /api/compras/carrito to add one unit
-            await axios.post('http://localhost:3000/api/compras/carrito', {
+            await axios.post(SHOPPING_ENDPOINTS.ADD_TO_CART, {
                 DNI: currentUser.DNI,
                 ID_Producto: item.id,
                 Total: item.price || item.Precio || 0
@@ -223,7 +225,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
             // DELETE one of the cart rows for this product
             const cartIdToDelete = item.cartIds && item.cartIds.length ? item.cartIds[0] : null
             if (!cartIdToDelete) return
-            await axios.delete(`http://localhost:3000/api/compras/carrito/${cartIdToDelete}`)
+            await axios.delete(SHOPPING_ENDPOINTS.DELETE_FROM_CART(cartIdToDelete))
             loadCartFromServer()
         } catch (error) {
             console.error('Error al disminuir cantidad:', error)
@@ -235,7 +237,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
         try {
             // Remove all cart rows for this product
             for (const id of (item.cartIds || [])) {
-                await axios.delete(`http://localhost:3000/api/compras/carrito/${id}`)
+                await axios.delete(SHOPPING_ENDPOINTS.DELETE_FROM_CART(id))
             }
             setMensaje('Producto eliminado del carrito')
             loadCartFromServer()
@@ -248,7 +250,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
     const removeFromCart = async (ID_Carrito) => {
         try {
             // DELETE /api/compras/carrito/:ID_Carrito
-            await axios.delete(`http://localhost:3000/api/compras/carrito/${ID_Carrito}`)
+            await axios.delete(SHOPPING_ENDPOINTS.DELETE_FROM_CART(ID_Carrito))
             setMensaje('Producto eliminado del carrito')
             loadCartFromServer() // Recargar carrito
         } catch (error) {
@@ -261,7 +263,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
         try {
             // Eliminar todos los items del carrito uno por uno
             for (const item of cartItems) {
-                await axios.delete(`http://localhost:3000/api/compras/carrito/${item.ID_Carrito}`)
+                await axios.delete(SHOPPING_ENDPOINTS.DELETE_FROM_CART(item.ID_Carrito))
             }
             setMensaje('Carrito vaciado')
             loadCartFromServer()
@@ -342,7 +344,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
                         className="shop-btn"
                         onClick={() => onNavigate('products')}
                     >
-                        Explorar Productos
+                        Explorar Catálogo
                     </button>
                 </div>
             </div>

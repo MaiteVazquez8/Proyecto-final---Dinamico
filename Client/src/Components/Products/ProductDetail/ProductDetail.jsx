@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { PRODUCT_ENDPOINTS, SHOPPING_ENDPOINTS } from "../../../config/api"
 import Swal from 'sweetalert2'
 import { AiFillStar, AiOutlineStar } from "react-icons/ai"
 import "./ProductDetail.css"
@@ -24,7 +25,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
             try {
                 setLoading(true)
                 // Obtener todos los productos y buscar el que coincide con productId
-                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
                 const productsData = response.data || []
                 const productData = productsData.find(p => p.ID_Producto === productId)
                 
@@ -109,7 +110,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                     // re-run loading
                     (async () => {
                         try {
-                            const response = await axios.get('http://localhost:3000/api/productos/productos')
+                            const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
                             const productsData = response.data || []
                             const productData = productsData.find(p => p.ID_Producto === productId)
                             if (productData) {
@@ -161,7 +162,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
                         // reload product
                         (async () => {
                             try {
-                                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                                const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
                                 const productsData = response.data || []
                                 const productData = productsData.find(p => p.ID_Producto === productId)
                                 if (productData) {
@@ -217,7 +218,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
             
             try {
                 setLoadingReviews(true)
-                const response = await axios.get(`http://localhost:3000/api/compras/comentarios/${productId}`)
+                const response = await axios.get(SHOPPING_ENDPOINTS.GET_COMMENTS(productId))
                 const comments = response.data || []
                 
                 // Mapear comentarios del servidor al formato esperado
@@ -269,7 +270,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
 
         try {
             // Agregar al servidor (igual que favoritos)
-            await axios.post('http://localhost:3000/api/compras/carrito', {
+            await axios.post(SHOPPING_ENDPOINTS.ADD_TO_CART, {
                 DNI: currentUser?.DNI,
                 ID_Producto: productId,
                 Total: product.price * quantity
@@ -300,7 +301,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
         // Esto permite reutilizar la lógica existente del Checkout que lee el carrito del servidor
         (async () => {
             try {
-                await axios.post('http://localhost:3000/api/compras/carrito', {
+                await axios.post(SHOPPING_ENDPOINTS.ADD_TO_CART, {
                     DNI: currentUser?.DNI,
                     ID_Producto: productId,
                     Total: product.price * quantity
@@ -527,7 +528,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
 
         try {
             // Guardar comentario en el servidor
-            await axios.post('http://localhost:3000/api/compras/comentario', {
+            await axios.post(SHOPPING_ENDPOINTS.ADD_COMMENT, {
                 DNI: currentUser?.DNI,
                 ID_Producto: productId,
                 Texto: newReview.comment.trim(),
@@ -615,7 +616,7 @@ function ProductDetail({ onNavigate, productId, isAuthenticated, cart, setCart, 
             {/* Breadcrumb */}
             <div className="breadcrumb">
                 <button onClick={() => onNavigate('products')} className="breadcrumb-link">
-                    Productos
+                    Catálogo
                 </button>
                 <span className="breadcrumb-separator">›</span>
                 <span className="breadcrumb-current">{product.name}</span>

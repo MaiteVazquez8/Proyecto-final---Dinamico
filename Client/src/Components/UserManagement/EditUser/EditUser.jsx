@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { AUTH_ENDPOINTS, getMockClientData } from "../../../config/api"
 import PasswordInput from "../../Global/PasswordInput/PasswordInput"
 import logoImagen from "../../../assets/imgs/tuercav4.png"
 import "../../Auth/Login/Login.css"
@@ -30,9 +31,10 @@ function EditUser({ onNavigate, currentUser }) {
             }
 
             try {
-                // Cargar datos completos del usuario desde la base de datos
-                const response = await axios.get(`http://localhost:3000/api/Login/cliente/${currentUser.DNI}`)
-                const userData = response.data
+                // Endpoint no disponible - usar datos simulados combinados con currentUser
+                console.log('Endpoint GET_CLIENT no disponible - usando datos simulados')
+                const mockData = getMockClientData(currentUser.DNI)
+                const userData = { ...mockData, ...currentUser }
                 
                 // Prellenar el formulario con los datos actuales
                 setFormData({
@@ -108,7 +110,7 @@ function EditUser({ onNavigate, currentUser }) {
             // Si el usuario cambió el email, aún necesitamos verificar con el email anterior
             const emailParaVerificar = currentUser.Mail || formData.Mail
             
-            const verifyResponse = await axios.post('http://localhost:3000/api/Login', {
+            const verifyResponse = await axios.post(AUTH_ENDPOINTS.LOGIN, {
                 Mail: emailParaVerificar,
                 Contraseña: confirmPassword
             })
@@ -132,7 +134,7 @@ function EditUser({ onNavigate, currentUser }) {
             }
 
             // Actualizar el cliente
-            const updateResponse = await axios.put(`http://localhost:3000/api/Login/modificarCliente/${currentUser.DNI}`, updateData)
+            const updateResponse = await axios.put(AUTH_ENDPOINTS.UPDATE_CLIENT(currentUser.DNI), updateData)
             
             setMensaje(updateResponse.data.Mensaje || 'Perfil actualizado exitosamente')
             

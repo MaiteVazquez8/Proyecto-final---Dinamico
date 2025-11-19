@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { AUTH_ENDPOINTS, getMockManagersData } from "../../../config/api"
 import Swal from 'sweetalert2'
 import PasswordInput from "../../Global/PasswordInput/PasswordInput"
 import "./ManagerManagement.css"
@@ -31,9 +32,10 @@ function ManagerManagement({ currentUser }) {
     const loadManagers = async () => {
         try {
             setLoading(true)
-            const response = await axios.get('http://localhost:3000/api/gerentes')
-            console.log('Gerentes cargados del servidor:', response.data)
-            setManagers(response.data || [])
+            // Endpoint no disponible - usar datos simulados
+            console.log('Endpoint GET_MANAGERS no disponible - usando datos simulados')
+            const mockData = getMockManagersData()
+            setManagers(mockData || [])
         } catch (error) {
             console.error('Error al cargar gerentes:', error)
             setError('Error al cargar gerentes')
@@ -56,10 +58,10 @@ function ManagerManagement({ currentUser }) {
         try {
             setLoading(true)
             if (editingManager) {
-                await axios.put(`http://localhost:3000/api/modificarPersonal/${editingManager.DNI}`, formData)
+                await axios.put(AUTH_ENDPOINTS.UPDATE_PERSONAL(editingManager.DNI), formData)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Gerente modificado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             } else {
-                await axios.post('http://localhost:3000/api/registrarPersonal', formData)
+                await axios.post(AUTH_ENDPOINTS.REGISTER_PERSONAL, formData)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Gerente agregado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             }
             setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Gerente' })
@@ -124,7 +126,7 @@ function ManagerManagement({ currentUser }) {
         if (!result.isConfirmed) return
         
         try {
-            const response = await axios.delete(`http://localhost:3000/api/eliminarPersonal/${DNI}`)
+            const response = await axios.delete(AUTH_ENDPOINTS.DELETE_PERSONAL(DNI))
             Swal.fire({
                 icon: 'success',
                 title: '¡Eliminado!',

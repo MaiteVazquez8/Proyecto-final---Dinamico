@@ -1,45 +1,51 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { AUTH_ENDPOINTS, getMockEmployeesData } from "../../../config/api"
+import { AUTH_ENDPOINTS } from "../../../config/api"
 import Swal from 'sweetalert2'
 import PasswordInput from "../../Global/PasswordInput/PasswordInput"
-import "./EmployeeManagement.css"
+import "./ClientManagement.css"
 
-function EmployeeManagement({ currentUser }) {
-    const [employees, setEmployees] = useState([])
+// Componente de gestión de clientes para super admin
+function ClientManagement({ currentUser }) {
+    const [clients, setClients] = useState([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
-    const [showAddForm, setShowAddForm] = useState(false)
+    const [showEditForm, setShowEditForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
-    const [editingEmployee, setEditingEmployee] = useState(null)
+    const [editingClient, setEditingClient] = useState(null)
 
     const [formData, setFormData] = useState({
         DNI: '',
         Nombre: '',
         Apellido: '',
         Mail: '',
-        Fecha_Nacimiento: '',
+        Fecha_Nac: '',
         Contraseña: '',
         Telefono: '',
         Direccion: '',
-        Cargo: 'Empleado'
+        Cod_Postal: ''
     })
 
     useEffect(() => {
-        loadEmployees()
+        loadClients()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    const loadEmployees = async () => {
+    const loadClients = async () => {
         try {
             setLoading(true)
-            // Endpoint no disponible - usar datos simulados
-            console.log('Endpoint GET_EMPLOYEES no disponible - usando datos simulados')
-            const mockData = getMockEmployeesData()
-            setEmployees(mockData || [])
+            // Comentado temporalmente - no existe endpoint para obtener todos los clientes
+            // const response = await axios.get(AUTH_ENDPOINTS.GET_CLIENTS)
+            // console.log('Clientes cargados del servidor:', response.data)
+            // setClients(response.data || [])
+            
+            // Temporalmente vacío hasta que se implemente el endpoint
+            console.log('Endpoint GET_CLIENTS no disponible - lista vacía')
+            setClients([])
         } catch (error) {
-            console.error('Error al cargar empleados:', error)
-            setError('Error al cargar empleados')
-            setEmployees([])
+            console.error('Error al cargar clientes:', error)
+            setError('Error al cargar clientes')
+            setClients([])
         } finally {
             setLoading(false)
         }
@@ -57,26 +63,36 @@ function EmployeeManagement({ currentUser }) {
         e.preventDefault()
         try {
             setLoading(true)
-            if (editingEmployee) {
-                await axios.put(AUTH_ENDPOINTS.UPDATE_PERSONAL(editingEmployee.DNI), formData)
-                Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Empleado modificado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
-            } else {
-                await axios.post(AUTH_ENDPOINTS.REGISTER_PERSONAL, formData)
-                Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Empleado agregado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
+            if (editingClient) {
+                await axios.put(AUTH_ENDPOINTS.UPDATE_CLIENT(editingClient.DNI), formData)
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡Éxito!', 
+                    text: 'Cliente modificado correctamente', 
+                    confirmButtonColor: '#B8CFCE', 
+                    confirmButtonText: 'Aceptar' 
+                })
             }
             setFormData({
-                DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '',
-                Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Empleado'
+                DNI: '', 
+                Nombre: '', 
+                Apellido: '', 
+                Mail: '', 
+                Fecha_Nac: '',
+                Contraseña: '', 
+                Telefono: '', 
+                Direccion: '', 
+                Cod_Postal: ''
             })
-            setShowAddForm(false)
-            setEditingEmployee(null)
-            loadEmployees()
+            setShowEditForm(false)
+            setEditingClient(null)
+            loadClients()
         } catch (error) {
-            console.error('Error al agregar empleado:', error)
+            console.error('Error al modificar cliente:', error)
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: error.response?.data?.Error || 'No se pudo agregar el empleado',
+                text: error.response?.data?.Error || 'No se pudo modificar el cliente',
                 confirmButtonColor: '#A0A2BA',
                 confirmButtonText: 'Aceptar'
             })
@@ -86,7 +102,6 @@ function EmployeeManagement({ currentUser }) {
     }
 
     const handleDelete = async (DNI) => {
-        // Validar que el DNI no esté vacío
         if (!DNI) {
             console.error('DNI inválido:', DNI)
             Swal.fire({
@@ -101,10 +116,10 @@ function EmployeeManagement({ currentUser }) {
 
         const result = await Swal.fire({
             title: '¿Estás seguro?',
-            text: 'No podrás revertir esta acción',
+            text: 'Esta acción eliminará al cliente permanentemente. No podrás revertir esta acción.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#B8CFCE',
+            confirmButtonColor: '#d33',
             cancelButtonColor: '#A0A2BA',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
@@ -113,18 +128,18 @@ function EmployeeManagement({ currentUser }) {
         if (!result.isConfirmed) return
         
         try {
-            const response = await axios.delete(AUTH_ENDPOINTS.DELETE_PERSONAL(DNI))
+            const response = await axios.delete(AUTH_ENDPOINTS.DELETE_CLIENT(DNI))
             Swal.fire({
                 icon: 'success',
                 title: '¡Eliminado!',
-                text: response.data?.Mensaje || 'Empleado eliminado correctamente',
+                text: response.data?.Mensaje || 'Cliente eliminado correctamente',
                 confirmButtonColor: '#B8CFCE',
                 confirmButtonText: 'Aceptar'
             })
-            loadEmployees()
+            loadClients()
         } catch (error) {
-            console.error('Error al eliminar empleado:', error)
-            const errorMessage = error.response?.data?.Error || error.response?.data?.Detalle || 'No se pudo eliminar el empleado'
+            console.error('Error al eliminar cliente:', error)
+            const errorMessage = error.response?.data?.Error || error.response?.data?.Detalle || 'No se pudo eliminar el cliente'
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -135,30 +150,40 @@ function EmployeeManagement({ currentUser }) {
         }
     }
 
-    const handleEdit = (employee) => {
-        setEditingEmployee(employee)
+    const handleEdit = (client) => {
+        setEditingClient(client)
         setFormData({
-            DNI: employee.DNI || '',
-            Nombre: employee.Nombre || '',
-            Apellido: employee.Apellido || '',
-            Mail: employee.Mail || '',
-            Fecha_Nacimiento: employee.Fecha_Nacimiento || '',
+            DNI: client.DNI || '',
+            Nombre: client.Nombre || '',
+            Apellido: client.Apellido || '',
+            Mail: client.Mail || '',
+            Fecha_Nac: client.Fecha_Nac || '',
             Contraseña: '',
-            Telefono: employee.Telefono || '',
-            Direccion: employee.Direccion || '',
-            Cargo: employee.Cargo || 'Empleado'
+            Telefono: client.Telefono || '',
+            Direccion: client.Direccion || '',
+            Cod_Postal: client.Cod_Postal || ''
         })
-        setShowAddForm(true)
+        setShowEditForm(true)
     }
 
-    if (loading && employees.length === 0) {
-        return <div className="employee-management-container">Cargando empleados...</div>
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A'
+        try {
+            const date = new Date(dateString)
+            return date.toLocaleDateString('es-AR')
+        } catch {
+            return dateString
+        }
+    }
+
+    if (loading && clients.length === 0) {
+        return <div className="client-management-container">Cargando clientes...</div>
     }
 
     return (
-        <div className="employee-management-container">
+        <div className="client-management-container">
             <div className="management-header">
-                <h1>Gestión de Empleados</h1>
+                <h1>Gestión de Clientes</h1>
                 <div className="management-actions">
                     <input
                         type="text"
@@ -166,22 +191,22 @@ function EmployeeManagement({ currentUser }) {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="product-search-input"
-                        aria-label="Buscar empleados"
+                        aria-label="Buscar clientes"
                     />
                     <button 
-                        className="add-btn"
-                        onClick={() => { setShowAddForm(true); setEditingEmployee(null); setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Empleado' }) }}
-                        disabled={showAddForm}
+                        className="refresh-btn"
+                        onClick={loadClients}
+                        title="Actualizar lista de clientes"
                     >
-                        + Agregar Empleado
+                        Actualizar
                     </button>
                 </div>
             </div>
 
-            {showAddForm && (
-                <div className="employee-form-container">
-                    <h2>Nuevo Empleado</h2>
-                    <form onSubmit={handleSubmit} className="employee-form">
+            {showEditForm && editingClient && (
+                <div className="client-form-container">
+                    <h2>Editar Cliente</h2>
+                    <form onSubmit={handleSubmit} className="client-form">
                         <div className="form-row">
                             <div className="form-group">
                                 <label>DNI:</label>
@@ -191,19 +216,19 @@ function EmployeeManagement({ currentUser }) {
                                     value={formData.DNI}
                                     onChange={handleInputChange}
                                     required
+                                    disabled
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>Cargo:</label>
-                                <select
-                                    name="Cargo"
-                                    value={formData.Cargo}
+                                <label>Email:</label>
+                                <input
+                                    type="email"
+                                    name="Mail"
+                                    value={formData.Mail}
                                     onChange={handleInputChange}
                                     required
-                                >
-                                    <option value="Empleado">Empleado</option>
-                                </select>
+                                />
                             </div>
                         </div>
 
@@ -233,28 +258,15 @@ function EmployeeManagement({ currentUser }) {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Email:</label>
-                                <input
-                                    type="email"
-                                    name="Mail"
-                                    value={formData.Mail}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
                                 <label>Fecha de Nacimiento:</label>
                                 <input
                                     type="date"
-                                    name="Fecha_Nacimiento"
-                                    value={formData.Fecha_Nacimiento}
+                                    name="Fecha_Nac"
+                                    value={formData.Fecha_Nac}
                                     onChange={handleInputChange}
                                 />
                             </div>
-                        </div>
 
-                        <div className="form-row">
                             <div className="form-group">
                                 <label>Teléfono:</label>
                                 <input
@@ -264,15 +276,26 @@ function EmployeeManagement({ currentUser }) {
                                     onChange={handleInputChange}
                                 />
                             </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Código Postal:</label>
+                                <input
+                                    type="number"
+                                    name="Cod_Postal"
+                                    value={formData.Cod_Postal}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
 
                             <div className="form-group">
-                                <label>Contraseña:</label>
+                                <label>Contraseña (dejar vacío para no cambiar):</label>
                                 <PasswordInput
                                     id="Contraseña"
                                     name="Contraseña"
                                     value={formData.Contraseña}
                                     onChange={handleInputChange}
-                                    required
                                     showLabel={false}
                                 />
                             </div>
@@ -290,14 +313,24 @@ function EmployeeManagement({ currentUser }) {
 
                         <div className="form-actions">
                             <button type="submit" className="save-btn">
-                                {editingEmployee ? 'Guardar Cambios' : 'Agregar Empleado'}
+                                Guardar Cambios
                             </button>
                             <button 
                                 type="button" 
                                 onClick={() => {
-                                    setShowAddForm(false)
-                                    setEditingEmployee(null)
-                                    setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Empleado' })
+                                    setShowEditForm(false)
+                                    setEditingClient(null)
+                                    setFormData({
+                                        DNI: '', 
+                                        Nombre: '', 
+                                        Apellido: '', 
+                                        Mail: '', 
+                                        Fecha_Nac: '',
+                                        Contraseña: '', 
+                                        Telefono: '', 
+                                        Direccion: '', 
+                                        Cod_Postal: ''
+                                    })
                                 }} 
                                 className="cancel-btn"
                             >
@@ -310,15 +343,17 @@ function EmployeeManagement({ currentUser }) {
 
             {error && <div className="error-message">{error}</div>}
 
-            <div className="employees-table-container">
-                <table className="employees-table">
+            <div className="clients-table-container">
+                <table className="clients-table">
                     <thead>
                         <tr>
                             <th>DNI</th>
                             <th>Nombre</th>
                             <th>Apellido</th>
                             <th>Email</th>
-                            <th>Cargo</th>
+                            <th>Teléfono</th>
+                            <th>Fecha Nac.</th>
+                            <th>Verificado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -326,36 +361,47 @@ function EmployeeManagement({ currentUser }) {
                         {(() => {
                             const q = (searchQuery || '').trim().toLowerCase()
                             const filtered = q
-                                ? employees.filter(emp => {
+                                ? clients.filter(client => {
                                     return (
-                                        String(emp.DNI).toLowerCase().includes(q) ||
-                                        (emp.Nombre || '').toLowerCase().includes(q) ||
-                                        (emp.Apellido || '').toLowerCase().includes(q) ||
-                                        (emp.Mail || '').toLowerCase().includes(q)
+                                        String(client.DNI).toLowerCase().includes(q) ||
+                                        (client.Nombre || '').toLowerCase().includes(q) ||
+                                        (client.Apellido || '').toLowerCase().includes(q) ||
+                                        (client.Mail || '').toLowerCase().includes(q)
                                     )
                                 })
-                                : employees
+                                : clients
 
                             if (filtered.length === 0) {
                                 return (
                                     <tr>
-                                        <td colSpan="6" className="empty-message">No hay empleados que coincidan</td>
+                                        <td colSpan="8" className="empty-message">No hay clientes que coincidan</td>
                                     </tr>
                                 )
                             }
 
-                            return filtered.map(employee => (
-                                <tr key={employee.DNI}>
-                                    <td>{employee.DNI}</td>
-                                    <td>{employee.Nombre}</td>
-                                    <td>{employee.Apellido}</td>
-                                    <td>{employee.Mail}</td>
-                                    <td>{employee.Cargo}</td>
+                            return filtered.map(client => (
+                                <tr key={client.DNI}>
+                                    <td>{client.DNI}</td>
+                                    <td>{client.Nombre}</td>
+                                    <td>{client.Apellido}</td>
+                                    <td>{client.Mail}</td>
+                                    <td>{client.Telefono || 'N/A'}</td>
+                                    <td>{formatDate(client.Fecha_Nac)}</td>
+                                    <td>
+                                        <span className={`verification-badge ${client.Verificado === 1 ? 'verified' : 'not-verified'}`}>
+                                            {client.Verificado === 1 ? '✓ Verificado' : '✗ No Verificado'}
+                                        </span>
+                                    </td>
                                     <td className="actions-cell">
-                                        <button className="edit-btn" onClick={() => handleEdit(employee)}>Editar</button>
+                                        <button 
+                                            className="edit-btn" 
+                                            onClick={() => handleEdit(client)}
+                                        >
+                                            Editar
+                                        </button>
                                         <button 
                                             className="delete-btn"
-                                            onClick={() => handleDelete(employee.DNI)}
+                                            onClick={() => handleDelete(client.DNI)}
                                         >
                                             Eliminar
                                         </button>
@@ -366,9 +412,23 @@ function EmployeeManagement({ currentUser }) {
                     </tbody>
                 </table>
             </div>
+
+            <div className="clients-summary">
+                <div className="summary-item">
+                    <span className="summary-label">Total de clientes:</span>
+                    <span className="summary-value">{clients.length}</span>
+                </div>
+                <div className="summary-item">
+                    <span className="summary-label">Clientes verificados:</span>
+                    <span className="summary-value">{clients.filter(c => c.Verificado === 1).length}</span>
+                </div>
+                <div className="summary-item">
+                    <span className="summary-label">Clientes no verificados:</span>
+                    <span className="summary-value">{clients.filter(c => c.Verificado === 0 || c.Verificado === null).length}</span>
+                </div>
+            </div>
         </div>
     )
 }
 
-export default EmployeeManagement
-
+export default ClientManagement

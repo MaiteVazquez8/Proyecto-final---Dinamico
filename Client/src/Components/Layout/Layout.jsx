@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { SHOPPING_ENDPOINTS } from "../../config/api"
 import Encabezado from "../Global/Encabezado/Encabezado"
 import Footer from "../Global/Footer/Footer"
 import ScrollToTop from "../Global/ScrollToTop/ScrollToTop"
@@ -19,11 +20,29 @@ import ProductManagement from "../Admin/ProductManagement/ProductManagement"
 import EmployeeManagement from "../Admin/EmployeeManagement/EmployeeManagement"
 import ManagerManagement from "../Admin/ManagerManagement/ManagerManagement"
 import SuppliersManagement from "../Admin/SuppliersManagement/SuppliersManagement"
+import SalesManagement from "../Admin/SalesManagement/SalesManagement"
+import ClientManagement from "../Admin/ClientManagement/ClientManagement"
+import Verify from "../Auth/Verify/Verify"
 import "./Layout.css"
 
 function Layout() {
-  const [currentPage, setCurrentPage] = useState('home')
-  const [pageData, setPageData] = useState(null)
+  // Detectar si hay un token en la URL para verificación
+  const getTokenFromUrl = () => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tokenFromQuery = urlParams.get('token')
+    if (tokenFromQuery) return tokenFromQuery
+    
+    // También verificar si está en el pathname
+    if (window.location.pathname.includes('/verificar/')) {
+      return window.location.pathname.split('/verificar/')[1]
+    }
+    
+    return null
+  }
+  
+  const initialToken = getTokenFromUrl()
+  const [currentPage, setCurrentPage] = useState(initialToken ? 'verify' : 'home')
+  const [pageData, setPageData] = useState(initialToken ? { token: initialToken } : null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
   const [cart, setCart] = useState([])
@@ -113,7 +132,7 @@ function Layout() {
   useEffect(() => {
     const pageTitles = {
       'home': 'ElectroShop - Inicio',
-      'products': 'ElectroShop - Productos',
+      'products': 'ElectroShop - Catálogo',
       'product-detail': 'ElectroShop - Detalle del Producto',
       'cart': 'ElectroShop - Carrito',
       'favorites': 'ElectroShop - Favoritos',
@@ -126,33 +145,48 @@ function Layout() {
       'product-management': 'ElectroShop - Gestión de Productos',
       'employee-management': 'ElectroShop - Gestión de Empleados',
       'manager-management': 'ElectroShop - Gestión de Gerentes',
-      'suppliers': 'ElectroShop - Gestión de Proveedores'
+      'suppliers': 'ElectroShop - Gestión de Proveedores',
+      'sales-management': 'ElectroShop - Gestión de Compras',
+      'client-management': 'ElectroShop - Gestión de Clientes',
+      'verify': 'ElectroShop - Verificar Cuenta'
     }
     
     const title = pageTitles[currentPage] || 'ElectroShop - Tu tienda de electrónica'
     document.title = title
   }, [currentPage])
 
-  // Al montar, intentar restaurar sesión desde localStorage
+  // Restaurar sesión desde localStorage al montar
+  // Solo restaurar automáticamente para personal (empleados, gerentes, superadmin)
+  // Los clientes NO se restauran automáticamente para forzar verificación en el login
   useEffect(() => {
     const stored = localStorage.getItem('currentUser')
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        if (parsed?.DNI) {
-          // Restaurar estado de autenticación
+        const cargo = parsed?.Cargo?.toLowerCase()
+        
+        // Verificar si es personal (empleado, gerente, super admin, administrador)
+        const esPersonal = cargo === 'empleado' || 
+                          cargo === 'gerente' || 
+                          cargo === 'super admin' || 
+                          cargo === 'administrador'
+        
+        if (esPersonal) {
+          // Restaurar sesión automáticamente para personal (no necesitan verificación)
+          console.log('✅ Restaurando sesión de personal desde localStorage:', cargo)
           setIsAuthenticated(true)
           setCurrentUser(parsed)
-          // Cargar carrito si es cliente
-          const cargo = parsed.Cargo?.toLowerCase()
-          if (cargo === 'cliente') {
-            axios.get(`http://localhost:3000/api/compras/carrito/${parsed.DNI}`)
-              .then(response => {
-                const localCart = response.data.map(item => ({ id: item.ID_Producto, quantity: 1 }))
-                setCart(localCart)
-              })
-              .catch(err => console.error('Error al restaurar carrito desde localStorage:', err))
+          
+          // Redirigir a la página de gestión según el cargo
+          if (cargo === 'empleado' || cargo === 'gerente' || cargo === 'super admin' || cargo === 'administrador') {
+            setCurrentPage('product-management')
           }
+        } else {
+          // Para clientes, NO restaurar automáticamente
+          // Deben hacer login para verificar su estado de verificación
+          console.log('⚠️ Sesión de cliente encontrada, pero no se restaurará automáticamente (requiere verificación)')
+          // Limpiar sesión de cliente no verificada
+          localStorage.removeItem('currentUser')
         }
       } catch (err) {
         console.error('Error parseando currentUser desde localStorage:', err)
@@ -189,7 +223,7 @@ function Layout() {
     
     if (cargo === 'cliente') {
       try {
-        const response = await axios.get(`http://localhost:3000/api/compras/carrito/${userData.DNI}`)
+        const response = await axios.get(SHOPPING_ENDPOINTS.GET_CART(userData.DNI))
         // Mapear los datos del servidor al formato local
         const localCart = response.data.map(item => ({
           id: item.ID_Producto,
@@ -231,6 +265,7 @@ function Layout() {
   const shouldCenterPage = () => {
     if (currentPage === 'login') return true
     if (currentPage === 'register') return true
+    if (currentPage === 'verify') return true
     if (currentPage === 'delete') return true
     if (currentPage === 'edit') return true
     if (currentPage === 'profile') return true
@@ -238,19 +273,26 @@ function Layout() {
     if (currentPage === 'product-management') return false
     if (currentPage === 'employee-management') return false
     if (currentPage === 'manager-management') return false
+    if (currentPage === 'suppliers') return false
+    if (currentPage === 'sales-management') return false
+    if (currentPage === 'client-management') return false
     return false
   }
 
   const renderPage = () => {
     console.log('Rendering page:', currentPage)
+    console.log('Current user:', currentUser)
+    console.log('Is authenticated:', isAuthenticated)
     
     // Páginas de administración según rol
     const userRole = currentUser?.Cargo?.toLowerCase()
+    console.log('User role (lowercase):', userRole)
     
     if (currentPage === 'product-management') {
       if (userRole === 'empleado' || userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
         return <ProductManagement currentUser={currentUser} />
       }
+      console.log('Access denied to product-management for role:', userRole)
       return <Home onNavigate={handleNavigation} />
     }
     
@@ -258,6 +300,7 @@ function Layout() {
       if (userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
         return <EmployeeManagement currentUser={currentUser} />
       }
+      console.log('Access denied to employee-management for role:', userRole)
       return <Home onNavigate={handleNavigation} />
     }
     
@@ -265,6 +308,7 @@ function Layout() {
       if (userRole === 'super admin' || userRole === 'administrador') {
         return <ManagerManagement currentUser={currentUser} />
       }
+      console.log('Access denied to manager-management for role:', userRole)
       return <Home onNavigate={handleNavigation} />
     }
 
@@ -272,10 +316,39 @@ function Layout() {
       if (userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
         return <SuppliersManagement currentUser={currentUser} />
       }
+      console.log('Access denied to suppliers for role:', userRole)
+      return <Home onNavigate={handleNavigation} />
+    }
+
+    if (currentPage === 'sales-management') {
+      console.log('=== SALES MANAGEMENT ROUTE ===')
+      console.log('User role:', userRole)
+      console.log('Current user:', currentUser)
+      // Misma lógica que manager-management
+      if (userRole === 'super admin' || userRole === 'administrador') {
+        console.log('Access granted, rendering SalesManagement component')
+        return <SalesManagement currentUser={currentUser} />
+      }
+      console.log('Access denied to sales-management for role:', userRole)
+      return <Home onNavigate={handleNavigation} />
+    }
+
+    if (currentPage === 'client-management') {
+      console.log('=== CLIENT MANAGEMENT ROUTE ===')
+      console.log('User role:', userRole)
+      console.log('Current user:', currentUser)
+      // Solo super admin puede gestionar clientes
+      if (userRole === 'super admin' || userRole === 'administrador') {
+        console.log('Access granted, rendering ClientManagement component')
+        return <ClientManagement currentUser={currentUser} />
+      }
+      console.log('Access denied to client-management for role:', userRole)
       return <Home onNavigate={handleNavigation} />
     }
     
     switch(currentPage) {
+      case 'verify':
+        return <Verify token={pageData?.token} onNavigate={handleNavigation} />
       case 'login':
         return <Login onNavigate={handleNavigation} onLogin={handleLogin} />
       case 'register':
@@ -356,7 +429,7 @@ function Layout() {
       <main className={`main-content ${shouldCenterPage() ? 'centered' : 'full-width'}`}>
         {renderPage()}
       </main>
-      <Footer />
+      <Footer onNavigate={handleNavigation} />
       <ScrollToTop />
     </div>
   )

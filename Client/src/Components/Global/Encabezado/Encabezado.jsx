@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { AiOutlineMoon, AiOutlineSun } from "react-icons/ai";
 import logoImagen from "../../../assets/imgs/tuercav4.png";
-import DarkModeToggle from "../DarkModeToggle/DarkModeToggle";
 import "./Encabezado.css";
 
 function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onLogout, darkMode, onToggleDarkMode, canUseDarkMode }) {
@@ -63,10 +63,6 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
         </div>
 
         <div className="header-controls">
-          {/* Solo mostrar toggle de modo oscuro si está permitido */}
-          {canUseDarkMode && (
-            <DarkModeToggle darkMode={darkMode} onToggle={onToggleDarkMode} />
-          )}
           {/* BOTÓN MENÚ HAMBURGUESA - SIMPLE */}
           <button 
             className="menu-toggle" 
@@ -139,7 +135,7 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
                     className={getNavLinkClass('products')}
                     onClick={() => handleNavigation('products')}
                   >
-                    Productos
+                    Catálogo
                   </button>
                   <button
                     className={getNavLinkClass('cart')}
@@ -196,11 +192,41 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
               
               {(currentUser?.Cargo?.toLowerCase() === 'super admin' ||
                 currentUser?.Cargo?.toLowerCase() === 'administrador') && (
+                <>
+                  <button
+                    className={getNavLinkClass('manager-management')}
+                    onClick={() => handleNavigation('manager-management')}
+                  >
+                    Gestión de Gerentes
+                  </button>
+                  <button
+                    className={getNavLinkClass('sales-management')}
+                    onClick={() => handleNavigation('sales-management')}
+                  >
+                    Gestión de Compras
+                  </button>
+                  <button
+                    className={getNavLinkClass('client-management')}
+                    onClick={() => handleNavigation('client-management')}
+                  >
+                    Gestión de Clientes
+                  </button>
+                </>
+              )}
+              
+              {/* Opción de modo oscuro/claro */}
+              {canUseDarkMode && (
                 <button
-                  className={getNavLinkClass('manager-management')}
-                  onClick={() => handleNavigation('manager-management')}
+                  className="sidebar-nav-link dark-mode-menu-item"
+                  onClick={onToggleDarkMode}
+                  title={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
+                  aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
                 >
-                  Gestión de Gerentes
+                  {darkMode ? (
+                    <AiOutlineMoon className="dark-mode-icon" />
+                  ) : (
+                    <AiOutlineSun className="dark-mode-icon" />
+                  )}
                 </button>
               )}
               
@@ -212,10 +238,26 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
               </button>
             </>
           )}
+          
+          {/* Opción de modo oscuro/claro para usuarios no autenticados */}
+          {!isAuthenticated && canUseDarkMode && (
+            <button
+              className="sidebar-nav-link dark-mode-menu-item"
+              onClick={onToggleDarkMode}
+              title={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
+              aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
+            >
+              {darkMode ? (
+                <AiOutlineMoon className="dark-mode-icon" />
+              ) : (
+                <AiOutlineSun className="dark-mode-icon" />
+              )}
+            </button>
+          )}
         </nav>
       </div>
     </>
   )
 }
 
-export default Encabezado
+export default Encabezado;

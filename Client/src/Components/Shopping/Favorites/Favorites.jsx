@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { PRODUCT_ENDPOINTS, SHOPPING_ENDPOINTS } from "../../../config/api"
 import Swal from 'sweetalert2'
 import { AiFillStar } from "react-icons/ai"
 import "./Favorites.css"
@@ -13,7 +14,7 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
         const loadProducts = async () => {
             try {
                 setLoading(true)
-                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
                 const products = response.data || []
                 
                 // Convertir array a objeto con ID como clave
@@ -101,7 +102,7 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
             })
 
             // Agregar al carrito usando el servidor (igual que ProductList)
-            const response = await axios.post('http://localhost:3000/api/compras/carrito', {
+            const response = await axios.post(SHOPPING_ENDPOINTS.ADD_TO_CART, {
                 DNI: currentUser.DNI,
                 ID_Producto: productId,
                 Total: product.price
@@ -196,7 +197,7 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                         className="back-btn"
                         onClick={() => onNavigate('products')}
                     >
-                        ← Explorar Productos
+                        ← Explorar Catálogo
                     </button>
                 </div>
                 
@@ -208,7 +209,7 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                         className="shop-btn"
                         onClick={() => onNavigate('products')}
                     >
-                        Explorar Productos
+                        Explorar Catálogo
                     </button>
                 </div>
             </div>
@@ -230,7 +231,7 @@ function Favorites({ onNavigate, favorites, setFavorites, cart, setCart, isAuthe
                         className="back-btn"
                         onClick={() => onNavigate('products')}
                     >
-                        ← Explorar Productos
+                        ← Explorar Catálogo
                     </button>
                 </div>
             </div>

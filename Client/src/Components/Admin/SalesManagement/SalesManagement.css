@@ -1,0 +1,673 @@
+/* Sales Management Container - ElectroShop Style */
+.sales-management-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: calc(100vh - 160px);
+    background: var(--bg-primary);
+    font-family: var(--font-family-primary);
+    transition: background-color var(--transition-medium);
+}
+
+/* Header */
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.management-header h1 {
+    color: var(--text-primary);
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 1px 2px var(--shadow-color);
+    transition: color var(--transition-medium);
+}
+
+.management-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.product-search-input {
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    font-size: 14px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    min-width: 250px;
+    transition: all var(--transition-medium);
+}
+
+.product-search-input:focus {
+    outline: none;
+    border-color: var(--color-primary-medium);
+    box-shadow: 0 0 0 3px rgba(127, 140, 170, 0.1);
+}
+
+.refresh-btn {
+    background: var(--color-primary-medium);
+    color: var(--text-inverse);
+    border: none;
+    padding: 12px 20px;
+    border-radius: var(--border-radius-medium);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-medium);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.refresh-btn:hover {
+    background: var(--color-blue-medium-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* Error Message */
+.error-message {
+    padding: 16px;
+    background: rgba(255, 142, 142, 0.1);
+    border: 1px solid #FF8E8E;
+    border-radius: var(--border-radius-medium);
+    color: #FF8E8E;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    font-size: 18px;
+}
+
+/* Loading Message */
+.loading-message {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    font-size: 18px;
+}
+
+/* Table Container */
+.sales-table-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-large);
+    overflow-x: auto;
+    box-shadow: var(--shadow-medium);
+    margin-bottom: 32px;
+    transition: background-color var(--transition-medium), border-color var(--transition-medium);
+}
+
+.sales-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.sales-table thead {
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-color);
+    transition: background-color var(--transition-medium), border-color var(--transition-medium);
+}
+
+.sales-table th {
+    padding: 16px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    transition: color var(--transition-medium);
+}
+
+.sales-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color var(--transition-medium), border-color var(--transition-medium);
+}
+
+.sales-table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.sales-table td {
+    padding: 16px 12px;
+    color: var(--text-primary);
+    transition: color var(--transition-medium);
+}
+
+/* Client Info */
+.client-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.client-info strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.client-email {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* Price Cell */
+.price-cell {
+    font-weight: 700;
+    color: var(--color-primary-light);
+}
+
+/* Address Cell */
+.address-cell {
+    font-size: 12px;
+    color: var(--text-secondary);
+    max-width: 200px;
+}
+
+.retiro-sucursal {
+    color: var(--color-primary-medium);
+    font-weight: 600;
+}
+
+/* Estado Badge */
+.estado-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: var(--border-radius-small);
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Estado Select */
+.estado-select {
+    padding: 8px 12px;
+    border: 2px solid;
+    border-radius: var(--border-radius-medium);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-medium);
+    color: var(--text-primary);
+    background: var(--bg-card);
+    min-width: 150px;
+}
+
+.estado-select:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-light);
+}
+
+.estado-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(127, 140, 170, 0.2);
+}
+
+/* Sales Summary */
+.sales-summary {
+    display: flex;
+    justify-content: space-around;
+    padding: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-large);
+    box-shadow: var(--shadow-medium);
+    gap: 24px;
+    flex-wrap: wrap;
+    transition: background-color var(--transition-medium), border-color var(--transition-medium);
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.summary-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color var(--transition-medium);
+}
+
+.summary-value {
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    transition: color var(--transition-medium);
+}
+
+/* Card View for Mobile */
+.sales-cards-container {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.sales-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-large);
+    padding: 0;
+    box-shadow: var(--shadow-medium);
+    transition: all var(--transition-medium);
+    overflow: hidden;
+}
+
+.sales-card-content {
+    padding: 20px;
+}
+
+.sales-card:hover {
+    box-shadow: var(--shadow-heavy);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+    gap: 12px;
+}
+
+.card-id {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-primary-medium);
+}
+
+.card-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-body .card-row:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.card-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 100px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    text-align: right;
+    flex: 1;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.card-client-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+}
+
+.card-client-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-client-email {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.card-price {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-primary-light);
+}
+
+.card-status-section {
+    margin-top: 0;
+    padding: 16px;
+    border-top: 2px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: 0 0 var(--border-radius-large) var(--border-radius-large);
+}
+
+.card-status-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.card-status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: var(--border-radius-small);
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.card-actions {
+    margin-top: 12px;
+}
+
+.card-estado-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid;
+    border-radius: var(--border-radius-medium);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-medium);
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+.card-estado-select:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-light);
+}
+
+.card-estado-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(127, 140, 170, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .sales-management-container {
+        padding: 32px 16px;
+    }
+
+    .management-header h1 {
+        font-size: 28px;
+    }
+
+    .product-search-input {
+        min-width: 200px;
+    }
+
+    .sales-table th,
+    .sales-table td {
+        padding: 14px 10px;
+        font-size: 13px;
+    }
+
+    .estado-select {
+        min-width: 140px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sales-management-container {
+        padding: 20px 12px;
+        min-height: calc(100vh - 120px);
+    }
+
+    .management-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .management-header h1 {
+        font-size: 24px;
+        width: 100%;
+    }
+
+    .management-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .product-search-input {
+        width: 100%;
+        min-width: unset;
+        padding: 14px 16px;
+        font-size: 15px;
+    }
+
+    .refresh-btn {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 15px;
+        justify-content: center;
+        min-height: 48px;
+    }
+
+    /* Hide table on mobile, show cards */
+    .sales-table-container {
+        display: none;
+    }
+
+    .sales-cards-container {
+        display: flex;
+    }
+
+    .sales-summary {
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .summary-item {
+        width: 100%;
+        padding: 12px 0;
+    }
+
+    .summary-label {
+        font-size: 13px;
+    }
+
+    .summary-value {
+        font-size: 22px;
+    }
+
+    .error-message {
+        padding: 14px;
+        font-size: 14px;
+    }
+
+    .empty-state,
+    .loading-message {
+        padding: 40px 16px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sales-management-container {
+        padding: 16px 10px;
+    }
+
+    .management-header {
+        margin-bottom: 20px;
+        gap: 12px;
+    }
+
+    .management-header h1 {
+        font-size: 20px;
+    }
+
+    .product-search-input {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+
+    .refresh-btn {
+        padding: 12px 18px;
+        font-size: 14px;
+        min-height: 44px;
+    }
+
+    .sales-card-content {
+        padding: 16px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .card-id {
+        font-size: 16px;
+    }
+
+    .card-date {
+        font-size: 11px;
+        text-align: left;
+    }
+
+    .card-body {
+        gap: 10px;
+    }
+
+    .card-row {
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-body .card-row:last-of-type {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .card-label {
+        min-width: unset;
+        font-size: 11px;
+        margin-bottom: 2px;
+    }
+
+    .card-value {
+        font-size: 13px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .card-client-info {
+        text-align: left;
+    }
+
+    .card-client-name {
+        font-size: 14px;
+    }
+
+    .card-client-email {
+        font-size: 11px;
+    }
+
+    .card-price {
+        font-size: 16px;
+    }
+
+    .card-status-section {
+        margin-top: 0;
+        padding: 12px;
+        border-radius: 0 0 var(--border-radius-medium) var(--border-radius-medium);
+    }
+
+    .card-status-label {
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+
+    .card-status-badge {
+        padding: 5px 10px;
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+
+    .card-actions {
+        margin-top: 10px;
+    }
+
+    .card-estado-select {
+        padding: 12px 14px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+
+    .sales-summary {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .summary-item {
+        padding: 10px 0;
+    }
+
+    .summary-label {
+        font-size: 12px;
+    }
+
+    .summary-value {
+        font-size: 20px;
+    }
+
+    .error-message {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .empty-state,
+    .loading-message {
+        padding: 30px 12px;
+        font-size: 15px;
+    }
+}
+

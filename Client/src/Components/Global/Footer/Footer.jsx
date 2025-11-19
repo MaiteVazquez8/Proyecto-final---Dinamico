@@ -1,7 +1,10 @@
 import logoImagen from "../../../assets/imgs/tuercav4.png";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { AiOutlineEnvironment, AiOutlinePhone, AiOutlineMail } from "react-icons/ai";
+import { MdSupportAgent } from "react-icons/md";
 import "./Footer.css";
 
-function Footer() {
+function Footer({ onNavigate }) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -19,30 +22,37 @@ function Footer() {
           </p>
         </div>
 
-        {/* Enlaces rápidos */}
         <div className="footer-section">
           <h3 className="footer-title">Enlaces Rápidos</h3>
           <ul className="footer-links">
-            <li><a href="#inicio">Inicio</a></li>
-            <li><a href="#productos">Productos</a></li>
-            <li><a href="#ofertas">Ofertas</a></li>
-            <li><a href="#contacto">Contacto</a></li>
+            <li><button className="footer-link-btn" onClick={() => onNavigate?.('home')}>Inicio</button></li>
+            <li><button className="footer-link-btn" onClick={() => onNavigate?.('products')}>Productos</button></li>
+            <li><button className="footer-link-btn" onClick={() => onNavigate?.('products')}>Ofertas</button></li>
+            <li><button className="footer-link-btn" onClick={() => { onNavigate?.('home'); setTimeout(() => { document.querySelector('.location-map')?.scrollIntoView({ behavior: 'smooth' }) }, 100); }}>Contacto</button></li>
           </ul>
         </div>
 
-        {/* Contacto */}
         <div className="footer-section">
           <h3 className="footer-title">Contacto</h3>
           <div className="footer-contact">
-            <p><strong>Email:</strong> info@electroshop.com</p>
-            <p><strong>Teléfono:</strong> +1 (555) 123-4567</p>
-            <p><strong>Dirección:</strong> 123 Tech Street, Digital City</p>
+            <p className="footer-contact-item"><AiOutlineEnvironment /> <span>Mariano Acosta 565, B1842ADK Monte Grande, Provincia de Buenos Aires</span></p>
+            <p className="footer-contact-item"><AiOutlinePhone /> <a href="tel:+5491125236652">+54 9 11 2523-6652</a></p>
+            <p className="footer-contact-item"><AiOutlineMail /> <a href="mailto:electroshop.webshop@gmail.com">electroshop.webshop@gmail.com</a></p>
+            <p className="footer-contact-item"><MdSupportAgent /> <a href="mailto:electroshop.webshop.soporte@gmail.com">electroshop.webshop.soporte@gmail.com</a></p>
           </div>
           <div className="footer-social">
-            <a href="#facebook" className="social-link">Facebook</a>
-            <a href="#twitter" className="social-link">Twitter</a>
-            <a href="#instagram" className="social-link">Instagram</a>
-            <a href="#linkedin" className="social-link">LinkedIn</a>
+            <a href="#facebook" className="social-link" aria-label="Facebook">
+              <FaFacebook />
+            </a>
+            <a href="#twitter" className="social-link" aria-label="Twitter">
+              <FaTwitter />
+            </a>
+            <a href="#instagram" className="social-link" aria-label="Instagram">
+              <FaInstagram />
+            </a>
+            <a href="#linkedin" className="social-link" aria-label="LinkedIn">
+              <FaLinkedin />
+            </a>
           </div>
         </div>
       </div>

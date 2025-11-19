@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import './Checkout.css';
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { AUTH_ENDPOINTS, SHOPPING_ENDPOINTS, getMockClientData } from "../../../config/api"
+import Swal from 'sweetalert2'
+import "./Checkout.css";
 
 const Checkout = ({ onNavigate, currentUser, isAuthenticated, purchaseType = 'cart', onBack }) => {
     // Estados principales
@@ -165,8 +167,10 @@ const Checkout = ({ onNavigate, currentUser, isAuthenticated, purchaseType = 'ca
     // Cargar datos completos del usuario para autocompletar
     const loadUserData = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/Login/cliente/${currentUser.DNI}`)
-            const userData = response.data
+            // Endpoint no disponible - usar datos simulados combinados con currentUser
+            console.log('Endpoint GET_CLIENT no disponible - usando datos simulados')
+            const mockData = getMockClientData(currentUser.DNI)
+            const userData = { ...mockData, ...currentUser }
             
             // Parsear dirección si está disponible (puede incluir ciudad, provincia, etc.)
             const direccionCompleta = userData.Direccion || ''
@@ -202,7 +206,7 @@ const Checkout = ({ onNavigate, currentUser, isAuthenticated, purchaseType = 'ca
         try {
             setLoading(true)
             // GET /api/compras/carrito/:DNI
-            const response = await axios.get(`http://localhost:3000/api/compras/carrito/${currentUser.DNI}`)
+            const response = await axios.get(SHOPPING_ENDPOINTS.GET_CART(currentUser.DNI))
             setCartItems(response.data)
         } catch (error) {
             console.error('Error al cargar carrito:', error)
@@ -337,7 +341,7 @@ const Checkout = ({ onNavigate, currentUser, isAuthenticated, purchaseType = 'ca
             }
 
             // POST /api/compras/compra (Apellido y Telefono se toman desde DB si fue posible)
-            const response = await axios.post('http://localhost:3000/api/compras/compra', {
+            const response = await axios.post(SHOPPING_ENDPOINTS.MAKE_PURCHASE, {
                 DNI: currentUser.DNI,
                 Tipo_Envio: selectedShipping,
                 Metodo_Pago: selectedPayment,

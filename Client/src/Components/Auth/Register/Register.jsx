@@ -1,6 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
 import PasswordInput from "../../Global/PasswordInput/PasswordInput"
+import { AUTH_ENDPOINTS } from "../../../config/api"
 import "./Register.css"
 
 function Register({ onNavigate }) {
@@ -45,9 +46,11 @@ function Register({ onNavigate }) {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/api/registrarCliente', formData)
+            const response = await axios.post(AUTH_ENDPOINTS.REGISTER_CLIENT, formData)
 
-            setMensaje(response.data.Mensaje || 'Cliente registrado exitosamente')
+            // Mostrar mensaje de verificación
+            const mensajeCompleto = response.data.Mensaje || 'Cliente registrado exitosamente'
+            setMensaje(mensajeCompleto)
             
             // Limpiar formulario
             setFormData({
@@ -61,10 +64,10 @@ function Register({ onNavigate }) {
             })
             setConfirmPassword('')
 
-            // Redirigir al login después de 2 segundos
+            // Redirigir al login después de 3 segundos para que el usuario vea el mensaje
             setTimeout(() => {
                 onNavigate('login')
-            }, 2000)
+            }, 3000)
 
         } catch (error) {
             if (error.response?.data?.Error) {
@@ -198,8 +201,14 @@ function Register({ onNavigate }) {
                     </button>
 
                     {mensaje && (
-                        <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') ? 'error' : 'success'}`}>
+                        <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') || mensaje.includes('ya registrado') ? 'error' : 'success'}`}>
                             {mensaje}
+                            {mensaje.includes('verifica tu email') && (
+                                <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(102, 126, 234, 0.1)', borderRadius: '8px', fontSize: '14px', lineHeight: '1.6' }}>
+                                    <strong>Importante:</strong> Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificación. 
+                                    Haz clic en el enlace del email para activar tu cuenta.
+                                </div>
+                            )}
                         </div>
                     )}
                 </form>

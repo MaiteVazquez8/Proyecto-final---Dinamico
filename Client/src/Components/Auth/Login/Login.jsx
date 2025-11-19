@@ -1,6 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
 import PasswordInput from "../../Global/PasswordInput/PasswordInput"
+import { AUTH_ENDPOINTS } from "../../../config/api"
 import "./Login.css"
 
 function Login({ onNavigate, onLogin }) {
@@ -23,7 +24,7 @@ function Login({ onNavigate, onLogin }) {
 
     try {
       console.log('Intentando iniciar sesión con:', { Mail: mail })
-      const response = await axios.post('http://localhost:3000/api/Login', {
+      const response = await axios.post(AUTH_ENDPOINTS.LOGIN, {
         Mail: mail,
         Contraseña: password
       })
@@ -57,7 +58,13 @@ function Login({ onNavigate, onLogin }) {
       console.error('Error en login:', error)
       console.error('Error response:', error.response)
       if (error.response?.data?.Error) {
-        setMensaje(error.response.data.Error)
+        const errorMessage = error.response.data.Error
+        setMensaje(errorMessage)
+        
+        // Si el error es de cuenta no verificada, mostrar mensaje más claro
+        if (error.response.status === 403 && error.response.data.Verificado === false) {
+          setMensaje('Tu cuenta no está verificada. Por favor, verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificación.')
+        }
       } else {
         setMensaje('Error al iniciar sesión. Verifica tu email y contraseña.')
       }

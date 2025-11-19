@@ -1,297 +1,140 @@
-/* Página de Error ElectroShop - Diseño Moderno y Simple */
-
+/* ServerStatus Component Styles */
 .error-404-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
-  background: #EAEFEF;
+  background: #ffffff; /* fondo blanco sin bordes de color */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   overflow: hidden;
 }
 
-/* Contenedor principal */
-.error-404-content {
-  text-align: center;
-  color: #333446;
-  max-width: 600px;
-  padding: 60px 50px;
-  background: #EAEFEF;
-  border-radius: 20px;
-  border: 2px solid #B8CFCE;
-  box-shadow: 0 8px 32px rgba(51, 52, 70, 0.12);
+.video-container {
   position: relative;
-}
-
-/* Código de error */
-.error-code {
+  width: 100%;
+  height: 100vh;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 40px;
-  position: relative;
-  gap: 8px;
 }
 
-.error-number {
-  font-size: 140px;
-  font-weight: 800;
-  color: #333446;
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-/* Tipografía */
-.error-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: #333446;
-  letter-spacing: -0.5px;
-}
-
-.error-message {
-  font-size: 18px;
-  margin-bottom: 40px;
-  color: #585979;
-  font-weight: 400;
-  line-height: 1.6;
-}
-
-/* Caja de detalles */
-.error-details {
-  background: #F0F0F4;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 32px;
-  border: 1px solid #B8CFCE;
-  text-align: left;
-}
-
-.error-details p {
-  margin: 12px 0;
-  font-size: 15px;
-  color: #333446;
-  line-height: 1.6;
-}
-
-.error-details code {
-  background: #EAEFEF;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-  color: #333446;
-  font-size: 13px;
-  border: 1px solid #B8CFCE;
-  font-weight: 600;
-}
-
-/* Botones modernos */
-.error-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 32px;
-}
-
-.retry-button,
-.home-button {
-  padding: 14px 28px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.retry-button {
-  background: linear-gradient(135deg, #B8CFCE 0%, #9EBDBB 100%);
-  color: #333446;
-  box-shadow: 0 4px 12px rgba(184, 207, 206, 0.3);
-}
-
-.retry-button:hover {
-  background: linear-gradient(135deg, #9EBDBB 0%, #83AAA8 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(184, 207, 206, 0.4);
-}
-
-.retry-button:active {
-  transform: translateY(0);
-}
-
-.home-button {
-  background: transparent;
-  color: #7F8CAA;
-  border: 2px solid #7F8CAA;
-  box-shadow: 0 2px 8px rgba(127, 140, 170, 0.1);
-}
-
-.home-button:hover {
-  background: #7F8CAA;
-  color: #EAEFEF;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(127, 140, 170, 0.3);
-}
-
-.home-button:active {
-  transform: translateY(0);
-}
-
-/* Efecto de brillo en botones */
-.retry-button::before,
-.home-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
+.error-video {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
+  object-fit: contain; /* muestra completo sin recortar */
 }
 
-.retry-button:hover::before,
-.home-button:hover::before {
-  left: 100%;
+/* Alternative design for when video is not available */
+.error-404-container::before {
+  content: none; /* sin patrón decorativo */
 }
 
-/* Pie de página */
-.error-footer {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #B8CFCE;
-  color: #585979;
-  font-size: 14px;
-  font-style: italic;
-}
-
-.error-footer p {
-  margin: 0;
-}
-
-/* Estado de carga */
-.checking-status {
-  position: fixed;
-  top: 30px;
-  right: 30px;
-  z-index: 1000;
-  background: #EAEFEF;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(51, 52, 70, 0.15);
-  padding: 16px 24px;
-  border: 2px solid #B8CFCE;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  animation: slideInRight 0.4s ease-out;
-}
-
-.status-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #333446;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.loading-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #D6D6E1;
-  border-top: 2px solid #7F8CAA;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes slideInRight {
+@keyframes float {
   0% {
-    transform: translateX(100%);
-    opacity: 0;
+    transform: translate(0, 0) rotate(0deg);
   }
   100% {
-    transform: translateX(0);
-    opacity: 1;
+    transform: translate(-50px, -50px) rotate(360deg);
   }
+}
+
+/* Status indicator styles */
+.status-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 10000;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.status-indicator.checking {
+  background: linear-gradient(135deg, #ffa726, #ff9800);
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.online {
+  background: linear-gradient(135deg, #66bb6a, #4caf50);
+  color: white;
+}
+
+.status-indicator.offline {
+  background: linear-gradient(135deg, #ef5350, #f44336);
+  color: white;
+  animation: shake 0.5s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .error-404-container {
+    padding: 20px;
+  }
+  
+  .video-container {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  .status-indicator {
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    padding: 8px 15px;
+  }
+}
+
+/* Loading spinner for checking status */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .error-404-content {
-    padding: 40px 30px;
-    margin: 20px;
-    border-radius: 16px;
-  }
-
-  .error-code {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .error-number {
-    font-size: 100px;
-  }
-
-  .error-title {
-    font-size: 28px;
-  }
-
-  .error-message {
-    font-size: 16px;
-  }
-
-  .error-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .retry-button,
-  .home-button {
-    width: 100%;
-    max-width: 280px;
-  }
-
-  .checking-status {
-    top: 20px;
-    right: 20px;
-    left: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .error-404-content {
-    padding: 30px 20px;
-  }
-
-  .error-number {
-    font-size: 70px;
-  }
-
-  .error-title {
-    font-size: 24px;
-  }
-
-  .error-details {
-    padding: 20px;
-  }
-
-  .error-details p {
-    font-size: 14px;
-  }
+  to { transform: rotate(360deg); }
 }

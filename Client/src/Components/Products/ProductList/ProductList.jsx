@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import Swal from 'sweetalert2'
+import { PRODUCT_ENDPOINTS, SHOPPING_ENDPOINTS } from "../../../config/api"
 import { 
     AiOutlineShoppingCart, 
     AiOutlineHeart, 
@@ -27,7 +28,7 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
         try {
             setLoading(true)
             // Obtener productos del servidor
-            const response = await axios.get('http://localhost:3000/api/productos/productos')
+            const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
             const productsData = response.data || []
 
             // Mapear los productos del servidor al formato esperado por el frontend
@@ -226,7 +227,7 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 setFavorites(prev => prev.filter(id => id !== productId))
             } else {
                 // Agregar a favoritos usando el servidor
-                await axios.post('http://localhost:3000/api/compras/me-gusta', {
+                await axios.post(SHOPPING_ENDPOINTS.LIKE_PRODUCT, {
                     DNI: currentUser.DNI,
                     ID_Producto: productId
                 })
@@ -264,7 +265,7 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
             })
 
             // Agregar al carrito usando el servidor (igual que favoritos)
-            const response = await axios.post('http://localhost:3000/api/compras/carrito', {
+            const response = await axios.post(SHOPPING_ENDPOINTS.ADD_TO_CART, {
                 DNI: currentUser.DNI,
                 ID_Producto: productId,
                 Total: product.price
@@ -426,10 +427,10 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 </div>
             )}
             
-            {/* Header de Productos */}
+            {/* Header de Catálogo */}
             <div className="products-header">
                 <div className="products-title-section">
-                    <h1 className="products-title">Productos</h1>
+                    <h1 className="products-title">Catálogo</h1>
                     <p className="products-subtitle">Descubre nuestra amplia gama de productos tecnológicos</p>
                 </div>
                 <div className="cart-summary">

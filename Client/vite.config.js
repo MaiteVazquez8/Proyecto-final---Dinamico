@@ -8,6 +8,11 @@ export default defineConfig({
     alias: {}
   },
   optimizeDeps: {
-    include: ['sweetalert2']
+    include: ['sweetalert2', 'react-icons']
+  },
+  server: {
+    hmr: {
+      overlay: true
+    }
   }
 })

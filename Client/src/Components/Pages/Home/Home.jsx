@@ -1,19 +1,17 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { 
-    AiOutlineMobile,
-    AiOutlineLaptop,
-    AiOutlineAudio,
-    AiOutlineCamera,
-    AiOutlineEnvironment,
     AiOutlineLeft,
     AiOutlineRight,
-    AiOutlineTool,
-    AiOutlineBulb,
-    AiOutlineSetting
+    AiOutlineEnvironment,
+    AiOutlineMail,
+    AiOutlinePhone
 } from "react-icons/ai"
+import { MdSupportAgent } from "react-icons/md"
 import HomeProductCard from "./HomeProductCard"
 import empresaImagen from "../../../assets/imgs/tuercav3.png"
+import bannerElecProd from "../../../assets/imgs/banners/banner-elec-prod.jpg"
+import bannerElectroMarca from "../../../assets/imgs/banners/banner-Electro-marca.jpg"
 import "./Home.css"
 
 function Home({ onNavigate }) {
@@ -22,12 +20,25 @@ function Home({ onNavigate }) {
     const [currentBestSelling, setCurrentBestSelling] = useState(0)
     const [featuredProducts, setFeaturedProducts] = useState([])
     const [bestSellingProducts, setBestSellingProducts] = useState([])
-    const [banners, setBanners] = useState([])
     const [loading, setLoading] = useState(true)
-    const [imageErrors, setImageErrors] = useState({})
 
-    // Colores para los banners (paleta ElectroShop)
-    const bannerColors = ["#333446", "#7F8CAA", "#B8CFCE"]
+    // Banners estáticos desde la carpeta banners
+    const banners = [
+        {
+            id: 1,
+            image: bannerElecProd,
+            title: "Productos Electrónicos",
+            subtitle: "Descubre nuestra amplia gama de productos electrónicos de alta calidad",
+            link: 'products'
+        },
+        {
+            id: 2,
+            image: bannerElectroMarca,
+            title: "ElectroShop",
+            subtitle: "Tu tienda de confianza para los mejores productos electrónicos",
+            link: 'home'
+        }
+    ]
 
     // Cargar productos del servidor
     useEffect(() => {
@@ -77,62 +88,6 @@ function Home({ onNavigate }) {
                     return (productB?.Cant_Ventas || 0) - (productA?.Cant_Ventas || 0)
                 })
                 setBestSellingProducts(sortedBySales.slice(0, 8))
-                
-                // Crear banners dinámicos desde los primeros 3 productos disponibles
-                let bannerProducts = []
-                
-                if (products.length > 0) {
-                    // Tomar hasta 3 productos únicos para los banners
-                    const uniqueProducts = products.slice(0, Math.min(3, products.length))
-                    
-                    bannerProducts = uniqueProducts.map((product, index) => {
-                        // Obtener imagen del producto
-                        const productImage = product.Imagen_1 || product.Imagen_2 || null
-                        
-                        // Crear subtítulo desde descripción o categoría
-                        let subtitle = product.Descripcion || product.Categoria || product.Subcategoria || 'Producto destacado'
-                        // Limitar la descripción a 60 caracteres si es muy larga
-                        if (subtitle && subtitle.length > 60) {
-                            subtitle = subtitle.substring(0, 60) + '...'
-                        }
-                        
-                        return {
-                            id: product.ID_Producto,
-                            title: product.Nombre || 'Producto',
-                            subtitle: subtitle,
-                            image: productImage,
-                            imageType: getImageType(product.Categoria),
-                            color: bannerColors[index % bannerColors.length],
-                            productId: product.ID_Producto
-                        }
-                    })
-                    
-                    // Si hay menos de 3 productos pero más de 0, reutilizar productos para completar
-                    if (bannerProducts.length < 3 && products.length > 0) {
-                        while (bannerProducts.length < 3) {
-                            const productIndex = bannerProducts.length % products.length
-                            const product = products[productIndex]
-                            const productImage = product.Imagen_1 || product.Imagen_2 || null
-                            let subtitle = product.Descripcion || product.Categoria || product.Subcategoria || 'Producto destacado'
-                            if (subtitle && subtitle.length > 60) {
-                                subtitle = subtitle.substring(0, 60) + '...'
-                            }
-                            
-                            bannerProducts.push({
-                                id: product.ID_Producto * 100 + bannerProducts.length,
-                                title: product.Nombre || 'Producto',
-                                subtitle: subtitle,
-                                image: productImage,
-                                imageType: getImageType(product.Categoria),
-                                color: bannerColors[bannerProducts.length % bannerColors.length],
-                                productId: product.ID_Producto
-                            })
-                        }
-                    }
-                }
-                
-                setBanners(bannerProducts)
-                
             } catch (err) {
                 console.error('Error al cargar productos:', err)
                 setFeaturedProducts([])
@@ -157,9 +112,7 @@ function Home({ onNavigate }) {
             setCurrentBanner((prev) => (prev + 1) % banners.length)
         }, 5000)
         return () => clearInterval(timer)
-    }, [banners.length])
-
-
+    }, [])
 
     const nextBanner = () => {
         if (banners.length === 0) return
@@ -189,68 +142,10 @@ function Home({ onNavigate }) {
         setCurrentBestSelling((prev) => Math.max(prev - 1, 0))
     }
 
-    // Función para renderizar imagen o icono del banner
-    const renderBannerImage = (banner) => {
-        if (!banner) return null
-        
-        // Si hay error en la imagen o no hay imagen, mostrar icono
-        const hasImageError = imageErrors[banner.id]
-        const shouldShowIcon = !banner.image || hasImageError
-        
-        if (!shouldShowIcon && banner.image) {
-            // Verificar si es base64 o URL
-            let imageSrc = banner.image
-            if (!imageSrc.startsWith('data:image/') && !imageSrc.startsWith('http://') && !imageSrc.startsWith('https://')) {
-                imageSrc = `data:image/jpeg;base64,${banner.image}`
-            }
-            
-            return (
-                <img 
-                    src={imageSrc} 
-                    alt={banner.title}
-                    style={{
-                        maxWidth: '200px',
-                        maxHeight: '120px',
-                        objectFit: 'contain',
-                        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
-                        borderRadius: '8px'
-                    }}
-                    onError={() => {
-                        // Si falla la carga de la imagen, marcar error
-                        setImageErrors(prev => ({ ...prev, [banner.id]: true }))
-                    }}
-                />
-            )
-        }
-        
-        // Mostrar icono según tipo
-        const iconProps = {
-            size: 120,
-            color: 'white'
-        }
-        
-        switch (banner.imageType) {
-            case 'mobile':
-                return <AiOutlineMobile {...iconProps} />
-            case 'laptop':
-                return <AiOutlineLaptop {...iconProps} />
-            case 'audio':
-                return <AiOutlineAudio {...iconProps} />
-            case 'tool':
-                return <AiOutlineTool {...iconProps} />
-            case 'lighting':
-                return <AiOutlineBulb {...iconProps} />
-            case 'industrial':
-                return <AiOutlineSetting {...iconProps} />
-            default:
-                return <AiOutlineTool {...iconProps} />
-        }
-    }
-    
     // Función para manejar click en banner
     const handleBannerClick = (banner) => {
-        if (banner.productId) {
-            onNavigate('product-detail', { productId: banner.productId })
+        if (banner.link) {
+            onNavigate(banner.link)
         }
     }
 
@@ -258,8 +153,6 @@ function Home({ onNavigate }) {
     const handleProductClick = (productId) => {
         onNavigate('product-detail', { productId })
     }
-
-    const currentBannerColor = banners.length > 0 ? banners[currentBanner]?.color || bannerColors[0] : bannerColors[0]
 
     // Funciones auxiliares para simplificar los botones de navegación
     const getPrevButtonClass = (isDisabled) => {
@@ -284,7 +177,13 @@ function Home({ onNavigate }) {
             {banners.length > 0 && (
                 <section 
                     className="banner-section" 
-                    style={{ backgroundColor: currentBannerColor, cursor: 'pointer' }}
+                    style={{ 
+                        backgroundImage: `url(${banners[currentBanner]?.image})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        cursor: 'pointer'
+                    }}
                     onClick={() => handleBannerClick(banners[currentBanner])}
                 >
                     <div className="banner-container">
@@ -297,15 +196,6 @@ function Home({ onNavigate }) {
                         >
                             <AiOutlineLeft />
                         </button>
-                        <div className="banner-content">
-                            <div className="banner-text">
-                                <h1 className="banner-title">{banners[currentBanner]?.title || 'Producto'}</h1>
-                                <p className="banner-subtitle">{banners[currentBanner]?.subtitle || 'Producto destacado'}</p>
-                            </div>
-                            <div className="banner-image">
-                                {renderBannerImage(banners[currentBanner])}
-                            </div>
-                        </div>
                         <button 
                             className="banner-nav next" 
                             onClick={(e) => {
@@ -415,9 +305,9 @@ function Home({ onNavigate }) {
 
                             <h3 className="about-subtitle">Sucursal</h3>
                             <div className="contact-info">
-                                <p><strong>Dirección:</strong> Av. Tecnología 123, Digital City</p>
-                                <p><strong>Teléfono:</strong> +1 (555) 123-4567</p>
-                                <p><strong>Email:</strong> info@electroshop.com</p>
+                                <p><strong>Dirección:</strong> Mariano Acosta 565, B1842ADK Monte Grande, Provincia de Buenos Aires</p>
+                                <p><strong>Teléfono:</strong> +54 9 11 2523-6652</p>
+                                <p><strong>Email:</strong> electroshop.webshop@gmail.com</p>
                             </div>
                         </div>
                         <div className="about-image">
@@ -430,16 +320,39 @@ function Home({ onNavigate }) {
                     <div className="location-map">
                         <div className="map-container">
                             <h4>Mapa</h4>
-                            <div className="map-placeholder">
-                                <div className="map-icon"><AiOutlineEnvironment /></div>
-                                <p>Ubicación de la tienda</p>
+                            <div className="map-iframe-container">
+                                <iframe 
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3275.401769073871!2d-58.47729842488715!3d-34.82098966900426!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcd1687e6db657%3A0xec6f0e216b4a8031!2sMariano%20Acosta%20565%2C%20B1842ADK%20Monte%20Grande%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1763252139703!5m2!1ses-419!2sar" 
+                                    width="100%" 
+                                    height="300" 
+                                    style={{border:0}} 
+                                    allowFullScreen="" 
+                                    loading="lazy" 
+                                    referrerPolicy="no-referrer-when-downgrade">
+                                </iframe>
+                                <div className="contact-info">
+                                    <div className="contact-item">
+                                        <AiOutlineEnvironment className="contact-icon" />
+                                        <span>Mariano Acosta 565, B1842ADK Monte Grande, Provincia de Buenos Aires</span>
+                                    </div>
+                                    <div className="contact-item">
+                                        <AiOutlinePhone className="contact-icon" />
+                                        <a href="tel:+5491125236652">+54 9 11 2523-6652</a>
+                                    </div>
+                                    <div className="contact-item">
+                                        <AiOutlineMail className="contact-icon" />
+                                        <a href="mailto:electroshop.webshop@gmail.com">electroshop.webshop@gmail.com</a>
+                                    </div>
+                                    <div className="contact-item">
+                                        <MdSupportAgent className="contact-icon" />
+                                        <a href="mailto:electroshop.webshop.soporte@gmail.com">electroshop.webshop.soporte@gmail.com</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
-
-
         </div>
     )
 }

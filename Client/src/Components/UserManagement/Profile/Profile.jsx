@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { AUTH_ENDPOINTS, getMockClientData } from "../../../config/api"
 import logoImagen from "../../../assets/imgs/tuercav4.png"
 import "../../Auth/Login/Login.css"
 import "./Profile.css"
@@ -21,9 +22,10 @@ function Profile({ onNavigate, currentUser }) {
             const cargo = currentUser?.Cargo?.toLowerCase()
             if (cargo === 'cliente') {
                 try {
-                    // Cargar datos completos del usuario desde la base de datos
-                    const response = await axios.get(`http://localhost:3000/api/Login/cliente/${currentUser.DNI}`)
-                    setUserData(response.data)
+                    // Endpoint no disponible - usar datos simulados
+                    console.log('Endpoint GET_CLIENT no disponible - usando datos simulados')
+                    const mockData = getMockClientData(currentUser.DNI)
+                    setUserData(mockData)
                 } catch (error) {
                     console.error('Error al cargar datos del usuario:', error)
                     // Si falla, usar los datos básicos del currentUser

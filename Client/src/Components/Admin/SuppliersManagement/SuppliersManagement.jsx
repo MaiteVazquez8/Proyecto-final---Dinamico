@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { PRODUCT_ENDPOINTS } from "../../../config/api"
 import Swal from 'sweetalert2'
 import '../ProductManagement/ProductManagement.css'
 
@@ -25,7 +26,7 @@ function SuppliersManagement() {
     const loadSuppliers = async () => {
         try {
             setLoading(true)
-            const response = await axios.get('http://localhost:3000/api/productos/proveedor')
+            const response = await axios.get(PRODUCT_ENDPOINTS.GET_SUPPLIERS)
             setSuppliers(response.data || [])
         } catch (err) {
             console.error('Error al cargar proveedores:', err)
@@ -47,11 +48,11 @@ function SuppliersManagement() {
             setLoading(true)
             if (editingSupplier) {
                 // Edit existing supplier
-                await axios.put(`http://localhost:3000/api/productos/proveedor/${editingSupplier}`, formData)
+                await axios.put(PRODUCT_ENDPOINTS.UPDATE_SUPPLIER(editingSupplier), formData)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Proveedor modificado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             } else {
                 // Create new supplier
-                await axios.post('http://localhost:3000/api/productos/proveedor', formData)
+                await axios.post(PRODUCT_ENDPOINTS.CREATE_SUPPLIER, formData)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Proveedor agregado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             }
 
@@ -82,7 +83,7 @@ function SuppliersManagement() {
         if (!result.isConfirmed) return
 
         try {
-            await axios.delete(`http://localhost:3000/api/productos/proveedor/${ID_Proveedor}`)
+            await axios.delete(PRODUCT_ENDPOINTS.DELETE_SUPPLIER(ID_Proveedor))
             Swal.fire({ icon: 'success', title: '¡Eliminado!', text: 'Proveedor eliminado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             loadSuppliers()
         } catch (err) {
