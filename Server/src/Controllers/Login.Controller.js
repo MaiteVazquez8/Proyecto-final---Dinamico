@@ -232,10 +232,5 @@ module.exports = {
     login,
     obtenerClientes,
     obtenerEmpleados,
-<<<<<<< HEAD
     obtenerGerentes
-=======
-    obtenerGerentes,
-    obtenerClientePorDNI
->>>>>>> 24a5ef904fc1194a2c9611fbfc8f73d7d3643bef
 };
