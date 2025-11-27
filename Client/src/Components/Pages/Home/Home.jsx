@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { 
+import {
     AiOutlineLeft,
     AiOutlineRight,
     AiOutlineEnvironment,
@@ -47,7 +47,7 @@ function Home({ onNavigate }) {
                 setLoading(true)
                 const response = await axios.get('http://localhost:3000/api/productos/productos')
                 const products = response.data || []
-                
+
                 // Función para determinar el tipo de imagen basado en la categoría
                 const getImageType = (categoria) => {
                     if (!categoria) return 'tool'
@@ -61,13 +61,13 @@ function Home({ onNavigate }) {
                     if (cat.includes('industrial') || cat.includes('linea industrial')) return 'industrial'
                     return 'tool'
                 }
-                
+
                 // Formatear precio
                 const formatPrice = (precio) => {
                     if (!precio) return '$0'
                     return `$${precio.toLocaleString('es-AR')}`
                 }
-                
+
                 // Mapear productos a formato de Home
                 const mappedProducts = products.map(product => ({
                     id: product.ID_Producto,
@@ -77,10 +77,10 @@ function Home({ onNavigate }) {
                     image_1: product.Imagen_1 || null,
                     badge: product.Stock > 0 ? '' : 'SIN STOCK'
                 }))
-                
+
                 // Los primeros productos son destacados, los más vendidos son los que tienen más ventas
                 setFeaturedProducts(mappedProducts.slice(0, 8))
-                
+
                 // Ordenar por Cant_Ventas (más vendidos) y tomar los primeros 8
                 const sortedBySales = [...mappedProducts].sort((a, b) => {
                     const productA = products.find(p => p.ID_Producto === a.id)
@@ -175,9 +175,9 @@ function Home({ onNavigate }) {
         <div className="home-container">
             {/* Banner Section */}
             {banners.length > 0 && (
-                <section 
-                    className="banner-section" 
-                    style={{ 
+                <section
+                    className="banner-section"
+                    style={{
                         backgroundImage: `url(${banners[currentBanner]?.image})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
@@ -187,8 +187,8 @@ function Home({ onNavigate }) {
                     onClick={() => handleBannerClick(banners[currentBanner])}
                 >
                     <div className="banner-container">
-                        <button 
-                            className="banner-nav prev" 
+                        <button
+                            className="banner-nav prev"
                             onClick={(e) => {
                                 e.stopPropagation()
                                 prevBanner()
@@ -196,8 +196,8 @@ function Home({ onNavigate }) {
                         >
                             <AiOutlineLeft />
                         </button>
-                        <button 
-                            className="banner-nav next" 
+                        <button
+                            className="banner-nav next"
                             onClick={(e) => {
                                 e.stopPropagation()
                                 nextBanner()
@@ -321,13 +321,13 @@ function Home({ onNavigate }) {
                         <div className="map-container">
                             <h4>Mapa</h4>
                             <div className="map-iframe-container">
-                                <iframe 
-                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3275.401769073871!2d-58.47729842488715!3d-34.82098966900426!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcd1687e6db657%3A0xec6f0e216b4a8031!2sMariano%20Acosta%20565%2C%20B1842ADK%20Monte%20Grande%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1763252139703!5m2!1ses-419!2sar" 
-                                    width="100%" 
-                                    height="300" 
-                                    style={{border:0}} 
-                                    allowFullScreen="" 
-                                    loading="lazy" 
+                                <iframe
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3275.401769073871!2d-58.47729842488715!3d-34.82098966900426!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcd1687e6db657%3A0xec6f0e216b4a8031!2sMariano%20Acosta%20565%2C%20B1842ADK%20Monte%20Grande%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1763252139703!5m2!1ses-419!2sar"
+                                    width="100%"
+                                    height="300"
+                                    style={{ border: 0 }}
+                                    allowFullScreen=""
+                                    loading="lazy"
                                     referrerPolicy="no-referrer-when-downgrade">
                                 </iframe>
                                 <div className="contact-info">

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { SHOPPING_ENDPOINTS } from "../../config/api"
 import Encabezado from "../Global/Encabezado/Encabezado"
 import Footer from "../Global/Footer/Footer"
 import ScrollToTop from "../Global/ScrollToTop/ScrollToTop"
@@ -31,15 +30,15 @@ function Layout() {
     const urlParams = new URLSearchParams(window.location.search)
     const tokenFromQuery = urlParams.get('token')
     if (tokenFromQuery) return tokenFromQuery
-    
+
     // También verificar si está en el pathname
     if (window.location.pathname.includes('/verificar/')) {
       return window.location.pathname.split('/verificar/')[1]
     }
-    
+
     return null
   }
-  
+
   const initialToken = getTokenFromUrl()
   const [currentPage, setCurrentPage] = useState(initialToken ? 'verify' : 'home')
   const [pageData, setPageData] = useState(initialToken ? { token: initialToken } : null)
@@ -150,49 +149,65 @@ function Layout() {
       'client-management': 'ElectroShop - Gestión de Clientes',
       'verify': 'ElectroShop - Verificar Cuenta'
     }
-    
+
     const title = pageTitles[currentPage] || 'ElectroShop - Tu tienda de electrónica'
     document.title = title
   }, [currentPage])
 
-  // Restaurar sesión desde localStorage al montar
-  // Solo restaurar automáticamente para personal (empleados, gerentes, superadmin)
-  // Los clientes NO se restauran automáticamente para forzar verificación en el login
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Verificar y restaurar sesión al cargar la aplicación
   useEffect(() => {
-    const stored = localStorage.getItem('currentUser')
-    if (stored) {
+    const checkAuth = async () => {
+      const storedUser = localStorage.getItem('currentUser')
+
+      if (!storedUser) {
+        console.log('No hay sesión guardada en localStorage')
+        setAuthChecked(true);
+        return
+      }
+
       try {
-        const parsed = JSON.parse(stored)
-        const cargo = parsed?.Cargo?.toLowerCase()
-        
-        // Verificar si es personal (empleado, gerente, super admin, administrador)
-        const esPersonal = cargo === 'empleado' || 
-                          cargo === 'gerente' || 
-                          cargo === 'super admin' || 
-                          cargo === 'administrador'
-        
-        if (esPersonal) {
-          // Restaurar sesión automáticamente para personal (no necesitan verificación)
-          console.log('✅ Restaurando sesión de personal desde localStorage:', cargo)
-          setIsAuthenticated(true)
-          setCurrentUser(parsed)
-          
-          // Redirigir a la página de gestión según el cargo
-          if (cargo === 'empleado' || cargo === 'gerente' || cargo === 'super admin' || cargo === 'administrador') {
-            setCurrentPage('product-management')
-          }
-        } else {
-          // Para clientes, NO restaurar automáticamente
-          // Deben hacer login para verificar su estado de verificación
-          console.log('⚠️ Sesión de cliente encontrada, pero no se restaurará automáticamente (requiere verificación)')
-          // Limpiar sesión de cliente no verificada
+        const userData = JSON.parse(storedUser)
+        console.log('Usuario encontrado en localStorage:', userData)
+
+        // Verificar si la sesión es reciente (menos de 7 días)
+        const lastLogin = new Date(userData.lastLogin || 0)
+        const now = new Date()
+        const daysSinceLastLogin = (now - lastLogin) / (1000 * 60 * 60 * 24)
+
+        if (daysSinceLastLogin > 7) {
+          console.log('La sesión ha expirado')
           localStorage.removeItem('currentUser')
+          setAuthChecked(true);
+          return
         }
-      } catch (err) {
-        console.error('Error parseando currentUser desde localStorage:', err)
+
+        // Actualizar la última vez que se inició sesión
+        userData.lastLogin = now.toISOString()
+        localStorage.setItem('currentUser', JSON.stringify(userData))
+
+        // Establecer el usuario actual
+        setCurrentUser(userData)
+        setIsAuthenticated(true)
+
+        // Redirigir según el tipo de usuario
+        const cargo = userData.Cargo?.toLowerCase()
+        if (cargo === 'empleado' || cargo === 'gerente' || cargo === 'super admin' || cargo === 'administrador') {
+          setCurrentPage('product-management')
+        } else {
+          setCurrentPage('home')
+        }
+
+      } catch (error) {
+        console.error('Error al restaurar la sesión:', error)
         localStorage.removeItem('currentUser')
+      } finally {
+        setAuthChecked(true);
       }
     }
+
+    checkAuth()
   }, [])
 
   const [cartRefreshKey, setCartRefreshKey] = useState(0)
@@ -216,14 +231,14 @@ function Layout() {
     } catch (err) {
       console.warn('No se pudo persistir currentUser en localStorage:', err)
     }
-    
+
     // Solo cargar carrito si es cliente (no personal)
     const cargo = userData.Cargo?.toLowerCase()
     console.log('Cargo del usuario:', cargo)
-    
+
     if (cargo === 'cliente') {
       try {
-        const response = await axios.get(SHOPPING_ENDPOINTS.GET_CART(userData.DNI))
+        const response = await axios.get(`http://localhost:3000/api/compras/carrito/${userData.DNI}`)
         // Mapear los datos del servidor al formato local
         const localCart = response.data.map(item => ({
           id: item.ID_Producto,
@@ -234,7 +249,7 @@ function Layout() {
         console.error('Error al cargar carrito:', error)
       }
     }
-    
+
     // Redirigir según el tipo de usuario
     if (cargo === 'empleado' || cargo === 'gerente' || cargo === 'super admin' || cargo === 'administrador') {
       // Personal: redirigir a gestión de productos
@@ -248,17 +263,28 @@ function Layout() {
   }
 
   const handleLogout = () => {
+    // Limpiar el estado local
     setIsAuthenticated(false)
     setCurrentUser(null)
     setCart([])
     setFavorites([])
-    setCurrentPage('home')
-    // Limpiar sesión persistida
+
+    // Limpiar datos de sesión persistentes
     try {
+      // Eliminar el usuario del localStorage
       localStorage.removeItem('currentUser')
+
+      // Limpiar cualquier otra información de sesión que pueda existir
+      localStorage.removeItem('cart')
+      localStorage.removeItem('favorites')
+
+      console.log('Sesión cerrada correctamente')
     } catch (err) {
-      console.warn('Error al limpiar currentUser de localStorage:', err)
+      console.error('Error al cerrar sesión:', err)
     }
+
+    // Redirigir al inicio
+    setCurrentPage('home')
   }
 
   // Función auxiliar para determinar si la página debe estar centrada
@@ -283,11 +309,11 @@ function Layout() {
     console.log('Rendering page:', currentPage)
     console.log('Current user:', currentUser)
     console.log('Is authenticated:', isAuthenticated)
-    
+
     // Páginas de administración según rol
     const userRole = currentUser?.Cargo?.toLowerCase()
     console.log('User role (lowercase):', userRole)
-    
+
     if (currentPage === 'product-management') {
       if (userRole === 'empleado' || userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
         return <ProductManagement currentUser={currentUser} />
@@ -295,7 +321,7 @@ function Layout() {
       console.log('Access denied to product-management for role:', userRole)
       return <Home onNavigate={handleNavigation} />
     }
-    
+
     if (currentPage === 'employee-management') {
       if (userRole === 'gerente' || userRole === 'super admin' || userRole === 'administrador') {
         return <EmployeeManagement currentUser={currentUser} />
@@ -303,7 +329,7 @@ function Layout() {
       console.log('Access denied to employee-management for role:', userRole)
       return <Home onNavigate={handleNavigation} />
     }
-    
+
     if (currentPage === 'manager-management') {
       if (userRole === 'super admin' || userRole === 'administrador') {
         return <ManagerManagement currentUser={currentUser} />
@@ -337,16 +363,31 @@ function Layout() {
       console.log('=== CLIENT MANAGEMENT ROUTE ===')
       console.log('User role:', userRole)
       console.log('Current user:', currentUser)
-      // Solo super admin puede gestionar clientes
+
+      // Mostrar cargando mientras verificamos la autenticación
+      if (!authChecked) {
+        return <div className="loading-container">Verificando autenticación...</div>;
+      }
+
+      // Verificar autenticación
+      if (!isAuthenticated || !currentUser) {
+        console.log('Usuario no autenticado, redirigiendo a login');
+        // Redirigir al login si no está autenticado
+        setCurrentPage('login');
+        return null;
+      }
+
+      // Verificar rol
       if (userRole === 'super admin' || userRole === 'administrador') {
         console.log('Access granted, rendering ClientManagement component')
         return <ClientManagement currentUser={currentUser} />
       }
+
       console.log('Access denied to client-management for role:', userRole)
       return <Home onNavigate={handleNavigation} />
     }
-    
-    switch(currentPage) {
+
+    switch (currentPage) {
       case 'verify':
         return <Verify token={pageData?.token} onNavigate={handleNavigation} />
       case 'login':
@@ -354,10 +395,10 @@ function Layout() {
       case 'register':
         return <Register onNavigate={handleNavigation} />
       case 'products':
-        return <Products 
-          onNavigate={handleNavigation} 
-          onLogout={handleLogout} 
-          currentUser={currentUser} 
+        return <Products
+          onNavigate={handleNavigation}
+          onLogout={handleLogout}
+          currentUser={currentUser}
           isAuthenticated={isAuthenticated}
           cart={cart}
           setCart={setCart}
@@ -365,9 +406,9 @@ function Layout() {
           setFavorites={setFavorites}
         />
       case 'product-detail':
-        return <ProductDetail 
-          onNavigate={handleNavigation} 
-          productId={pageData?.productId} 
+        return <ProductDetail
+          onNavigate={handleNavigation}
+          productId={pageData?.productId}
           isAuthenticated={isAuthenticated}
           cart={cart}
           setCart={setCart}
@@ -376,7 +417,7 @@ function Layout() {
           currentUser={currentUser}
         />
       case 'cart':
-        return <Cart 
+        return <Cart
           key={`cart-${currentUser?.DNI || 'guest'}-${cartRefreshKey}`}
           onNavigate={handleNavigation}
           cart={cart}
@@ -385,7 +426,7 @@ function Layout() {
           currentUser={currentUser}
         />
       case 'favorites':
-        return <Favorites 
+        return <Favorites
           onNavigate={handleNavigation}
           favorites={favorites}
           setFavorites={setFavorites}
@@ -395,7 +436,7 @@ function Layout() {
           currentUser={currentUser}
         />
       case 'checkout':
-        return <Checkout 
+        return <Checkout
           onNavigate={handleNavigation}
           currentUser={currentUser}
           isAuthenticated={isAuthenticated}
@@ -416,9 +457,9 @@ function Layout() {
   return (
     <div className="app-container">
       <ServerStatus />
-      <Encabezado 
-        onNavigate={handleNavigation} 
-        currentPage={currentPage} 
+      <Encabezado
+        onNavigate={handleNavigation}
+        currentPage={currentPage}
         isAuthenticated={isAuthenticated}
         currentUser={currentUser}
         onLogout={handleLogout}

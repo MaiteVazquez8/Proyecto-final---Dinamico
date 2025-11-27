@@ -31,26 +31,32 @@ function Login({ onNavigate, onLogin }) {
 
       console.log('Respuesta del servidor:', response.data)
 
+      // Preparar datos del usuario
+      const userData = {
+        DNI: response.data.DNI,
+        Nombre: response.data.Nombre || mail.split('@')[0], // Usar el nombre del correo si no hay nombre
+        Cargo: response.data.Cargo || 'cliente', // Asumir cliente si no se especifica
+        Mail: mail,
+        token: response.data.token, // Asegúrate de que el servidor envíe un token
+        lastLogin: new Date().toISOString()
+      }
+      
+      // Guardar en localStorage
+      try {
+        localStorage.setItem('currentUser', JSON.stringify(userData))
+        console.log('Usuario guardado en localStorage:', userData)
+      } catch (error) {
+        console.error('Error al guardar en localStorage:', error)
+      }
+      
       // Mostrar mensaje de éxito
-      const cargo = response.data.Cargo?.toLowerCase()
-      const mensajePersonalizado = response.data.Mensaje || '¡Inicio de sesión exitoso! Redirigiendo...'
+      const cargo = userData.Cargo.toLowerCase()
+      const mensajePersonalizado = response.data.Mensaje || `¡Bienvenido ${userData.Nombre}!`
       setMensaje(mensajePersonalizado)
 
-      // Delay de 1.5 segundos antes de redirigir
+      // Redirigir después de 1.5 segundos
       setTimeout(() => {
-        // Llamar a onLogin con los datos del usuario
-        console.log('Enviando datos de usuario al Layout:', {
-          DNI: response.data.DNI,
-          Nombre: response.data.Nombre,
-          Cargo: response.data.Cargo,
-          Mail: mail
-        })
-        onLogin({
-          DNI: response.data.DNI,
-          Nombre: response.data.Nombre,
-          Cargo: response.data.Cargo,
-          Mail: mail
-        })
+        onLogin(userData)
         setIsLoading(false)
       }, 1500)
 

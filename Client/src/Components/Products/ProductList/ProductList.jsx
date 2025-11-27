@@ -2,9 +2,9 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import Swal from 'sweetalert2'
 import { PRODUCT_ENDPOINTS, SHOPPING_ENDPOINTS } from "../../../config/api"
-import { 
-    AiOutlineShoppingCart, 
-    AiOutlineHeart, 
+import {
+    AiOutlineShoppingCart,
+    AiOutlineHeart,
     AiOutlineSearch,
     AiOutlineLoading3Quarters,
     AiOutlineExclamationCircle,
@@ -33,36 +33,36 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
 
             // Mapear los productos del servidor al formato esperado por el frontend
             const mappedProducts = productsData.map(product => {
-                    // Extraer marca del nombre del producto
-                    const getBrand = (name) => {
-                        if (!name) return 'ElectroShop'
-                        if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
-                        if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
-                        if (name.includes('Dell')) return 'Dell'
-                        if (name.includes('Sony')) return 'Sony'
-                        if (name.includes('Google') || name.includes('Pixel')) return 'Google'
-                        return 'ElectroShop'
-                    }
+                // Extraer marca del nombre del producto
+                const getBrand = (name) => {
+                    if (!name) return 'ElectroShop'
+                    if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
+                    if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
+                    if (name.includes('Dell')) return 'Dell'
+                    if (name.includes('Sony')) return 'Sony'
+                    if (name.includes('Google') || name.includes('Pixel')) return 'Google'
+                    return 'ElectroShop'
+                }
 
-                    return {
-                        id: product.ID_Producto,
-                        name: product.Nombre || 'Producto sin nombre',
-                        category: product.Categoria?.toLowerCase() || 'other',
-                        price: product.Precio || 0,
-                        image: product.Imagen_1 || null,
-                        image_1: product.Imagen_1 || null,
-                        image_2: product.Imagen_2 || null,
-                        Imagen_2: product.Imagen_2 || null,
-                        description: product.Descripcion || 'Sin descripción disponible',
-                        brand: getBrand(product.Nombre),
-                        rating: product.Promedio_Calificacion || 4.5,
-                        stock: product.Stock || 0,
-                        isNew: false, // Por defecto no es nuevo, se puede actualizar según lógica de negocio
-                        color: product.Color,
-                        subcategoria: product.Subcategoria
-                    }
-                })
-                
+                return {
+                    id: product.ID_Producto,
+                    name: product.Nombre || 'Producto sin nombre',
+                    category: product.Categoria?.toLowerCase() || 'other',
+                    price: product.Precio || 0,
+                    image: product.Imagen_1 || null,
+                    image_1: product.Imagen_1 || null,
+                    image_2: product.Imagen_2 || null,
+                    Imagen_2: product.Imagen_2 || null,
+                    description: product.Descripcion || 'Sin descripción disponible',
+                    brand: getBrand(product.Nombre),
+                    rating: product.Promedio_Calificacion || 4.5,
+                    stock: product.Stock || 0,
+                    isNew: false, // Por defecto no es nuevo, se puede actualizar según lógica de negocio
+                    color: product.Color,
+                    subcategoria: product.Subcategoria
+                }
+            })
+
             setProducts(mappedProducts)
             setError('')
         } catch (err) {
@@ -106,15 +106,15 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 { value: 'all', label: 'Todas las subcategorías' },
                 { value: 'Baja Tensión', label: 'Baja Tensión' },
                 { value: 'Media y Alta Tensión', label: 'Media y Alta Tensión' },
-                { value: 'Telefonía y Estructurales', label: 'Telefonía y Estructurales' },
+                { value: 'Telefonía y Estructurados', label: 'Telefonía y Estructurados' },
                 { value: 'Especiales', label: 'Especiales' }
             ]
         },
-        'Morseteria y Herrajes': {
-            label: 'Morseteria y Herrajes',
+        'Mensajería y Herrajes': {
+            label: 'Mensajería y Herrajes',
             subcategories: [
                 { value: 'all', label: 'Todas las subcategorías' },
-                { value: 'Morseteria', label: 'Morseteria' },
+                { value: 'Mensajería', label: 'Mensajería' },
                 { value: 'Herrajes', label: 'Herrajes' },
                 { value: 'Conectores', label: 'Conectores' },
                 { value: 'Empalmes y Terminales', label: 'Empalmes y Terminales' },
@@ -135,28 +135,28 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
             subcategories: [
                 { value: 'all', label: 'Todas las subcategorías' },
                 { value: 'Lámparas Led', label: 'Lámparas Led' },
-                { value: 'Decorativas', label: 'Decorativas' },
+                { value: 'Decorativos', label: 'Decorativos' },
                 { value: 'Industriales Led', label: 'Industriales Led' },
-                { value: 'Luminarias Vacias', label: 'Luminarias Vacias' },
+                { value: 'Luminarias Viarias', label: 'Luminarias Viarias' },
                 { value: 'Domótica', label: 'Domótica' }
             ]
         },
-        'Linea Industrial': {
-            label: 'Linea Industrial',
+        'Línea Industrial': {
+            label: 'Línea Industrial',
             subcategories: [
                 { value: 'all', label: 'Todas las subcategorías' },
                 { value: 'Interruptores', label: 'Interruptores' },
-                { value: 'Fichas y Bases', label: 'Fichas y Bases' },
+                { value: 'Teclas y Bases', label: 'Teclas y Bases' },
                 { value: 'Motores Eléctricos', label: 'Motores Eléctricos' },
                 { value: 'Arranque y Protección de Motores', label: 'Arranque y Protección de Motores' },
                 { value: 'Mando y Señalización', label: 'Mando y Señalización' },
                 { value: 'Automatización', label: 'Automatización' },
-                { value: 'Capacitores y Reles Varimetricos', label: 'Capacitores y Reles Varimetricos' },
+                { value: 'Capacitores y Relés Voltimétricos', label: 'Capacitores y Relés Voltimétricos' },
                 { value: 'Seccionadores', label: 'Seccionadores' }
             ]
         },
-        'Linea Domiciliaria': {
-            label: 'Linea Domiciliaria',
+        'Línea Domiciliaria': {
+            label: 'Línea Domiciliaria',
             subcategories: [
                 { value: 'all', label: 'Todas las subcategorías' },
                 { value: 'Teclas de Embutir', label: 'Teclas de Embutir' },
@@ -270,13 +270,13 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                 ID_Producto: productId,
                 Total: product.price
             })
-            
+
             console.log('Respuesta del servidor al agregar:', response.data)
-            
+
             // Actualizar el estado local (igual que favoritos)
             setCart(prev => [...prev, { id: productId, quantity: 1 }])
             console.log('Producto agregado al carrito exitosamente. Estado local actualizado.')
-            
+
             // Pequeño delay para asegurar que el servidor procesó la inserción
             setTimeout(() => {
                 console.log('Recargando carrito después de agregar producto...')
@@ -352,12 +352,12 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
             const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (product.subcategoria && product.subcategoria.toLowerCase().includes(searchTerm.toLowerCase()))
-            
-            const matchesCategory = selectedCategory === 'all' || 
+
+            const matchesCategory = selectedCategory === 'all' ||
                 product.category?.toLowerCase() === selectedCategory.toLowerCase() ||
                 product.Categoria?.toLowerCase() === selectedCategory.toLowerCase()
-            
-            const matchesSubcategory = selectedSubcategory === 'all' || 
+
+            const matchesSubcategory = selectedSubcategory === 'all' ||
                 !selectedSubcategory ||
                 product.subcategoria?.toLowerCase() === selectedSubcategory.toLowerCase() ||
                 product.Subcategoria?.toLowerCase() === selectedSubcategory.toLowerCase()
@@ -426,7 +426,7 @@ function ProductList({ onNavigate, onLogout, currentUser, isAuthenticated, cart,
                     <p>Error: {error}</p>
                 </div>
             )}
-            
+
             {/* Header de Catálogo */}
             <div className="products-header">
                 <div className="products-title-section">

@@ -14,6 +14,64 @@ function ProductManagement({ currentUser }) {
     const [showSupplierForm, setShowSupplierForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
 
+    const CATEGORIES = {
+        'Cables': [
+            'Baja Tensión',
+            'Media y Alta Tensión',
+            'Telefonía y Estructurados',
+            'Especiales'
+        ],
+        'Mensajería y Herrajes': [
+            'Mensajería',
+            'Herrajes',
+            'Conectores',
+            'Empalmes y Terminales',
+            'Aisladores',
+            'Seleccionadores'
+        ],
+        'Accesorios': [
+            'Cintas Aislantes',
+            'Accesorios de Protección'
+        ],
+        'Iluminación': [
+            'Lámparas Led',
+            'Decorativos',
+            'Industriales Led',
+            'Luminarias Viarias',
+            'Domótica'
+        ],
+        'Línea Industrial': [
+            'Interruptores',
+            'Teclas y Bases',
+            'Motores Eléctricos',
+            'Arranque y Protección de Motores',
+            'Mando y Señalización',
+            'Automatización',
+            'Capacitores y Relés Voltimétricos',
+            'Seccionadores'
+        ],
+        'Línea Domiciliaria': [
+            'Teclas de Embutir',
+            'Térmicas y Disyuntores',
+            'Cañería',
+            'Cajas'
+        ],
+        'Cajas y Gabinetes': [
+            'Metálicos',
+            'PVC'
+        ],
+        'Herramientas': [
+            'De Mano',
+            'Eléctricas'
+        ],
+        'Tableros y Obras': [
+            'Tableros'
+        ],
+        'Energías Renovables': [
+            'Equipos'
+        ]
+    }
+
     const [formData, setFormData] = useState({
         Nombre: '',
         ID_Proveedor: '',
@@ -47,13 +105,13 @@ function ProductManagement({ currentUser }) {
             setLoading(true)
             const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
             const productsData = response.data || []
-            
+
             // Asegurar que los IDs sean números válidos
             const cleanedProducts = productsData.map(product => ({
                 ...product,
                 ID_Producto: parseInt(product.ID_Producto) || product.ID_Producto
             }))
-            
+
             console.log('Productos cargados del servidor:', cleanedProducts)
             setProducts(cleanedProducts)
         } catch (error) {
@@ -78,10 +136,19 @@ function ProductManagement({ currentUser }) {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }))
+
+        if (name === 'Categoria') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                Subcategoria: '' // Reset subcategory when category changes
+            }))
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }))
+        }
     }
 
     const handleImageChange = (e, imageNumber) => {
@@ -120,7 +187,7 @@ function ProductManagement({ currentUser }) {
                 const canvas = document.createElement('canvas')
                 const maxWidth = 800
                 const maxHeight = 800
-                
+
                 let width = img.width
                 let height = img.height
 
@@ -146,7 +213,7 @@ function ProductManagement({ currentUser }) {
 
                 // Convertir a base64 con calidad 0.7
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
-                
+
                 if (imageNumber === 1) {
                     setFormData(prev => ({ ...prev, Imagen_1: compressedBase64 }))
                     setImagePreview1(compressedBase64)
@@ -174,7 +241,7 @@ function ProductManagement({ currentUser }) {
         e.preventDefault()
         try {
             setLoading(true)
-            
+
             // Validar que el servidor esté disponible antes de enviar
             try {
                 await axios.get(HEALTH_ENDPOINT)
@@ -189,7 +256,7 @@ function ProductManagement({ currentUser }) {
                 setLoading(false)
                 return
             }
-            
+
             if (editingProduct) {
                 const productoData = {
                     Nombre: formData.Nombre.trim(),
@@ -197,9 +264,9 @@ function ProductManagement({ currentUser }) {
                     Descripcion: formData.Descripcion?.trim() || '',
                     Stock: parseInt(formData.Stock) || 0
                 }
-                
+
                 console.log('Enviando datos para modificar producto:', productoData)
-                
+
                 await axios.put(PRODUCT_ENDPOINTS.UPDATE_PRODUCT(editingProduct.ID_Producto), productoData, {
                     headers: {
                         'Content-Type': 'application/json'
@@ -225,9 +292,9 @@ function ProductManagement({ currentUser }) {
                     Imagen_1: formData.Imagen_1?.trim() || '',
                     Imagen_2: formData.Imagen_2?.trim() || ''
                 }
-                
+
                 console.log('Enviando datos del producto:', productoData)
-                
+
                 await axios.post(PRODUCT_ENDPOINTS.CREATE_PRODUCT, productoData, {
                     headers: {
                         'Content-Type': 'application/json'
@@ -241,7 +308,7 @@ function ProductManagement({ currentUser }) {
                     confirmButtonText: 'Aceptar'
                 })
             }
-            
+
             setFormData({
                 Nombre: '', ID_Proveedor: '', Precio: '', Descripcion: '',
                 Categoria: '', Color: '', Subcategoria: '', Stock: '',
@@ -258,10 +325,10 @@ function ProductManagement({ currentUser }) {
                 status: error.response?.status,
                 code: error.code
             })
-            
+
             let errorMessage = 'No se pudo guardar el producto'
             let errorDetail = ''
-            
+
             if (error.response?.data) {
                 errorMessage = error.response.data.Error || errorMessage
                 errorDetail = error.response.data.Detalle || ''
@@ -270,7 +337,7 @@ function ProductManagement({ currentUser }) {
             } else if (error.message) {
                 errorMessage = error.message
             }
-            
+
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -297,7 +364,7 @@ function ProductManagement({ currentUser }) {
             Imagen_1: product.Imagen_1 || '',
             Imagen_2: product.Imagen_2 || ''
         })
-        
+
         // Cargar previews de imágenes si existen (base64 o URL)
         if (product.Imagen_1) {
             setImagePreview1(product.Imagen_1.startsWith('data:') || product.Imagen_1.startsWith('http') ? product.Imagen_1 : null)
@@ -309,19 +376,19 @@ function ProductManagement({ currentUser }) {
         } else {
             setImagePreview2(null)
         }
-        
+
         setShowAddForm(true)
     }
 
     const handleDelete = async (ID_Producto) => {
         // Limpiar el ID en caso de que tenga formato extraño (ej: "1:1" -> "1")
         let cleanId = String(ID_Producto).trim()
-        
+
         // Si tiene formato "X:Y", tomar solo la primera parte
         if (cleanId.includes(':')) {
             cleanId = cleanId.split(':')[0]
         }
-        
+
         // Asegurarse de que el ID sea un número válido
         const productId = parseInt(cleanId)
         if (isNaN(productId) || productId <= 0) {
@@ -335,7 +402,7 @@ function ProductManagement({ currentUser }) {
             })
             return
         }
-        
+
         console.log('Eliminando producto con ID:', productId, '(original:', ID_Producto, ')')
 
         const result = await Swal.fire({
@@ -350,15 +417,15 @@ function ProductManagement({ currentUser }) {
         })
 
         if (!result.isConfirmed) return
-        
+
         try {
             // Construir la URL de forma explícita para evitar problemas con el formato del ID
             const url = PRODUCT_ENDPOINTS.DELETE_PRODUCT(String(productId))
             console.log('URL de eliminación:', url)
-            
+
             const response = await axios.delete(url)
             console.log('Respuesta del servidor:', response.data)
-            
+
             Swal.fire({
                 icon: 'success',
                 title: '¡Eliminado!',
@@ -419,9 +486,9 @@ function ProductManagement({ currentUser }) {
                 confirmButtonColor: '#B8CFCE',
                 confirmButtonText: 'Aceptar'
             })
-            
+
             const newSupplierId = response.data?.ID_Proveedor
-            
+
             setSupplierFormData({
                 Nombre: '',
                 Mail: '',
@@ -429,9 +496,9 @@ function ProductManagement({ currentUser }) {
                 Direccion: ''
             })
             setShowSupplierForm(false)
-            
+
             await loadSuppliers()
-            
+
             if (newSupplierId && showAddForm) {
                 setFormData(prev => ({
                     ...prev,
@@ -479,13 +546,13 @@ function ProductManagement({ currentUser }) {
                         className="product-search-input"
                         aria-label="Buscar productos"
                     />
-                    <button 
-                    className="add-btn"
-                    onClick={() => setShowAddForm(true)}
-                    disabled={showAddForm}
-                >
-                    + Agregar Producto
-                </button>
+                    <button
+                        className="add-btn"
+                        onClick={() => setShowAddForm(true)}
+                        disabled={showAddForm}
+                    >
+                        + Agregar Producto
+                    </button>
                 </div>
             </div>
 
@@ -577,21 +644,30 @@ function ProductManagement({ currentUser }) {
                                     required
                                 >
                                     <option value="">Seleccionar</option>
-                                    <option value="phones">Smartphones</option>
-                                    <option value="laptops">Laptops</option>
-                                    <option value="tablets">Tablets</option>
-                                    <option value="audio">Audio</option>
+                                    {Object.keys(CATEGORIES).map(category => (
+                                        <option key={category} value={category}>
+                                            {category}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
                             <div className="form-group">
                                 <label>Subcategoría:</label>
-                                <input
-                                    type="text"
+                                <select
                                     name="Subcategoria"
                                     value={formData.Subcategoria}
                                     onChange={handleInputChange}
-                                />
+                                    disabled={!formData.Categoria}
+                                    required
+                                >
+                                    <option value="">Seleccionar</option>
+                                    {formData.Categoria && CATEGORIES[formData.Categoria]?.map(subcat => (
+                                        <option key={subcat} value={subcat}>
+                                            {subcat}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
@@ -775,7 +851,7 @@ function ProductManagement({ currentUser }) {
                             return filtered.map(product => {
                                 // Obtener la imagen del producto (preferir Imagen_1, si no hay usar Imagen_2)
                                 let productImage = product.Imagen_1 || product.Imagen_2 || null;
-                                
+
                                 // Si la imagen existe pero no tiene el prefijo data:, agregarlo
                                 let imageSrc = null;
                                 if (productImage) {
@@ -796,9 +872,9 @@ function ProductManagement({ currentUser }) {
                                         <td>{product.ID_Producto}</td>
                                         <td className="product-image-cell">
                                             {imageSrc ? (
-                                                <img 
-                                                    src={imageSrc} 
-                                                    alt={product.Nombre || 'Producto'} 
+                                                <img
+                                                    src={imageSrc}
+                                                    alt={product.Nombre || 'Producto'}
                                                     className="product-thumbnail"
                                                 />
                                             ) : (
@@ -810,27 +886,27 @@ function ProductManagement({ currentUser }) {
                                         <td>{product.Stock}</td>
                                         <td>{product.Categoria}</td>
                                         <td className="actions-cell">
-                                        <button 
-                                            className="edit-btn"
-                                            onClick={() => handleEdit(product)}
-                                        >
-                                            Editar
-                                        </button>
-                                        <button
-                                            className="delete-btn"
-                                            onClick={(e) => {
-                                                e.preventDefault()
-                                                e.stopPropagation()
-                                                // Asegurarse de pasar solo el ID numérico
-                                                const productId = product.ID_Producto
-                                                handleDelete(productId)
-                                            }}
-                                            title={`Eliminar producto ${product.Nombre}`}
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                </tr>
+                                            <button
+                                                className="edit-btn"
+                                                onClick={() => handleEdit(product)}
+                                            >
+                                                Editar
+                                            </button>
+                                            <button
+                                                className="delete-btn"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
+                                                    // Asegurarse de pasar solo el ID numérico
+                                                    const productId = product.ID_Producto
+                                                    handleDelete(productId)
+                                                }}
+                                                title={`Eliminar producto ${product.Nombre}`}
+                                            >
+                                                Eliminar
+                                            </button>
+                                        </td>
+                                    </tr>
                                 );
                             })
                         })()}

@@ -8,17 +8,17 @@ function HomeProductCard({ product, onClick }) {
     const getImageSrc = () => {
         const image = product.image_1
         if (!image) return null
-        
+
         // Si es Base64 (empieza con data:image/)
         if (typeof image === 'string' && image.startsWith('data:image/')) {
             return image
         }
-        
+
         // Si es una URL
         if (typeof image === 'string' && (image.startsWith('http://') || image.startsWith('https://'))) {
             return image
         }
-        
+
         return null
     }
 
@@ -27,7 +27,7 @@ function HomeProductCard({ product, onClick }) {
     }
 
     return (
-        <div 
+        <div
             className="ml-product-card"
             onClick={() => onClick(product.id)}
         >
@@ -35,7 +35,7 @@ function HomeProductCard({ product, onClick }) {
             <div className="ml-product-image">
                 {hasValidImage() && !imageError ? (
                     <>
-                        <img 
+                        <img
                             src={getImageSrc()}
                             alt={product.name}
                             className="ml-product-img"
@@ -57,19 +57,19 @@ function HomeProductCard({ product, onClick }) {
                     </div>
                 )}
             </div>
-            
+
             {/* Información del producto */}
             <div className="ml-product-info">
                 <h3 className="ml-product-title">{product.name}</h3>
                 <div className="ml-product-price">{product.price}</div>
-                
+
                 {/* Badge si existe */}
                 {product.badge && (
                     <div className="ml-product-badge">
                         {product.badge}
                     </div>
                 )}
-                
+
             </div>
         </div>
     )

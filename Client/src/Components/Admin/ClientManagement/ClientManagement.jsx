@@ -27,27 +27,97 @@ function ClientManagement({ currentUser }) {
     })
 
     useEffect(() => {
-        loadClients()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+        if (currentUser) {
+            loadClients();
+        } else {
+            console.error('No hay usuario autenticado');
+            setError('No estás autenticado. Por favor, inicia sesión.');
+        }
+    }, [currentUser])
 
     const loadClients = async () => {
         try {
-            setLoading(true)
-            // Comentado temporalmente - no existe endpoint para obtener todos los clientes
-            // const response = await axios.get(AUTH_ENDPOINTS.GET_CLIENTS)
-            // console.log('Clientes cargados del servidor:', response.data)
-            // setClients(response.data || [])
+            setLoading(true);
+            setError('');
             
-            // Temporalmente vacío hasta que se implemente el endpoint
-            console.log('Endpoint GET_CLIENTS no disponible - lista vacía')
-            setClients([])
+            // Verificar si hay un usuario autenticado
+            if (!currentUser || !currentUser.token) {
+                console.error('No hay usuario autenticado o falta el token');
+                setError('No estás autenticado. Por favor, inicia sesión nuevamente.');
+                return;
+            }
+            
+            const token = currentUser.token;
+            console.log('Obteniendo clientes de:', AUTH_ENDPOINTS.GET_CLIENTS);
+            console.log('Usuario autenticado como:', currentUser.Cargo);
+            
+            // Realizar la petición con el token de autenticación
+            const response = await axios.get(AUTH_ENDPOINTS.GET_CLIENTS, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Respuesta del servidor:', response);
+            
+            if (response.data && Array.isArray(response.data)) {
+                setClients(response.data);
+            } else {
+                console.warn('Formato de respuesta inesperado:', response.data);
+                setError('Formato de respuesta inesperado del servidor');
+            }
+            
         } catch (error) {
-            console.error('Error al cargar clientes:', error)
-            setError('Error al cargar clientes')
-            setClients([])
+            console.error('Error al cargar clientes:', error);
+            
+            let errorMessage = 'No se pudo cargar la lista de clientes. ';
+            
+            if (error.response) {
+                // Error de respuesta del servidor
+                const { status, data } = error.response;
+                errorMessage += `Error ${status}: `;
+                
+                switch(status) {
+                    case 401:
+                        errorMessage += 'No autorizado. La sesión puede haber expirado.';
+                        // Redirigir al login
+                        window.location.href = '/login';
+                        break;
+                    case 403:
+                        errorMessage += 'No tienes permisos para acceder a este recurso.';
+                        break;
+                    case 404:
+                        errorMessage += 'El recurso solicitado no existe.';
+                        break;
+                    case 500:
+                        errorMessage += 'Error interno del servidor. Por favor, intente más tarde.';
+                        break;
+                    default:
+                        errorMessage += data?.message || error.message;
+                }
+            } else if (error.request) {
+                // No se recibió respuesta del servidor
+                errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
+            } else {
+                // Error al configurar la petición
+                errorMessage += error.message || 'Error desconocido al realizar la petición.';
+            }
+            
+            setError(errorMessage);
+            
+            // Mostrar alerta al usuario
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonText: 'Aceptar'
+            });
+            
+            // Limpiar la lista de clientes en caso de error
+            setClients([]);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
 

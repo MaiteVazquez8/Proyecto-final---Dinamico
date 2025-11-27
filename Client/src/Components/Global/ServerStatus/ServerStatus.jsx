@@ -9,20 +9,27 @@ function ServerStatus() {
   const checkServerStatus = async () => {
     try {
       setServerStatus('checking')
-      const response = await axios.get(HEALTH_ENDPOINT, { 
+      const response = await axios.get(HEALTH_ENDPOINT, {
         timeout: 3000,
         validateStatus: (status) => status === 200
       })
-      
+
       if (response.status === 200 && response.data.status === 'OK') {
         setServerStatus('online')
       } else {
         throw new Error('Respuesta del servidor no válida')
       }
     } catch (error) {
-      // Solo mostrar error si es un error de conexión real, no de red
-      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || 
-          error.response?.status >= 500 || error.message.includes('Network Error')) {
+      // Si recibimos un 404, significa que el servidor está funcionando
+      // pero el endpoint /api/health no existe - considerar como online
+      if (error.response?.status === 404) {
+        setServerStatus('online')
+        return
+      }
+
+      // Solo mostrar error si es un error de conexión real
+      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' ||
+        error.response?.status >= 500 || error.message.includes('Network Error')) {
         setServerStatus('offline')
       } else {
         // Para otros errores, asumir que el servidor está online
@@ -46,11 +53,11 @@ function ServerStatus() {
     return (
       <div className="error-404-container">
         <div className="video-container">
-          <video 
+          <video
             className="error-video"
-            autoPlay 
-            loop 
-            muted 
+            autoPlay
+            loop
+            muted
             playsInline
             preload="auto"
           >
