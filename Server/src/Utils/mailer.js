@@ -1,144 +1,162 @@
+// src/Utils/mailer.js
 const nodemailer = require('nodemailer');
-const fs = require('fs');
-const PDFDocument = require('pdfkit');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   }
 });
 
-// ✅ 1. Confirmación de cuenta
-async function enviarCorreoValidacion(email, nombre, token) {
-  const link = `http://localhost:3000/verificar/${token}`;
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Confirmá tu cuenta",
-    html: `
-      <h2>Hola ${nombre}</h2>
-      <p>Para finalizar tu registro, hacé click aquí:</p>
-      <a href="${link}">Confirmar cuenta</a>
-    `
-  });
-}
+/* ===========================================================
+   GENERADOR DE PLANTILLA GENERAL PARA TODOS LOS MAILS
+   =========================================================== */
+function plantillaMail({ titulo, mensaje, textoCentral }) {
+  return `
+  <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; background: #ffffff; padding: 0;">
 
-// 🎁 2. Descuento 10% por registro
-async function enviarCorreoBienvenida(email, nombre, porcentaje, dias) { 
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "🎁 Tenés 10% OFF en tu primera compra",
-    html: `
-      <h2>Bienvenido ${nombre}</h2>
-      <p>Se te habilitó un <b>${porcentaje}% de descuento</b> en tu próxima compra.</p>
-      <p>Válido por ${dias} días.</p>
-    `
-  });
-}
+    <!-- HEADER -->
+    <img src="cid:headerImage" style="width: 100%; display: block;" alt="Header">
 
-// 🔐 3. Solicitud cambio contraseña (Primer paso: Confirmación de identidad)
-async function enviarCorreoConfirmacionCambio(email, nombre, token) {
-  const link = `http://localhost:3000/confirmar-restablecimiento/${token}`;
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "¿Deseás cambiar tu contraseña? (Confirmación Requerida)",
-    html: `
-      <p>Hola ${nombre}, solicitaste cambiar tu contraseña.</p>
-      <p>Haz clic en el enlace de abajo para confirmar que fuiste tú y recibir el token final:</p>
-      <a href="${link}">Confirmar solicitud y obtener token</a>
-    `
-  });
-}
+    <!-- TITULO -->
+    <h2 style="text-align: center; color: #333; margin-top: 25px;">
+      ${titulo}
+    </h2>
 
-// 🔑 4. Token reset (Segundo paso: Ingresar token y nueva contraseña)
-async function enviarCorreoRecuperacion(email, token) {
-   const link = `http://localhost:3000/ingresar-token-y-pass?token=${token}`;
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Token para cambiar contraseña",
-    html: `
-      <p>Tu token de seguridad es: <h2>${token}</h2></p>
-      <p>Ingresa tu nueva contraseña y este token en la siguiente página:</p>
-      <a href="${link}">Ingresar nueva contraseña</a>
-    `
-  });
-}
+    <!-- TEXTO EXPLICATIVO -->
+    <p style="text-align: center; color: #444; font-size: 16px; padding: 0 20px;">
+      ${mensaje}
+    </p>
 
-// 🎂 5. Cumpleaños 15%
-async function enviarCorreoCumpleaños(nombre, email) {
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "🎂 Feliz Cumpleaños",
-    html: `
-      <h2>🎉 Feliz cumpleaños ${nombre}</h2>
-      <p>Te regalamos un <b>15% de descuento</b> válido por 30 días.</p>
-    `
-  });
-}
+    <!-- IMAGEN CENTRAL + TEXTO CENTRADO -->
+    <div style="position: relative; width: 100%; max-width: 600px; margin: 25px auto;">
+      <img src="cid:mainImage" alt="Imagen" style="width: 100%; display: block;">
+      <div style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 48px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 2px 2px 6px black;
+        letter-spacing: 3px;
+      ">
+        ${textoCentral}
+      </div>
+    </div>
 
-// 📨 6. Avisos generales (Nuevo, usado por EnvioAvisos.Controller.js)
-async function enviarAvisoMail(emails, asunto, mensaje) {
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: Array.isArray(emails) ? emails.join(',') : emails, // Maneja un solo mail o un array
-    subject: asunto,
-    html: `<p>${mensaje}</p>`
-  });
-}
+    <!-- FOOTER -->
+    <img src="cid:footerImage" style="width: 100%; display: block;" alt="Footer">
 
-
-// 🧾 7. Factura HTML + PDF (Tu función original, ahora definida correctamente)
-async function EnviarFacturaCompra({ Nombre, Email, CompraID, Total, Productos }) {
-
-  const html = `
-    <h2>Factura de Compra #${CompraID}</h2>
-    <p>Cliente: ${Nombre}</p>
-    <p>Total: $${Total}</p>
-    <ul>
-      ${Productos.map(p => `<li>${p.Nombre} - $${p.Precio}</li>`).join("")}
-    </ul>
+  </div>
   `;
+}
 
-  // PDF
-  const pdfPath = `factura_${CompraID}.pdf`;
-  const doc = new PDFDocument();
-  doc.pipe(fs.createWriteStream(pdfPath));
-  doc.text(`Factura #${CompraID}`);
-  doc.text(`Cliente: ${Nombre}`);
-  doc.text(`Total: $${Total}`);
-  Productos.forEach(p => {
-    doc.text(`${p.Nombre} - $${p.Precio}`);
+/* ===========================================================
+   ENVIAR VALIDACIÓN DE CUENTA
+   =========================================================== */
+async function enviarCorreoValidacion(email, nombre, token) {
+  const html = plantillaMail({
+    titulo: "Validación de Cuenta",
+    mensaje: `Hola <strong>${nombre || ''}</strong>, gracias por registrarte.<br>
+              Este es tu código de validación. Válido por 15 minutos.`,
+    textoCentral: token
   });
-  doc.end();
 
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
-    to: Email,
-    subject: "🧾 Factura de tu compra",
+    to: email,
+    subject: "Validación de cuenta",
     html,
     attachments: [
-      {
-        filename: `Factura_${CompraID}.pdf`,
-        path: pdfPath
-      }
+      { filename: "header.png", path: "src/assets/header.png", cid: "headerImage" },
+      { filename: "ticket-vacio.png", path: "src/assets/ticket-vacio.png", cid: "mainImage" },
+      { filename: "footer.png", path: "src/assets/footer.png", cid: "footerImage" }
     ]
   });
 }
 
+/* ===========================================================
+   ENVIAR RECUPERACIÓN DE CONTRASEÑA
+   =========================================================== */
+async function enviarCorreoRecuperacion(email, nombre, token) {
+  const html = plantillaMail({
+    titulo: "Recuperación de Contraseña",
+    mensaje: `Hola <strong>${nombre || ''}</strong>, solicitaste recuperar tu contraseña.<br>
+              Usa el siguiente token. Válido por 10 minutos.`,
+    textoCentral: token
+  });
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Recuperación de contraseña",
+    html,
+    attachments: [
+      { filename: "header.png", path: "src/assets/header.png", cid: "headerImage" },
+      { filename: "main-bg.png", path: "src/assets/main-bg.png", cid: "mainImage" },
+      { filename: "footer.png", path: "src/assets/footer.png", cid: "footerImage" }
+    ]
+  });
+}
+
+/* ===========================================================
+   ENVIAR BIENVENIDA + PORCENTAJE
+   =========================================================== */
+async function enviarCorreoBienvenida(email, nombre, porcentaje = 10, dias = 30) {
+  const html = plantillaMail({
+    titulo: "¡Bienvenido a ElectroShop!",
+    mensaje: `Hola <strong>${nombre || ''}</strong>!<br>
+              Te regalamos un <strong>${porcentaje}%</strong> de descuento válido por <strong>${dias} días</strong>.<br>
+              Se aplicará automáticamente en tu primera compra.`,
+    textoCentral: `${porcentaje}%`
+  });
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Bienvenido - Descuento especial",
+    html,
+    attachments: [
+      { filename: "header.png", path: "src/assets/header.png", cid: "headerImage" },
+      { filename: "main-bg.png", path: "src/assets/main-bg.png", cid: "mainImage" },
+      { filename: "footer.png", path: "src/assets/footer.png", cid: "footerImage" }
+    ]
+  });
+}
+
+/* ===========================================================
+   AVISOS GENERALES (SIN PORTADA CENTRAL)
+   =========================================================== */
+async function enviarAvisoMail(emails, asunto, mensaje) {
+  const to = Array.isArray(emails) ? emails.join(',') : emails;
+
+  const html = `
+    <div style="max-width: 600px; margin: auto; font-family: Arial;">
+      <img src="cid:headerImage" style="width: 100%; display: block;">
+      <p style="padding: 20px; color: #444; font-size: 16px;">${mensaje}</p>
+      <img src="cid:footerImage" style="width: 100%; display: block;">
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to,
+    subject: asunto,
+    html,
+    attachments: [
+      { filename: "header.png", path: "src/assets/header.png", cid: "headerImage" },
+      { filename: "footer.png", path: "src/assets/footer.png", cid: "footerImage" }
+    ]
+  });
+}
 
 module.exports = {
   enviarCorreoValidacion,
-  enviarCorreoBienvenida,
-  enviarCorreoConfirmacionCambio,
   enviarCorreoRecuperacion,
-  enviarCorreoCumpleaños,
-  enviarAvisoMail,
-  EnviarFacturaCompra // Ahora sí está definida y exportada correctamente
+  enviarCorreoBienvenida,
+  enviarAvisoMail
 };

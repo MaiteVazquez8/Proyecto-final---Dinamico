@@ -1,45 +1,38 @@
+// src/Routers/Login.Router.js
 const express = require('express');
-const rutas = express.Router();
+const router = express.Router();
 
 const {
-    login,
-    refreshToken,
-    registrarCliente,
-    modificarCliente,
-    eliminarCliente,
-    registrarPersonal,
-    modificarPersonal,
-    eliminarPersonal,
-    obtenerEmpleados,
-    obtenerGerentes,
-    obtenerClientes
+  login,
+  loginPersonal,
+  validarCuenta,
+  reenviarValidacion,
+  solicitarRecuperacion,
+  recuperarPassword,
+  verificar2FA,
+  generarNuevo2FA
 } = require('../Controllers/Login.Controller');
 
-// =========================
-// LOGIN Y TOKENS
-// =========================
-rutas.post('/login', login);
-rutas.post('/refresh-token', refreshToken);
+// --- LOGIN GENERAL CLIENTES ---
+router.post('/login', login);
 
-// =========================
-// CLIENTE
-// =========================
-rutas.post('/registrarCliente', registrarCliente);
-rutas.put('/modificarCliente/:DNI', modificarCliente);
-rutas.delete('/eliminarCliente/:DNI', eliminarCliente);
+// --- LOGIN PERSONAL (superAdmin, gerente, empleado) ---
+router.post('/login-personal', loginPersonal);
 
-// =========================
-// PERSONAL
-// =========================
-rutas.post('/registrarPersonal', registrarPersonal);
-rutas.put('/modificarPersonal/:DNI', modificarPersonal);
-rutas.delete('/eliminarPersonal/:DNI', eliminarPersonal);
+// --- VALIDACIÓN DE CUENTA POR MAIL ---
+router.get('/validar/:token', validarCuenta);
 
-// =========================
-// VISTAS
-// =========================
-rutas.get('/clientes', obtenerClientes);
-rutas.get('/empleados', obtenerEmpleados);
-rutas.get('/gerentes', obtenerGerentes);
+// --- REENVIAR TOKEN DE VALIDACIÓN ---
+router.post('/reenviar-validacion', reenviarValidacion);
 
-module.exports = rutas;
+// --- RECUPERAR CONTRASEÑA ---
+router.post('/recuperacion', solicitarRecuperacion);
+router.post('/recuperar-password/:token', recuperarPassword);
+
+// --- VERIFICACIÓN 2 FACTORES ---
+router.post('/2fa/verificar', verificar2FA);
+
+// --- SOLICITAR NUEVO CÓDIGO 2FA ---
+router.post('/2fa/generar', generarNuevo2FA);
+
+module.exports = router;

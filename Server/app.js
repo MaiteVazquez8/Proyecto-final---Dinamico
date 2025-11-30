@@ -1,12 +1,14 @@
+// app.js
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 
 const App = express();
-
-require('dotenv').config();
 const PORT = process.env.PORT || 5000;
 
-// Configurar CORS para permitir solicitudes desde el cliente
+/* -------------------------------------------
+   CONFIGURACIÓN CORS
+-------------------------------------------- */
 App.use(cors({
     origin: 'http://localhost:5173',
     credentials: true,
@@ -14,30 +16,66 @@ App.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Aumentar el límite de tamaño del body para aceptar imágenes en base64
+/* -------------------------------------------
+   BODY PARSER (Base64 para imágenes)
+-------------------------------------------- */
 App.use(express.json({ limit: '50mb' }));
 App.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+/* -------------------------------------------
+   IMPORTAR ROUTERS
+-------------------------------------------- */
 const loginRouter = require('./src/Routers/Login.Router');
 const productosRouter = require('./src/Routers/Productos.Router');
 const comprasRouter = require('./src/Routers/Compras.Router');
-const avisosRouter = require('./src/Routers/EnvioAvisos.Router'); // Importar el router de avisos
+const carritoRouter = require('./src/Routers/Carrito.Router');
+const comentariosRouter = require('./src/Routers/Comentarios.Router');
+const calificacionesRouter = require('./src/Routers/Calificaciones.Router');
+const meGustaRouter = require('./src/Routers/MeGusta.Router');
+const avisosRouter = require('./src/Routers/EnvioAvisos.Router');
 
-// Ruta de health check
+/* -------------------------------------------
+   HEALTH CHECK
+-------------------------------------------- */
 App.get('/api', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         message: 'Servidor funcionando correctamente',
         timestamp: new Date().toISOString()
     });
 });
 
-App.use('/api', loginRouter);
-// Es mejor montar productos y compras en un path más específico si sus routers tienen rutas como '/productos' o '/compras'
-App.use('/api', productosRouter); 
-App.use('/api', comprasRouter); 
-App.use('/api/avisos', avisosRouter); // Montar las rutas de avisos
+/* -------------------------------------------
+   MONTAR ROUTERS
+-------------------------------------------- */
 
+// LOGIN / AUTH
+App.use('/api/auth', loginRouter);
+
+// PRODUCTOS Y PROVEEDORES
+App.use('/api', productosRouter);
+
+// COMPRAS
+App.use('/api/compras', comprasRouter);
+
+// CARRITO
+App.use('/api/carrito', carritoRouter);
+
+// COMENTARIOS
+App.use('/api/comentarios', comentariosRouter);
+
+// CALIFICACIONES
+App.use('/api/calificaciones', calificacionesRouter);
+
+// ME GUSTA
+App.use('/api', meGustaRouter);
+
+// AVISOS
+App.use('/api/avisos', avisosRouter);
+
+/* -------------------------------------------
+   INICIAR SERVIDOR
+-------------------------------------------- */
 App.listen(PORT, () => {
-    console.log(`Servidor: http://localhost:${PORT}`);
+    console.log(`🔥 Servidor corriendo en: http://localhost:${PORT}`);
 });

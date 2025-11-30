@@ -1,8 +1,9 @@
+// src/Routers/EnvioAvisos.Router.js
 const express = require('express');
-const router = express.Router();
+const rutas = express.Router();
 
 const { enviarAvisoPersonal } = require('../Controllers/EnvioAvisos.Controller');
 
-router.post('/enviar-aviso', enviarAvisoPersonal);
+rutas.post('/enviar-aviso', enviarAvisoPersonal);
 
-module.exports = router;
+module.exports = rutas;

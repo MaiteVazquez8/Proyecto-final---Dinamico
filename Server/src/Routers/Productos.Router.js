@@ -1,31 +1,54 @@
+// src/Routers/Productos.Router.js
 const express = require('express');
-const rutas = express.Router();
+const router = express.Router();
 
-const {registrarProducto, modificarProducto, eliminarProducto, registrarProveedor, modificarProveedor, eliminarProveedor, obtenerProductos, obtenerProveedores} = require('../Controllers/Productos.Controller');
+const {
+  registrarProducto,
+  modificarProducto,
+  eliminarProducto,
+  registrarProveedor,
+  modificarProveedor,
+  eliminarProveedor,
+  obtenerProductos,
+  obtenerProveedores,
+  obtenerProductosDetallados,
+  obtenerAlertasBajoStock
+} = require('../Controllers/Productos.Controller');
 
-//PRODUCTOS
-rutas.get('/productos', obtenerProductos);
-rutas.post('/productos', registrarProducto);
-rutas.put('/productos/:ID_Producto', modificarProducto);
+/* ------------------ PRODUCTOS ------------------ */
 
-// Middleware para limpiar el ID antes de la eliminación
-rutas.delete('/productos/:ID_Producto', (req, res, next) => {
-    // Limpiar el ID si tiene formato extraño
-    if (req.params.ID_Producto && typeof req.params.ID_Producto === 'string') {
-        let cleanId = req.params.ID_Producto.trim();
-        if (cleanId.includes(':')) {
-            cleanId = cleanId.split(':')[0].trim();
-            console.log(`ID limpiado en router: ${req.params.ID_Producto} -> ${cleanId}`);
-        }
-        req.params.ID_Producto = cleanId;
-    }
-    next();
-}, eliminarProducto);
+// obtener todos los productos
+router.get('/productos', obtenerProductos);
 
-//PROVEEDORES
-rutas.get('/proveedor', obtenerProveedores);
-rutas.post('/proveedor', registrarProveedor);
-rutas.put('/proveedor/:ID_Proveedor', modificarProveedor);
-rutas.delete('/proveedor/:ID_Proveedor', eliminarProveedor);
+// obtener productos con calificaciones + comentarios + proveedor
+router.get('/productos-detallados', obtenerProductosDetallados);
 
-module.exports = rutas;
+// registrar producto
+router.post('/productos', registrarProducto);
+
+// modificar producto
+router.put('/productos/:ID_Producto', modificarProducto);
+
+// eliminar producto
+router.delete('/productos/:ID_Producto', eliminarProducto);
+
+// alertas de stock bajo
+router.get('/productos/alertas/stock', obtenerAlertasBajoStock);
+
+
+/* ------------------ PROVEEDORES ------------------ */
+
+// obtener todos los proveedores
+router.get('/proveedores', obtenerProveedores);
+
+// registrar proveedor
+router.post('/proveedores', registrarProveedor);
+
+// modificar proveedor
+router.put('/proveedores/:ID_Proveedor', modificarProveedor);
+
+// eliminar proveedor
+router.delete('/proveedores/:ID_Proveedor', eliminarProveedor);
+
+
+module.exports = router;
