@@ -32,10 +32,9 @@ function EmployeeManagement({ currentUser }) {
     const loadEmployees = async () => {
         try {
             setLoading(true)
-            // Endpoint no disponible - usar datos simulados
-            console.log('Endpoint GET_EMPLOYEES no disponible - usando datos simulados')
-            const mockData = getMockEmployeesData()
-            setEmployees(mockData || [])
+            const response = await axios.get(AUTH_ENDPOINTS.GET_EMPLOYEES)
+            console.log('Empleados cargados:', response.data)
+            setEmployees(response.data || [])
         } catch (error) {
             console.error('Error al cargar empleados:', error)
             setError('Error al cargar empleados')
@@ -58,10 +57,30 @@ function EmployeeManagement({ currentUser }) {
         try {
             setLoading(true)
             if (editingEmployee) {
-                await axios.put(AUTH_ENDPOINTS.UPDATE_PERSONAL(editingEmployee.DNI), formData)
+                // Preparar payload para el servidor
+                const payload = {
+                    Nombre: formData.Nombre,
+                    Apellido: formData.Apellido,
+                    Mail: formData.Mail,
+                    Rol: 'empleado'
+                };
+                // Solo incluir Password si se proporcionó uno nuevo
+                if (formData.Contraseña && formData.Contraseña.trim() !== '') {
+                    payload.Password = formData.Contraseña;
+                }
+                await axios.put(AUTH_ENDPOINTS.UPDATE_PERSONAL(editingEmployee.DNI), payload)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Empleado modificado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             } else {
-                await axios.post(AUTH_ENDPOINTS.REGISTER_PERSONAL, formData)
+                // Para registro, Password es obligatorio
+                const payload = {
+                    DNI: formData.DNI,
+                    Nombre: formData.Nombre,
+                    Apellido: formData.Apellido,
+                    Mail: formData.Mail,
+                    Password: formData.Contraseña,
+                    Rol: 'empleado'
+                };
+                await axios.post(AUTH_ENDPOINTS.REGISTER_PERSONAL, payload)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Empleado agregado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             }
             setFormData({
@@ -111,7 +130,7 @@ function EmployeeManagement({ currentUser }) {
         })
 
         if (!result.isConfirmed) return
-        
+
         try {
             const response = await axios.delete(AUTH_ENDPOINTS.DELETE_PERSONAL(DNI))
             Swal.fire({
@@ -168,7 +187,7 @@ function EmployeeManagement({ currentUser }) {
                         className="product-search-input"
                         aria-label="Buscar empleados"
                     />
-                    <button 
+                    <button
                         className="add-btn"
                         onClick={() => { setShowAddForm(true); setEditingEmployee(null); setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Empleado' }) }}
                         disabled={showAddForm}
@@ -266,13 +285,13 @@ function EmployeeManagement({ currentUser }) {
                             </div>
 
                             <div className="form-group">
-                                <label>Contraseña:</label>
+                                <label>Contraseña{editingEmployee ? ' (dejar vacío para no cambiar)' : ''}:</label>
                                 <PasswordInput
                                     id="Contraseña"
                                     name="Contraseña"
                                     value={formData.Contraseña}
                                     onChange={handleInputChange}
-                                    required
+                                    required={!editingEmployee}
                                     showLabel={false}
                                 />
                             </div>
@@ -292,13 +311,13 @@ function EmployeeManagement({ currentUser }) {
                             <button type="submit" className="save-btn">
                                 {editingEmployee ? 'Guardar Cambios' : 'Agregar Empleado'}
                             </button>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onClick={() => {
                                     setShowAddForm(false)
                                     setEditingEmployee(null)
                                     setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Empleado' })
-                                }} 
+                                }}
                                 className="cancel-btn"
                             >
                                 Cancelar
@@ -353,7 +372,7 @@ function EmployeeManagement({ currentUser }) {
                                     <td>{employee.Cargo}</td>
                                     <td className="actions-cell">
                                         <button className="edit-btn" onClick={() => handleEdit(employee)}>Editar</button>
-                                        <button 
+                                        <button
                                             className="delete-btn"
                                             onClick={() => handleDelete(employee.DNI)}
                                         >

@@ -23,24 +23,20 @@ function Login({ onNavigate, onLogin }) {
     }
 
     try {
-      console.log('Intentando iniciar sesión con:', { Mail: mail })
+      console.log('Intentando iniciar sesión con:', { Email: mail })
       const response = await axios.post(AUTH_ENDPOINTS.LOGIN, {
-        Mail: mail,
-        Contraseña: password
+        Email: mail,
+        Password: password
       })
 
       console.log('Respuesta del servidor:', response.data)
 
       // Preparar datos del usuario
       const userData = {
-        DNI: response.data.DNI,
-        Nombre: response.data.Nombre || mail.split('@')[0], // Usar el nombre del correo si no hay nombre
-        Cargo: response.data.Cargo || 'cliente', // Asumir cliente si no se especifica
-        Mail: mail,
-        token: response.data.token, // Asegúrate de que el servidor envíe un token
+        ...response.data,
         lastLogin: new Date().toISOString()
       }
-      
+
       // Guardar en localStorage
       try {
         localStorage.setItem('currentUser', JSON.stringify(userData))
@@ -48,10 +44,9 @@ function Login({ onNavigate, onLogin }) {
       } catch (error) {
         console.error('Error al guardar en localStorage:', error)
       }
-      
+
       // Mostrar mensaje de éxito
-      const cargo = userData.Cargo.toLowerCase()
-      const mensajePersonalizado = response.data.Mensaje || `¡Bienvenido ${userData.Nombre}!`
+      const mensajePersonalizado = response.data.mensaje || `¡Bienvenido ${userData.Nombre}!`
       setMensaje(mensajePersonalizado)
 
       // Redirigir después de 1.5 segundos
@@ -63,20 +58,20 @@ function Login({ onNavigate, onLogin }) {
     } catch (error) {
       console.error('Error en login:', error)
       console.error('Error response:', error.response)
-      if (error.response?.data?.Error) {
-        const errorMessage = error.response.data.Error
-        setMensaje(errorMessage)
-        
-        // Si el error es de cuenta no verificada, mostrar mensaje más claro
-        if (error.response.status === 403 && error.response.data.Verificado === false) {
-          setMensaje('Tu cuenta no está verificada. Por favor, verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificación.')
-        }
+
+      if (error.response?.status === 403) {
+        setMensaje('Tu cuenta no ha sido verificada. Por favor, verifica tu email.')
+      } else if (error.response?.data?.mensaje) {
+        setMensaje(error.response.data.mensaje)
+      } else if (error.response?.data?.Error) {
+        setMensaje(error.response.data.Error)
       } else {
         setMensaje('Error al iniciar sesión. Verifica tu email y contraseña.')
       }
       setIsLoading(false)
     }
   }
+
   return (
     <div className="login-container">
       <div className="login-card">
@@ -113,25 +108,11 @@ function Login({ onNavigate, onLogin }) {
           </div>
 
           <button type="submit" className="login-button" disabled={isLoading}>
-            {(() => {
-              if (isLoading) {
-                return 'Iniciando sesión...'
-              } else {
-                return 'Iniciar Sesión'
-              }
-            })()}
+            {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
 
           {mensaje && (
-            <div className={(() => {
-              let messageClass = "login-message"
-              if (mensaje.includes('Error') || mensaje.includes('completa')) {
-                messageClass += " error"
-              } else {
-                messageClass += " success"
-              }
-              return messageClass
-            })()}>
+            <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') || mensaje.includes('incorrecta') || mensaje.includes('verificada') ? 'error' : 'success'}`}>
               {mensaje}
             </div>
           )}
@@ -145,7 +126,17 @@ function Login({ onNavigate, onLogin }) {
               className="auth-switch-link"
               onClick={() => onNavigate('register')}
             >
-              Quieres registrarte
+              Registrarse
+            </button>
+          </p>
+          <p className="auth-switch-text" style={{ marginTop: '10px' }}>
+            ¿Tienes un código de validación?{' '}
+            <button
+              type="button"
+              className="auth-switch-link"
+              onClick={() => onNavigate('verify')}
+            >
+              Validar Cuenta
             </button>
           </p>
         </div>

@@ -35,7 +35,7 @@ function EditUser({ onNavigate, currentUser }) {
                 console.log('Endpoint GET_CLIENT no disponible - usando datos simulados')
                 const mockData = getMockClientData(currentUser.DNI)
                 const userData = { ...mockData, ...currentUser }
-                
+
                 // Prellenar el formulario con los datos actuales
                 setFormData({
                     Nombre: userData.Nombre || '',
@@ -106,16 +106,20 @@ function EditUser({ onNavigate, currentUser }) {
         }
 
         try {
-            // Primero verificar la contraseña actual usando el email actual (antes del cambio)
-            // Si el usuario cambió el email, aún necesitamos verificar con el email anterior
-            const emailParaVerificar = currentUser.Mail || formData.Mail
-            
+            // Usar DNI para verificar (el email puede haber cambiado en el form)
+            if (!currentUser.DNI) {
+                setMensaje('Error: No se pudo identificar al usuario (Falta DNI)')
+                setIsLoading(false)
+                return
+            }
+
             const verifyResponse = await axios.post(AUTH_ENDPOINTS.LOGIN, {
-                Mail: emailParaVerificar,
-                Contraseña: confirmPassword
+                DNI: currentUser.DNI,
+                Password: confirmPassword
             })
 
-            if (!verifyResponse?.data?.DNI || verifyResponse.data.DNI !== currentUser.DNI) {
+            // Verificar si la respuesta tiene accessToken o requiere2FA (login exitoso)
+            if (!verifyResponse.data.accessToken && !verifyResponse.data.requiere2FA) {
                 setMensaje('Contraseña actual incorrecta')
                 setIsLoading(false)
                 return
@@ -130,29 +134,38 @@ function EditUser({ onNavigate, currentUser }) {
                 Direccion: formData.Direccion || null,
                 Cod_Postal: formData.Cod_Postal || null,
                 Fecha_Nac: formData.Fecha_Nac || null,
-                ...(newPassword && { Contraseña: newPassword })
+                ...(newPassword && {
+                    Contraseña: newPassword,
+                    Password: newPassword
+                })
             }
 
-            // Actualizar el cliente
-            const updateResponse = await axios.put(AUTH_ENDPOINTS.UPDATE_CLIENT(currentUser.DNI), updateData)
-            
+            // Determinar endpoint basado en el rol (si existe) o intentar Client por defecto
+            const isClient = (currentUser.Rol || currentUser.rol || 'cliente').toLowerCase() === 'cliente';
+            const endpoint = isClient
+                ? AUTH_ENDPOINTS.UPDATE_CLIENT(currentUser.DNI)
+                : AUTH_ENDPOINTS.UPDATE_PERSONAL(currentUser.DNI);
+
+            // Actualizar el usuario
+            const updateResponse = await axios.put(endpoint, updateData)
+
             setMensaje(updateResponse.data.Mensaje || 'Perfil actualizado exitosamente')
-            
+
             // Actualizar el currentUser en localStorage si el email cambió
             if (formData.Mail !== currentUser.Mail) {
                 const updatedUser = { ...currentUser, Mail: formData.Mail, Nombre: formData.Nombre, Apellido: formData.Apellido }
                 localStorage.setItem('currentUser', JSON.stringify(updatedUser))
             }
-            
+
             // Limpiar campos de contraseña
             setNewPassword('')
             setConfirmPassword('')
-            
+
             // Redirigir después de 2 segundos
             setTimeout(() => {
                 onNavigate('profile')
             }, 2000)
-            
+
         } catch (error) {
             console.error('Error al actualizar perfil:', error)
             if (error.response?.data?.Error) {
@@ -182,9 +195,9 @@ function EditUser({ onNavigate, currentUser }) {
                     <form className="login-form" onSubmit={updateProfile}>
                         <div className="form-group">
                             <label className="form-label" htmlFor="Nombre">Nombre *</label>
-                            <input 
-                                type="text" 
-                                name="Nombre" 
+                            <input
+                                type="text"
+                                name="Nombre"
                                 id="Nombre"
                                 className="form-input"
                                 placeholder="Ingresa tu nombre"
@@ -196,9 +209,9 @@ function EditUser({ onNavigate, currentUser }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="Apellido">Apellido *</label>
-                            <input 
-                                type="text" 
-                                name="Apellido" 
+                            <input
+                                type="text"
+                                name="Apellido"
                                 id="Apellido"
                                 className="form-input"
                                 placeholder="Ingresa tu apellido"
@@ -210,9 +223,9 @@ function EditUser({ onNavigate, currentUser }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="Mail">Email *</label>
-                            <input 
-                                type="email" 
-                                name="Mail" 
+                            <input
+                                type="email"
+                                name="Mail"
                                 id="Mail"
                                 className="form-input"
                                 placeholder="Ingresa tu email"
@@ -224,9 +237,9 @@ function EditUser({ onNavigate, currentUser }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="Telefono">Teléfono</label>
-                            <input 
-                                type="tel" 
-                                name="Telefono" 
+                            <input
+                                type="tel"
+                                name="Telefono"
                                 id="Telefono"
                                 className="form-input"
                                 placeholder="Ingresa tu teléfono (opcional)"
@@ -237,9 +250,9 @@ function EditUser({ onNavigate, currentUser }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="Direccion">Dirección</label>
-                            <input 
-                                type="text" 
-                                name="Direccion" 
+                            <input
+                                type="text"
+                                name="Direccion"
                                 id="Direccion"
                                 className="form-input"
                                 placeholder="Ingresa tu dirección (opcional)"
@@ -250,9 +263,9 @@ function EditUser({ onNavigate, currentUser }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="Cod_Postal">Código Postal</label>
-                            <input 
-                                type="text" 
-                                name="Cod_Postal" 
+                            <input
+                                type="text"
+                                name="Cod_Postal"
                                 id="Cod_Postal"
                                 className="form-input"
                                 placeholder="Ingresa tu código postal (opcional)"
@@ -263,16 +276,16 @@ function EditUser({ onNavigate, currentUser }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="Fecha_Nac">Fecha de Nacimiento</label>
-                            <input 
-                                type="date" 
-                                name="Fecha_Nac" 
+                            <input
+                                type="date"
+                                name="Fecha_Nac"
                                 id="Fecha_Nac"
                                 className="form-input"
                                 value={formData.Fecha_Nac}
                                 onChange={handleInputChange}
                             />
                         </div>
-                    
+
                         <div className="form-group">
                             <PasswordInput
                                 id="newPassword"
@@ -311,7 +324,7 @@ function EditUser({ onNavigate, currentUser }) {
                 <div className="auth-switch">
                     <p className="auth-switch-text">
                         ¿No quieres hacer cambios?{' '}
-                        <button 
+                        <button
                             type="button"
                             className="auth-switch-link"
                             onClick={() => onNavigate('home')}

@@ -46,13 +46,19 @@ function SuppliersManagement() {
         e.preventDefault()
         try {
             setLoading(true)
+            // Mapear Mail -> Email para coincidir con la API
+            const payload = {
+                ...formData,
+                Email: formData.Mail
+            }
+
             if (editingSupplier) {
                 // Edit existing supplier
-                await axios.put(PRODUCT_ENDPOINTS.UPDATE_SUPPLIER(editingSupplier), formData)
+                await axios.put(PRODUCT_ENDPOINTS.UPDATE_SUPPLIER(editingSupplier), payload)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Proveedor modificado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             } else {
                 // Create new supplier
-                await axios.post(PRODUCT_ENDPOINTS.CREATE_SUPPLIER, formData)
+                await axios.post(PRODUCT_ENDPOINTS.CREATE_SUPPLIER, payload)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Proveedor agregado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             }
 

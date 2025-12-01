@@ -2,8 +2,8 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import { PRODUCT_ENDPOINTS, SHOPPING_ENDPOINTS } from "../../../config/api"
 import Swal from 'sweetalert2'
-import { 
-    AiOutlineShoppingCart, 
+import {
+    AiOutlineShoppingCart,
     AiOutlineArrowLeft,
     AiOutlineDelete,
     AiFillStar
@@ -21,7 +21,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
             try {
                 const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
                 const products = response.data || []
-                
+
                 // Convertir array a objeto con ID como clave
                 const productsMap = {}
                 products.forEach(product => {
@@ -49,7 +49,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
                         isNew: false
                     }
                 })
-                
+
                 setProductsData(productsMap)
             } catch (err) {
                 console.error('Error al cargar productos:', err)
@@ -111,63 +111,63 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
             console.log('Respuesta completa del servidor:', response)
             console.log('Carrito cargado del servidor:', response.data)
             console.log('Tipo de datos:', typeof response.data, Array.isArray(response.data))
-            
+
             // El servidor devuelve un array con los productos del carrito
             // Si el array está vacío, puede ser que el JOIN no encontró coincidencias
             // pero los productos pueden estar guardados en la tabla Carrito
             if (response.data && Array.isArray(response.data)) {
                 if (response.data.length > 0) {
-                console.log('Productos encontrados en el carrito:', response.data.length)
-                // Mapear los productos del servidor a productos con detalles completos
-                const itemsWithDetails = response.data.map(item => {
-                    console.log('Procesando item del carrito:', item)
-                    const productDetails = productsData[item.ID_Producto]
-                    if (productDetails) {
+                    console.log('Productos encontrados en el carrito:', response.data.length)
+                    // Mapear los productos del servidor a productos con detalles completos
+                    const itemsWithDetails = response.data.map(item => {
+                        console.log('Procesando item del carrito:', item)
+                        const productDetails = productsData[item.ID_Producto]
+                        if (productDetails) {
+                            return {
+                                ...productDetails,
+                                ID_Carrito: item.ID_Carrito,
+                                Total: item.Total,
+                                Precio: item.Precio || productDetails.price
+                            }
+                        }
+                        // Si no encuentra el producto en productsData, usar datos del servidor
+                        const getBrand = (name) => {
+                            if (!name) return 'ElectroShop'
+                            if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
+                            if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
+                            if (name.includes('Dell')) return 'Dell'
+                            if (name.includes('Sony')) return 'Sony'
+                            if (name.includes('Google') || name.includes('Pixel')) return 'Google'
+                            return 'ElectroShop'
+                        }
+
                         return {
-                            ...productDetails,
+                            id: item.ID_Producto,
+                            name: item.Nombre || 'Producto',
+                            brand: getBrand(item.Nombre),
+                            price: item.Precio || item.Total,
+                            image: item.Imagen_1 || null,
+                            image_1: item.Imagen_1 || null,
+                            Imagen_1: item.Imagen_1 || null,
+                            description: item.Descripcion || 'Producto agregado al carrito',
+                            rating: item.Promedio_Calificacion || 4.5,
+                            stock: item.Stock || 0,
+                            isNew: false,
                             ID_Carrito: item.ID_Carrito,
                             Total: item.Total,
-                            Precio: item.Precio || productDetails.price
+                            Precio: item.Precio || item.Total
                         }
-                    }
-                    // Si no encuentra el producto en productsData, usar datos del servidor
-                    const getBrand = (name) => {
-                        if (!name) return 'ElectroShop'
-                        if (name.includes('iPhone') || name.includes('MacBook') || name.includes('iPad') || name.includes('AirPods')) return 'Apple'
-                        if (name.includes('Samsung') || name.includes('Galaxy')) return 'Samsung'
-                        if (name.includes('Dell')) return 'Dell'
-                        if (name.includes('Sony')) return 'Sony'
-                        if (name.includes('Google') || name.includes('Pixel')) return 'Google'
-                        return 'ElectroShop'
-                    }
-                    
-                    return {
+                    })
+
+                    console.log('Items con detalles completos:', itemsWithDetails)
+                    setCartItems(itemsWithDetails)
+
+                    // Actualizar también el estado del carrito en Layout para sincronización
+                    const localCart = response.data.map(item => ({
                         id: item.ID_Producto,
-                        name: item.Nombre || 'Producto',
-                        brand: getBrand(item.Nombre),
-                        price: item.Precio || item.Total,
-                        image: item.Imagen_1 || null,
-                        image_1: item.Imagen_1 || null,
-                        Imagen_1: item.Imagen_1 || null,
-                        description: item.Descripcion || 'Producto agregado al carrito',
-                        rating: item.Promedio_Calificacion || 4.5,
-                        stock: item.Stock || 0,
-                        isNew: false,
-                        ID_Carrito: item.ID_Carrito,
-                        Total: item.Total,
-                        Precio: item.Precio || item.Total
-                    }
-                })
-                
-                console.log('Items con detalles completos:', itemsWithDetails)
-                setCartItems(itemsWithDetails)
-                
-                // Actualizar también el estado del carrito en Layout para sincronización
-                const localCart = response.data.map(item => ({
-                    id: item.ID_Producto,
-                    quantity: 1
-                }))
-                setCart(localCart)
+                        quantity: 1
+                    }))
+                    setCart(localCart)
                 } else {
                     // Array vacío - el carrito está vacío o el JOIN no encontró productos
                     console.log('Carrito vacío - no hay productos en el servidor')
@@ -282,6 +282,20 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
     }
 
     const handleCheckout = () => {
+        // Verificar si el usuario está verificado (si es cliente)
+        // Si no tiene la propiedad Verificado (ej. admin), asumimos que puede comprar o la lógica de backend lo manejará
+        // Pero para clientes, la propiedad debe ser 1
+        if (currentUser?.Rol === 'cliente' && currentUser?.Verificado !== 1) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cuenta no verificada',
+                text: 'Debes verificar tu cuenta para poder realizar compras. Por favor, revisa tu correo electrónico.',
+                confirmButtonColor: '#B8CFCE',
+                confirmButtonText: 'Entendido'
+            })
+            return
+        }
+
         console.log('Checkout button clicked, navigating to checkout')
         onNavigate('checkout')
     }
@@ -300,9 +314,9 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
     const renderProductImage = (item) => {
         const image = item.image || item.image_1 || item.Imagen_1
         if (isImageUrl(image)) {
-                return <img src={image} alt={item.name} className="product-image-img" />
-            }
-            return <span className="product-image-emoji">{image || 'Imagen no disponible'}</span>
+            return <img src={image} alt={item.name} className="product-image-img" />
+        }
+        return <span className="product-image-emoji">{image || 'Imagen no disponible'}</span>
     }
 
     if (!isAuthenticated) {
@@ -312,7 +326,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
                     <div className="empty-icon"><AiOutlineShoppingCart /></div>
                     <h2>Inicia sesión para ver tu carrito</h2>
                     <p>Necesitas estar autenticado para acceder a tu carrito de compras</p>
-                    <button 
+                    <button
                         className="login-btn"
                         onClick={() => onNavigate('login')}
                     >
@@ -328,19 +342,19 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
             <div className="cart-container">
                 <div className="cart-header">
                     <h1 className="cart-title">Mi Carrito</h1>
-                    <button 
+                    <button
                         className="back-btn"
                         onClick={() => onNavigate('products')}
                     >
                         <AiOutlineArrowLeft /> Seguir Comprando
                     </button>
                 </div>
-                
+
                 <div className="cart-empty">
                     <div className="empty-icon"><AiOutlineShoppingCart /></div>
                     <h2>Tu carrito está vacío</h2>
                     <p>¡Agrega algunos productos increíbles a tu carrito!</p>
-                    <button 
+                    <button
                         className="shop-btn"
                         onClick={() => onNavigate('products')}
                     >
@@ -356,13 +370,13 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
             <div className="cart-header">
                 <h1 className="cart-title">Mi Carrito ({getTotalItems()} productos)</h1>
                 <div className="header-actions">
-                    <button 
+                    <button
                         className="clear-cart-btn"
                         onClick={clearCart}
                     >
                         Vaciar Carrito
                     </button>
-                    <button 
+                    <button
                         className="back-btn"
                         onClick={() => onNavigate('products')}
                     >
@@ -389,21 +403,21 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
                 <div className="cart-summary-left">
                     <div className="summary-card">
                         <h3 className="summary-title">Resumen del Pedido</h3>
-                        
+
                         <div className="summary-line">
                             <span>Productos ({getTotalItems()})</span>
                             <span>${getTotalPrice().toLocaleString()}</span>
                         </div>
-                        
-                        
+
+
                         <div className="summary-divider"></div>
-                        
+
                         <div className="summary-total">
                             <span>Total</span>
                             <span>${getTotalPrice().toLocaleString()}</span>
                         </div>
 
-                        <button 
+                        <button
                             className="checkout-btn"
                             onClick={handleCheckout}
                         >
@@ -414,8 +428,8 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
 
                 <div className="cart-items">
                     {getGroupedItems().map(item => (
-                        <div 
-                            key={item.id} 
+                        <div
+                            key={item.id}
                             className="cart-item"
                             onClick={() => viewProductDetails(item.id)}
                         >
@@ -423,14 +437,14 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
                                 {renderProductImage(item)}
                                 {item.isNew && <div className="new-badge">Nuevo</div>}
                             </div>
-                            
+
                             <div className="item-details">
                                 <div className="item-brand">{item.brand}</div>
                                 <h3 className="item-name">{item.name}</h3>
                                 <p className="item-description">{item.description}</p>
                                 <div className="item-rating">
                                     <AiFillStar className="star-icon" />
-                                        <span className="rating-value">{item.rating} estrellas</span>
+                                    <span className="rating-value">{item.rating} estrellas</span>
                                 </div>
                                 <div className="item-price">${(item.price || item.Precio).toLocaleString()}</div>
                                 <div className="item-stock">Stock disponible: {item.stock}</div>
@@ -457,7 +471,7 @@ function Cart({ onNavigate, cart, setCart, isAuthenticated, currentUser }) {
                                     </button>
                                 </div>
 
-                                <button 
+                                <button
                                     className="remove-btn"
                                     onClick={(e) => {
                                         e.stopPropagation();

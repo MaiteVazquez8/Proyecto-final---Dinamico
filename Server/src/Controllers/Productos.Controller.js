@@ -1,320 +1,214 @@
+// src/Controllers/Productos.Controller.js
 const db = require('../DataBase/db');
 
-//PRODUCTOS
+// registrar producto
 const registrarProducto = (req, res) => {
-    const { Nombre, ID_Proveedor, Precio, Descripcion, Categoria, Color, Subcategoria, Stock, Imagen_1, Imagen_2 } = req.body;
-    
-    console.log('Datos recibidos para registrar producto:', {
-        Nombre,
-        ID_Proveedor,
-        Precio,
-        Descripcion: Descripcion ? 'Presente' : 'Vacío',
-        Categoria: Categoria ? 'Presente' : 'Vacío',
-        Color: Color ? 'Presente' : 'Vacío',
-        Subcategoria: Subcategoria ? 'Presente' : 'Vacío',
-        Stock,
-        Imagen_1: Imagen_1 ? `Base64 (${Imagen_1.length} caracteres)` : 'Vacío',
-        Imagen_2: Imagen_2 ? `Base64 (${Imagen_2.length} caracteres)` : 'Vacío'
-    });
-    
-    if (!Nombre || !ID_Proveedor || !Precio) {
-        return res.status(400).json({ Error: 'Faltan datos requeridos (Nombre, ID_Proveedor, Precio).' });
+  const { Nombre, ID_Proveedor, Precio, Descripcion, Categoria, Color, Subcategoria, Stock, Imagen_1, Imagen_2 } = req.body;
+  if (!Nombre || !ID_Proveedor || Precio == null) return res.status(400).json({ Error: 'Faltan datos requeridos.' });
+
+  db.get(`SELECT ID_Proveedor FROM Proveedor WHERE ID_Proveedor = ?`, [ID_Proveedor], (err, proveedor) => {
+    if (err) {
+      console.error('registrarProducto proveedor:', err);
+      return res.status(500).json({ Error: 'Error en DB.' });
     }
+    if (!proveedor) return res.status(400).json({ Error: 'Proveedor no existe.' });
 
-    // Limitar el tamaño de las imágenes base64 si son muy grandes (máximo 1MB cada una)
-    let imagen1Final = Imagen_1 || null;
-    let imagen2Final = Imagen_2 || null;
-    
-    if (imagen1Final && imagen1Final.length > 1000000) {
-        console.warn('Imagen 1 es muy grande, truncando');
-        imagen1Final = imagen1Final.substring(0, 1000000);
-    }
-    
-    if (imagen2Final && imagen2Final.length > 1000000) {
-        console.warn('Imagen 2 es muy grande, truncando');
-        imagen2Final = imagen2Final.substring(0, 1000000);
-    }
+    const precioFinal = parseFloat(Precio);
+    const stockFinal = Stock != null ? parseInt(Stock, 10) : null;
+    if (isNaN(precioFinal)) return res.status(400).json({ Error: 'Precio inválido.' });
 
-    // Validar que el proveedor exista
-    db.get('SELECT ID_Proveedor FROM Proveedor WHERE ID_Proveedor = ?', [ID_Proveedor], (err, proveedor) => {
-        if (err) {
-            console.error('Error al verificar proveedor:', err);
-            return res.status(500).json({ 
-                Error: 'Error al verificar proveedor.', 
-                Detalle: err.message 
-            });
+    // opcional: limitamos el tamaño del base64 de imagen por caracteres (mejor hacerlo en frontend)
+    const imagen1Final = Imagen_1 && Imagen_1.length > 1000000 ? Imagen_1.substring(0, 1000000) : Imagen_1 || null;
+    const imagen2Final = Imagen_2 && Imagen_2.length > 1000000 ? Imagen_2.substring(0, 1000000) : Imagen_2 || null;
+
+    db.run(`INSERT INTO Productos (Nombre, ID_Proveedor, Precio, Descripcion, Categoria, Color, Subcategoria, Stock, Imagen_1, Imagen_2)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [Nombre, ID_Proveedor, precioFinal, Descripcion || null, Categoria || null, Color || null, Subcategoria || null, stockFinal, imagen1Final, imagen2Final],
+      function (Error) {
+        if (Error) {
+          console.error('registrarProducto insert:', Error);
+          return res.status(500).json({ Error: 'Error al registrar producto.' });
         }
-        
-        if (!proveedor) {
-            return res.status(400).json({ 
-                Error: 'El proveedor especificado no existe.', 
-                Detalle: `ID_Proveedor ${ID_Proveedor} no encontrado` 
-            });
-        }
-
-        // Convertir valores numéricos
-        const precioFinal = parseFloat(Precio);
-        const stockFinal = Stock ? parseInt(Stock) : null;
-        
-        if (isNaN(precioFinal)) {
-            return res.status(400).json({ 
-                Error: 'El precio debe ser un número válido.', 
-                Detalle: `Precio recibido: ${Precio}` 
-            });
-        }
-
-        // Deshabilitar foreign keys temporalmente para evitar problemas con ID_Calificacion
-        db.run('PRAGMA foreign_keys = OFF', (pragmaErr) => {
-            if (pragmaErr) {
-                console.error('Error al deshabilitar foreign keys:', pragmaErr);
-            }
-            
-            // Insertar producto sin especificar ID_Calificacion
-            db.run(`INSERT INTO Productos(Nombre, ID_Proveedor, Precio, Descripcion, Categoria, Color, Subcategoria, Stock, Imagen_1, Imagen_2) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    Nombre, 
-                    ID_Proveedor, 
-                    precioFinal, 
-                    Descripcion || null, 
-                    Categoria || null, 
-                    Color || null, 
-                    Subcategoria || null, 
-                    stockFinal, 
-                    imagen1Final || null, 
-                    imagen2Final || null
-                ],
-                function (Error) {
-                    // Rehabilitar foreign keys
-                    db.run('PRAGMA foreign_keys = ON', () => {});
-                    
-                    if (Error) {
-                        console.error('Error al registrar producto:', Error);
-                        console.error('Detalles del error:', Error.message);
-                        console.error('Código de error:', Error.code);
-                        return res.status(500).json({ 
-                            Error: 'Error al registrar producto.', 
-                            Detalle: Error.message,
-                            Codigo: Error.code
-                        });
-                    }
-                    console.log('Producto registrado exitosamente con ID:', this.lastID);
-                    res.json({ 
-                        Mensaje: 'Producto registrado correctamente.', 
-                        ID_Producto: this.lastID 
-                    });
-                });
-        });
-    });
+        res.json({ Mensaje: 'Producto registrado correctamente.', ID_Producto: this.lastID });
+      });
+  });
 };
 
 const modificarProducto = (req, res) => {
-    const { ID_Producto } = req.params;
-    const { Nombre, Precio, Descripcion, Stock } = req.body;
+  const { ID_Producto } = req.params;
+  const { Nombre, Precio, Descripcion, Stock } = req.body;
+  if (!ID_Producto) return res.status(400).json({ Error: 'ID_Producto requerido.' });
 
-    db.run(`UPDATE Productos SET Nombre=?, Precio=?, Descripcion=?, Stock=? WHERE ID_Producto=?`,
-        [Nombre, Precio, Descripcion, Stock, ID_Producto], function (Error) {
-            if (Error) return res.status(500).json({ Error: 'Error al modificar producto.' });
-            res.json({ Mensaje: 'Producto modificado correctamente.', Cambios: this.changes });
-        });
+  db.run(`UPDATE Productos SET Nombre = COALESCE(?, Nombre), Precio = COALESCE(?, Precio), Descripcion = COALESCE(?, Descripcion), Stock = COALESCE(?, Stock) WHERE ID_Producto = ?`,
+    [Nombre, Precio, Descripcion, Stock, ID_Producto], function (Error) {
+      if (Error) {
+        console.error('modificarProducto:', Error);
+        return res.status(500).json({ Error: 'Error al modificar producto.' });
+      }
+      if (this.changes === 0) return res.status(404).json({ Error: 'Producto no encontrado.' });
+      res.json({ Mensaje: 'Producto modificado correctamente.', Cambios: this.changes });
+    });
 };
 
 const eliminarProducto = (req, res) => {
-    let { ID_Producto } = req.params;
-    
-    // Limpiar el ID en caso de que tenga formato extraño (ej: "1:1" -> "1")
-    if (typeof ID_Producto === 'string' && ID_Producto.includes(':')) {
-        ID_Producto = ID_Producto.split(':')[0].trim();
-        console.log('ID limpiado de formato extraño:', ID_Producto);
+  let { ID_Producto } = req.params;
+  if (!ID_Producto) return res.status(400).json({ Error: 'ID_Producto requerido.' });
+
+  const productId = parseInt(String(ID_Producto).split(':')[0].trim(), 10);
+  if (isNaN(productId) || productId <= 0) return res.status(400).json({ Error: 'ID_Producto inválido.' });
+
+  db.get(`SELECT ID_Producto FROM Productos WHERE ID_Producto = ?`, [productId], (err, prod) => {
+    if (err) {
+      console.error('eliminarProducto select:', err);
+      return res.status(500).json({ Error: 'Error en DB.' });
     }
-    
-    // Validar que el ID_Producto sea un número válido
-    const productId = parseInt(ID_Producto);
-    if (isNaN(productId) || productId <= 0) {
-        console.error('ID_Producto inválido:', ID_Producto, '-> Parseado:', productId);
-        return res.status(400).json({ 
-            Error: 'ID de producto inválido.', 
-            Detalle: `ID recibido: ${req.params.ID_Producto} -> Limpiado: ${ID_Producto} -> Parseado: ${productId}` 
-        });
-    }
-    
-    console.log(`Intentando eliminar producto con ID: ${productId} (recibido: ${req.params.ID_Producto})`);
+    if (!prod) return res.status(404).json({ Error: 'Producto no encontrado.' });
 
-    // Primero verificar si el producto existe
-    db.get('SELECT ID_Producto FROM Productos WHERE ID_Producto = ?', [productId], (err, producto) => {
-        if (err) {
-            console.error('Error al verificar producto:', err);
-            return res.status(500).json({ 
-                Error: 'Error al verificar producto.', 
-                Detalle: err.message 
-            });
+    // Eliminar dependencias primero para evitar errores de FK
+    db.serialize(() => {
+      // Eliminar detalles de compra (historial de compras) - SOLICITADO POR EL USUARIO
+      db.run(`DELETE FROM Detalles_Compra WHERE ID_Producto = ?`, [productId], (err) => {
+        if (err) console.error('Error eliminando detalles de compra:', err);
+      });
+
+      // Eliminar comentarios
+      db.run(`DELETE FROM Comentarios WHERE ID_Producto = ?`, [productId], (err) => {
+        if (err) console.error('Error eliminando comentarios:', err);
+      });
+
+      // Eliminar calificaciones
+      db.run(`DELETE FROM Calificaciones WHERE ID_Producto = ?`, [productId], (err) => {
+        if (err) console.error('Error eliminando calificaciones:', err);
+      });
+
+      // Eliminar del carrito
+      db.run(`DELETE FROM Carrito WHERE ID_Producto = ?`, [productId], (err) => {
+        if (err) console.error('Error eliminando del carrito:', err);
+      });
+
+      // Eliminar me gusta
+      db.run(`DELETE FROM Me_Gusta WHERE ID_Producto = ?`, [productId], (err) => {
+        if (err) console.error('Error eliminando me gusta:', err);
+      });
+
+      // Finalmente eliminar el producto
+      db.run(`DELETE FROM Productos WHERE ID_Producto = ?`, [productId], function (Error) {
+        if (Error) {
+          console.error('eliminarProducto delete:', Error);
+          return res.status(500).json({ Error: 'Error al eliminar producto.' });
         }
-
-        if (!producto) {
-            return res.status(404).json({ 
-                Error: 'Producto no encontrado.', 
-                Detalle: `ID_Producto ${productId} no existe` 
-            });
-        }
-
-        // Deshabilitar foreign keys y eliminar registros relacionados
-        db.run('PRAGMA foreign_keys = OFF', (pragmaErr) => {
-            if (pragmaErr) {
-                console.error('Error al deshabilitar foreign keys:', pragmaErr);
-                // Continuar de todos modos
-            }
-
-            // Función auxiliar para eliminar registros relacionados
-            const eliminarRelaciones = (callback) => {
-                let completed = 0;
-                let hasError = false;
-                const total = 5; // Total de operaciones
-
-                const checkComplete = () => {
-                    completed++;
-                    if (completed === total) {
-                        callback(hasError);
-                    }
-                };
-
-                // Eliminar del carrito
-                db.run('DELETE FROM Carrito WHERE ID_Producto = ?', [productId], (cartErr) => {
-                    if (cartErr && !cartErr.message.includes('no such table')) {
-                        console.warn('Advertencia al eliminar del carrito:', cartErr.message);
-                    }
-                    checkComplete();
-                });
-
-                // Eliminar comentarios
-                db.run('DELETE FROM Comentarios WHERE ID_Producto = ?', [productId], (commentErr) => {
-                    if (commentErr && !commentErr.message.includes('no such table')) {
-                        console.warn('Advertencia al eliminar comentarios:', commentErr.message);
-                    }
-                    checkComplete();
-                });
-
-                // Eliminar me gusta
-                db.run('DELETE FROM Me_Gusta WHERE ID_Producto = ?', [productId], (likeErr) => {
-                    if (likeErr && !likeErr.message.includes('no such table')) {
-                        console.warn('Advertencia al eliminar me gusta:', likeErr.message);
-                    }
-                    checkComplete();
-                });
-
-                // Eliminar calificaciones
-                db.run('DELETE FROM Calificaciones WHERE ID_Producto = ?', [productId], (ratingErr) => {
-                    if (ratingErr && !ratingErr.message.includes('no such table')) {
-                        console.warn('Advertencia al eliminar calificaciones:', ratingErr.message);
-                    }
-                    checkComplete();
-                });
-
-                // Eliminar de compras (nota: usa ID_Productos en plural)
-                db.run('DELETE FROM Compras WHERE ID_Productos = ?', [productId], (purchaseErr) => {
-                    if (purchaseErr && !purchaseErr.message.includes('no such table')) {
-                        console.warn('Advertencia al eliminar compras:', purchaseErr.message);
-                    }
-                    checkComplete();
-                });
-            };
-
-            // Eliminar relaciones primero, luego el producto
-            eliminarRelaciones(() => {
-                // Eliminar el producto
-                db.run('DELETE FROM Productos WHERE ID_Producto = ?', [productId], function (deleteErr) {
-                    // Rehabilitar foreign keys
-                    db.run('PRAGMA foreign_keys = ON', () => {});
-
-                    if (deleteErr) {
-                        console.error('Error al eliminar producto:', deleteErr);
-                        console.error('Detalles del error:', deleteErr.message);
-                        console.error('Código de error:', deleteErr.code);
-                        return res.status(500).json({ 
-                            Error: 'Error al eliminar producto.', 
-                            Detalle: deleteErr.message,
-                            Codigo: deleteErr.code,
-                            SQL: deleteErr.sql
-                        });
-                    }
-
-                    if (this.changes === 0) {
-                        return res.status(404).json({ 
-                            Error: 'Producto no encontrado.', 
-                            Detalle: `No se pudo eliminar el producto con ID ${productId}` 
-                        });
-                    }
-
-                    console.log(`Producto ${productId} eliminado exitosamente. Cambios: ${this.changes}`);
-                    res.json({ 
-                        Mensaje: 'Producto eliminado correctamente.', 
-                        Cambios: this.changes 
-                    });
-                });
-            });
-        });
+        res.json({ Mensaje: 'Producto eliminado correctamente.', Cambios: this.changes });
+      });
     });
+  });
 };
 
-//PROVEEDORES
 const registrarProveedor = (req, res) => {
-    const { Nombre, Mail, Telefono, Direccion } = req.body;
-    if (!Nombre) return res.status(400).json({ Error: 'Faltan datos.' });
+  const { Nombre, Telefono, Mail, Direccion } = req.body;
+  if (!Nombre || !Mail) return res.status(400).json({ Error: 'Faltan datos requeridos.' });
 
-    db.run('INSERT INTO Proveedor(Nombre, Mail, Telefono, Direccion) VALUES (?, ?, ?, ?)',
-        [Nombre, Mail, Telefono, Direccion], function (Error) {
-            if (Error) return res.status(500).json({ Error: 'Error al registrar proveedor.' });
-            res.json({ Mensaje: 'Proveedor registrado correctamente.', ID_Proveedor: this.lastID });
-        });
+  db.run(`INSERT INTO Proveedor (Nombre, Telefono, Mail, Direccion) VALUES (?, ?, ?, ?)`, [Nombre, Telefono || null, Mail, Direccion || null], function (Error) {
+    if (Error) {
+      console.error('registrarProveedor:', Error);
+      return res.status(500).json({ Error: 'Error al registrar proveedor.' });
+    }
+    res.json({ Mensaje: 'Proveedor registrado correctamente.', ID_Proveedor: this.lastID });
+  });
 };
 
 const modificarProveedor = (req, res) => {
-    const { ID_Proveedor } = req.params;
-    const { Nombre, Mail, Telefono, Direccion } = req.body;
-
-    db.run('UPDATE Proveedor SET Nombre=?, Mail=?, Telefono=?, Direccion=? WHERE ID_Proveedor=?',
-        [Nombre, Mail, Telefono, Direccion, ID_Proveedor], function (Error) {
-            if (Error) return res.status(500).json({ Error: 'Error al modificar proveedor.' });
-            res.json({ Mensaje: 'Proveedor modificado correctamente.', Cambios: this.changes });
-        });
+  const { ID_Proveedor } = req.params;
+  const { Nombre, Telefono, Mail, Direccion } = req.body;
+  db.run(`UPDATE Proveedor SET Nombre = COALESCE(?, Nombre), Telefono = COALESCE(?, Telefono), Mail = COALESCE(?, Mail), Direccion = COALESCE(?, Direccion) WHERE ID_Proveedor = ?`,
+    [Nombre, Telefono, Mail, Direccion, ID_Proveedor], function (Error) {
+      if (Error) {
+        console.error('modificarProveedor:', Error);
+        return res.status(500).json({ Error: 'Error al modificar proveedor.' });
+      }
+      if (this.changes === 0) return res.status(404).json({ Error: 'Proveedor no encontrado.' });
+      res.json({ Mensaje: 'Proveedor modificado correctamente.', Cambios: this.changes });
+    });
 };
 
 const eliminarProveedor = (req, res) => {
-    const { ID_Proveedor } = req.params;
-    db.run('DELETE FROM Proveedor WHERE ID_Proveedor=?', [ID_Proveedor], function (Error) {
-        if (Error) return res.status(500).json({ Error: 'Error al eliminar proveedor.' });
-        res.json({ Mensaje: 'Proveedor eliminado correctamente.', Cambios: this.changes });
+  const { ID_Proveedor } = req.params;
+  db.get(`SELECT COUNT(*) AS total FROM Productos WHERE ID_Proveedor = ?`, [ID_Proveedor], (err, fila) => {
+    if (err) {
+      console.error('eliminarProveedor count productos:', err);
+      return res.status(500).json({ Error: 'Error en DB.' });
+    }
+    if (fila && fila.total > 0) return res.status(409).json({ Error: `No se puede eliminar proveedor con ${fila.total} productos.` });
+
+    db.run(`DELETE FROM Proveedor WHERE ID_Proveedor = ?`, [ID_Proveedor], function (Error) {
+      if (Error) {
+        console.error('eliminarProveedor delete:', Error);
+        return res.status(500).json({ Error: 'Error al eliminar proveedor.' });
+      }
+      res.json({ Mensaje: 'Proveedor eliminado correctamente.', Cambios: this.changes });
     });
+  });
 };
 
-// Obtener todos los productos
 const obtenerProductos = (req, res) => {
-    db.all('SELECT * FROM Productos', [], (Error, filas) => {
-        if (Error) {
-            console.error('Error al obtener productos:', Error);
-            return res.status(500).json({ Error: 'Error al obtener productos.' });
-        }
-        res.json(filas);
-    });
+  db.all(`SELECT * FROM Productos`, [], (Error, filas) => {
+    if (Error) {
+      console.error('obtenerProductos:', Error);
+      return res.status(500).json({ Error: 'Error al obtener productos.' });
+    }
+    res.json(filas || []);
+  });
 };
 
-// Obtener todos los proveedores
 const obtenerProveedores = (req, res) => {
-    db.all('SELECT * FROM Proveedor', [], (Error, filas) => {
-        if (Error) {
-            console.error('Error al obtener proveedores:', Error);
-            return res.status(500).json({ Error: 'Error al obtener proveedores.' });
-        }
-        res.json(filas);
-    });
+  db.all(`SELECT * FROM Proveedor`, [], (Error, filas) => {
+    if (Error) {
+      console.error('obtenerProveedores:', Error);
+      return res.status(500).json({ Error: 'Error al obtener proveedores.' });
+    }
+    res.json(filas || []);
+  });
+};
+
+const obtenerProductosDetallados = (req, res) => {
+  const query = `
+    SELECT p.ID_Producto, p.Nombre AS ProductoNombre, p.Precio, p.Stock,
+           prov.Nombre AS ProveedorNombre, COALESCE( AVG(c.Puntuacion), 0) AS CalificacionPromedio,
+           COALESCE( COUNT(cm.ID_Comentario), 0) AS CantidadComentarios
+    FROM Productos p
+    LEFT JOIN Proveedor prov ON p.ID_Proveedor = prov.ID_Proveedor
+    LEFT JOIN Calificaciones c ON p.ID_Producto = c.ID_Producto
+    LEFT JOIN Comentarios cm ON p.ID_Producto = cm.ID_Producto
+    GROUP BY p.ID_Producto, p.Nombre, p.Precio, p.Stock, prov.Nombre
+  `;
+  db.all(query, [], (Error, rows) => {
+    if (Error) {
+      console.error('obtenerProductosDetallados:', Error);
+      return res.status(500).json({ Error: 'Error al obtener productos detallados.' });
+    }
+    res.json(rows || []);
+  });
+};
+
+const obtenerAlertasBajoStock = (req, res) => {
+  const UMBRAL_STOCK = 10;
+  db.all(`SELECT ID_Producto, Nombre, Stock, ID_Proveedor FROM Productos WHERE Stock IS NOT NULL AND Stock <= ? ORDER BY Stock ASC`, [UMBRAL_STOCK], (Error, rows) => {
+    if (Error) {
+      console.error('obtenerAlertasBajoStock:', Error);
+      return res.status(500).json({ Error: 'Error al obtener alertas de stock.' });
+    }
+    res.json({ mensaje: `Hay ${rows.length} productos con stock <= ${UMBRAL_STOCK}.`, productosBajoStock: rows });
+  });
 };
 
 module.exports = {
-    registrarProducto,
-    modificarProducto,
-    eliminarProducto,
-    registrarProveedor,
-    modificarProveedor,
-    eliminarProveedor,
-    obtenerProductos,
-    obtenerProveedores
+  registrarProducto,
+  modificarProducto,
+  eliminarProducto,
+  registrarProveedor,
+  modificarProveedor,
+  eliminarProveedor,
+  obtenerProductos,
+  obtenerProveedores,
+  obtenerProductosDetallados,
+  obtenerAlertasBajoStock
 };

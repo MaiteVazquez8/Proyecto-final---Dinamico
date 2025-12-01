@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { PRODUCT_ENDPOINTS } from "../../../config/api"
 import {
     AiOutlineLeft,
     AiOutlineRight,
@@ -45,7 +46,7 @@ function Home({ onNavigate }) {
         const loadProducts = async () => {
             try {
                 setLoading(true)
-                const response = await axios.get('http://localhost:3000/api/productos/productos')
+                const response = await axios.get(PRODUCT_ENDPOINTS.GET_PRODUCTS)
                 const products = response.data || []
 
                 // Función para determinar el tipo de imagen basado en la categoría
@@ -69,14 +70,22 @@ function Home({ onNavigate }) {
                 }
 
                 // Mapear productos a formato de Home
-                const mappedProducts = products.map(product => ({
-                    id: product.ID_Producto,
-                    name: product.Nombre || 'Producto sin nombre',
-                    price: formatPrice(product.Precio),
-                    imageType: getImageType(product.Categoria),
-                    image_1: product.Imagen_1 || null,
-                    badge: product.Stock > 0 ? '' : 'SIN STOCK'
-                }))
+                const mappedProducts = products.map(product => {
+                    let image = product.Imagen_1 || null
+                    // Asegurar prefijo para Base64 si no es URL
+                    if (image && !image.startsWith('http') && !image.startsWith('data:image')) {
+                        image = `data:image/jpeg;base64,${image}`
+                    }
+
+                    return {
+                        id: product.ID_Producto,
+                        name: product.Nombre || 'Producto sin nombre',
+                        price: formatPrice(product.Precio),
+                        imageType: getImageType(product.Categoria),
+                        image_1: image,
+                        badge: product.Stock > 0 ? '' : 'SIN STOCK'
+                    }
+                })
 
                 // Los primeros productos son destacados, los más vendidos son los que tienen más ventas
                 setFeaturedProducts(mappedProducts.slice(0, 8))

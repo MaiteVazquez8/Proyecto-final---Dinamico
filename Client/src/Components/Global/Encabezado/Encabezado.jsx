@@ -57,15 +57,15 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
   return (
     <>
       <header className="encabezado">
-        <div className="logo-container" role="button" tabIndex={0} onClick={() => onNavigate('home')} onKeyDown={(e)=>{ if(e.key==='Enter') onNavigate('home') }}>
+        <div className="logo-container" role="button" tabIndex={0} onClick={() => onNavigate('home')} onKeyDown={(e) => { if (e.key === 'Enter') onNavigate('home') }}>
           <h1><img src={logoImagen} alt="ElectroShop Logo" className="logo-img" /></h1>
           <span className="brand-name">ElectroShop</span>
         </div>
 
         <div className="header-controls">
           {/* BOTÓN MENÚ HAMBURGUESA - SIMPLE */}
-          <button 
-            className="menu-toggle" 
+          <button
+            className="menu-toggle"
             onClick={toggleMenu}
             title={getMenuTitle()}
           >
@@ -88,15 +88,17 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
             ✕
           </button>
         </div>
-        
+
         <nav className="sidebar-nav">
+          {/* Mostrar Inicio solo para clientes o usuarios no autenticados */}
+          {/* Mostrar Inicio para todos los usuarios */}
           <button
             className={getNavLinkClass('home')}
             onClick={() => handleNavigation('home')}
           >
             Inicio
           </button>
-          
+
           {!isAuthenticated && (
             <>
               <button
@@ -119,7 +121,7 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
               </button>
             </>
           )}
-          
+
           {isAuthenticated && (
             <>
               <div className="sidebar-user-info">
@@ -157,63 +159,63 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
                   </button>
                 </>
               )}
-              
+
               {/* Enlaces de administración según rol */}
-              {(currentUser?.Cargo?.toLowerCase() === 'empleado' || 
-                currentUser?.Cargo?.toLowerCase() === 'gerente' || 
+              {(currentUser?.Cargo?.toLowerCase() === 'empleado' ||
+                currentUser?.Cargo?.toLowerCase() === 'gerente' ||
                 currentUser?.Cargo?.toLowerCase() === 'super admin' ||
                 currentUser?.Cargo?.toLowerCase() === 'administrador') && (
-                <button
-                  className={getNavLinkClass('product-management')}
-                  onClick={() => handleNavigation('product-management')}
-                >
-                  Gestión de Productos
-                </button>
-              )}
-              
-              {(currentUser?.Cargo?.toLowerCase() === 'gerente' || 
+                  <button
+                    className={getNavLinkClass('product-management')}
+                    onClick={() => handleNavigation('product-management')}
+                  >
+                    Gestión de Productos
+                  </button>
+                )}
+
+              {(currentUser?.Cargo?.toLowerCase() === 'gerente' ||
                 currentUser?.Cargo?.toLowerCase() === 'super admin' ||
                 currentUser?.Cargo?.toLowerCase() === 'administrador') && (
-                <>
-                  <button
-                    className={getNavLinkClass('employee-management')}
-                    onClick={() => handleNavigation('employee-management')}
-                  >
-                    Gestión de Empleados
-                  </button>
-                  <button
-                    className={getNavLinkClass('suppliers')}
-                    onClick={() => handleNavigation('suppliers')}
-                  >
-                    Gestión de Proveedores
-                  </button>
-                </>
-              )}
-              
+                  <>
+                    <button
+                      className={getNavLinkClass('employee-management')}
+                      onClick={() => handleNavigation('employee-management')}
+                    >
+                      Gestión de Empleados
+                    </button>
+                    <button
+                      className={getNavLinkClass('suppliers')}
+                      onClick={() => handleNavigation('suppliers')}
+                    >
+                      Gestión de Proveedores
+                    </button>
+                  </>
+                )}
+
               {(currentUser?.Cargo?.toLowerCase() === 'super admin' ||
                 currentUser?.Cargo?.toLowerCase() === 'administrador') && (
-                <>
-                  <button
-                    className={getNavLinkClass('manager-management')}
-                    onClick={() => handleNavigation('manager-management')}
-                  >
-                    Gestión de Gerentes
-                  </button>
-                  <button
-                    className={getNavLinkClass('sales-management')}
-                    onClick={() => handleNavigation('sales-management')}
-                  >
-                    Gestión de Compras
-                  </button>
-                  <button
-                    className={getNavLinkClass('client-management')}
-                    onClick={() => handleNavigation('client-management')}
-                  >
-                    Gestión de Clientes
-                  </button>
-                </>
-              )}
-              
+                  <>
+                    <button
+                      className={getNavLinkClass('manager-management')}
+                      onClick={() => handleNavigation('manager-management')}
+                    >
+                      Gestión de Gerentes
+                    </button>
+                    <button
+                      className={getNavLinkClass('sales-management')}
+                      onClick={() => handleNavigation('sales-management')}
+                    >
+                      Gestión de Compras
+                    </button>
+                    <button
+                      className={getNavLinkClass('client-management')}
+                      onClick={() => handleNavigation('client-management')}
+                    >
+                      Gestión de Clientes
+                    </button>
+                  </>
+                )}
+
               {/* Opción de modo oscuro/claro */}
               {canUseDarkMode && (
                 <button
@@ -229,7 +231,7 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
                   )}
                 </button>
               )}
-              
+
               <button
                 className="sidebar-nav-link logout-link"
                 onClick={handleLogout}
@@ -238,7 +240,7 @@ function Encabezado({ onNavigate, currentPage, isAuthenticated, currentUser, onL
               </button>
             </>
           )}
-          
+
           {/* Opción de modo oscuro/claro para usuarios no autenticados */}
           {!isAuthenticated && canUseDarkMode && (
             <button

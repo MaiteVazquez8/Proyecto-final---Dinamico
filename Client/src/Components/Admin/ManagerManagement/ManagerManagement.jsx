@@ -32,10 +32,9 @@ function ManagerManagement({ currentUser }) {
     const loadManagers = async () => {
         try {
             setLoading(true)
-            // Endpoint no disponible - usar datos simulados
-            console.log('Endpoint GET_MANAGERS no disponible - usando datos simulados')
-            const mockData = getMockManagersData()
-            setManagers(mockData || [])
+            const response = await axios.get(AUTH_ENDPOINTS.GET_MANAGERS)
+            console.log('Gerentes cargados:', response.data)
+            setManagers(response.data || [])
         } catch (error) {
             console.error('Error al cargar gerentes:', error)
             setError('Error al cargar gerentes')
@@ -58,10 +57,30 @@ function ManagerManagement({ currentUser }) {
         try {
             setLoading(true)
             if (editingManager) {
-                await axios.put(AUTH_ENDPOINTS.UPDATE_PERSONAL(editingManager.DNI), formData)
+                // Preparar payload para el servidor
+                const payload = {
+                    Nombre: formData.Nombre,
+                    Apellido: formData.Apellido,
+                    Mail: formData.Mail,
+                    Rol: 'gerente'
+                };
+                // Solo incluir Password si se proporcionó uno nuevo
+                if (formData.Contraseña && formData.Contraseña.trim() !== '') {
+                    payload.Password = formData.Contraseña;
+                }
+                await axios.put(AUTH_ENDPOINTS.UPDATE_PERSONAL(editingManager.DNI), payload)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Gerente modificado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             } else {
-                await axios.post(AUTH_ENDPOINTS.REGISTER_PERSONAL, formData)
+                // Para registro, Password es obligatorio
+                const payload = {
+                    DNI: formData.DNI,
+                    Nombre: formData.Nombre,
+                    Apellido: formData.Apellido,
+                    Mail: formData.Mail,
+                    Password: formData.Contraseña,
+                    Rol: 'gerente'
+                };
+                await axios.post(AUTH_ENDPOINTS.REGISTER_PERSONAL, payload)
                 Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Gerente agregado correctamente', confirmButtonColor: '#B8CFCE', confirmButtonText: 'Aceptar' })
             }
             setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Gerente' })
@@ -124,7 +143,7 @@ function ManagerManagement({ currentUser }) {
         })
 
         if (!result.isConfirmed) return
-        
+
         try {
             const response = await axios.delete(AUTH_ENDPOINTS.DELETE_PERSONAL(DNI))
             Swal.fire({
@@ -165,7 +184,7 @@ function ManagerManagement({ currentUser }) {
                         className="product-search-input"
                         aria-label="Buscar gerentes"
                     />
-                    <button 
+                    <button
                         className="add-btn"
                         onClick={() => { setShowAddForm(true); setEditingManager(null); setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Gerente' }) }}
                         disabled={showAddForm}
@@ -264,7 +283,7 @@ function ManagerManagement({ currentUser }) {
                             </div>
 
                             <div className="form-group">
-                                <label>Contraseña:</label>
+                                <label>Contraseña{editingManager ? ' (dejar vacío para no cambiar)' : ''}:</label>
                                 <PasswordInput
                                     id="Contraseña"
                                     name="Contraseña"
@@ -290,13 +309,13 @@ function ManagerManagement({ currentUser }) {
                             <button type="submit" className="save-btn">
                                 {editingManager ? 'Guardar Cambios' : 'Agregar Gerente'}
                             </button>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onClick={() => {
                                     setShowAddForm(false)
                                     setEditingManager(null)
                                     setFormData({ DNI: '', Nombre: '', Apellido: '', Mail: '', Fecha_Nacimiento: '', Contraseña: '', Telefono: '', Direccion: '', Cargo: 'Gerente' })
-                                }} 
+                                }}
                                 className="cancel-btn"
                             >
                                 Cancelar
@@ -350,13 +369,13 @@ function ManagerManagement({ currentUser }) {
                                     <td>{manager.Mail}</td>
                                     <td>{manager.Cargo}</td>
                                     <td className="actions-cell">
-                                        <button 
+                                        <button
                                             className="edit-btn"
                                             onClick={() => handleEdit(manager)}
                                         >
                                             Editar
                                         </button>
-                                        <button 
+                                        <button
                                             className="delete-btn"
                                             onClick={() => handleDelete(manager.DNI)}
                                         >

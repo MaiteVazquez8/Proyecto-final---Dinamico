@@ -1,80 +1,89 @@
-// Comentarios.Controller.js
-const db = require('../db')
+// src/Controllers/Comentarios.Controller.js
+const db = require('../DataBase/db');
 
-// Obtener todos los comentarios
-const obtenerComentarios = (req, res) => {
-    const query = `SELECT c.ID_Comentario, c.Texto, c.Titulo, c.Puntuacion, c.Fecha, p.Nombre AS Producto, cli.Nombre AS Cliente FROM Comentarios c LEFT JOIN Productos p ON c.ID_Producto = p.ID_Producto LEFT JOIN Cliente cli ON c.DNI = cli.DNI`
-    db.all(query, [], (Error, rows) => {
-        if (Error) {
-            console.error('Error al obtener comentarios:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al obtener los comentarios.' })
-        }
-        res.status(200).json(rows)
-    })
-}
+// obtener comentarios por producto (y también existe endpoint para todos si lo querés)
+const obtenerComentariosPorProducto = (req, res) => {
+  const { ID_Producto } = req.params;
+  if (!ID_Producto) return res.status(400).json({ Error: 'ID_Producto requerido.' });
 
-// Crear nuevo comentario
+  db.all(
+    `SELECT c.ID_Comentario, c.Texto, COALESCE(c.Titulo, '') AS Titulo, COALESCE(c.Puntuacion, 5) AS Puntuacion, COALESCE(c.Fecha, date('now')) AS Fecha, c.DNI,
+            COALESCE(cli.Nombre || ' ' || cli.Apellido, 'Usuario') AS Nombre_Usuario
+     FROM Comentarios c
+     LEFT JOIN Cliente cli ON c.DNI = cli.DNI
+     WHERE c.ID_Producto = ?
+     ORDER BY COALESCE(c.Fecha, '1970-01-01') DESC`,
+    [ID_Producto],
+    (Error, filas) => {
+      if (Error) {
+        console.error('obtenerComentariosPorProducto:', Error);
+        return res.status(500).json({ Error: 'Error al obtener comentarios.' });
+      }
+      res.json(filas || []);
+    }
+  );
+};
+
 const crearComentario = (req, res) => {
-    const { Texto, ID_Producto, DNI, Titulo, Puntuacion, Fecha } = req.body
+  const { Texto, ID_Producto, DNI, Titulo, Puntuacion } = req.body;
+  if (!Texto || !ID_Producto || !DNI) return res.status(400).json({ Error: 'Faltan datos obligatorios.' });
 
-    if (!Texto || !ID_Producto || !DNI) {
-        return res.status(400).json({ mensaje: 'Faltan datos obligatorios.' })
-    }
+  const fecha = new Date().toISOString();
+  db.run(
+    `INSERT INTO Comentarios (Texto, ID_Producto, DNI, Titulo, Puntuacion, Fecha) VALUES (?, ?, ?, ?, ?, ?)`,
+    [Texto, ID_Producto, DNI, Titulo || null, Puntuacion != null ? Puntuacion : null, fecha],
+    function (Error) {
+      if (Error) {
+        console.error('crearComentario:', Error);
+        return res.status(500).json({ Error: 'Error al crear comentario.' });
+      }
 
-    const query = `INSERT INTO Comentarios (Texto, ID_Producto, DNI, Titulo, Puntuacion, Fecha) VALUES (?, ?, ?, ?, ?, ?)`
-    db.run(query, [Texto, ID_Producto, DNI, Titulo || '', Puntuacion || 0, Fecha || new Date().toISOString()],
-        function (Error) {
-            if (Error) {
-                console.error('Error al crear comentario:', Error.message)
-                return res.status(500).json({ mensaje: 'Error al crear comentario.' })
-            }
-            res.status(201).json({ mensaje: 'Comentario creado exitosamente.', ID_Comentario: this.lastID })
+      // actualizar contador y promedio en Productos (no crítico)
+      db.get(`SELECT COUNT(*) AS total, AVG(Puntuacion) AS promedio FROM Comentarios WHERE ID_Producto = ?`, [ID_Producto], (errAgg, fila) => {
+        if (!errAgg && fila) {
+          db.run(`UPDATE Productos SET Cant_Comentarios = ?, Promedio_Calificacion = ? WHERE ID_Producto = ?`, [fila.total, fila.promedio || 0, ID_Producto]);
         }
-    )
-}
+      });
 
-// Editar comentario existente
+      res.status(201).json({ Mensaje: 'Comentario agregado correctamente.', ID_Comentario: this.lastID });
+    }
+  );
+};
+
 const editarComentario = (req, res) => {
-    const { ID_Comentario } = req.params
-    const { Texto, Titulo, Puntuacion } = req.body
+  const { ID_Comentario } = req.params;
+  const { Texto, Titulo, Puntuacion } = req.body;
+  if (!Texto && !Titulo && Puntuacion == null) return res.status(400).json({ Error: 'Envía al menos un campo.' });
 
-    if (!Texto && !Titulo && Puntuacion == null) {
-        return res.status(400).json({ mensaje: 'Debe enviar al menos un campo a actualizar.' })
+  db.run(
+    `UPDATE Comentarios SET Texto = COALESCE(?, Texto), Titulo = COALESCE(?, Titulo), Puntuacion = COALESCE(?, Puntuacion) WHERE ID_Comentario = ?`,
+    [Texto, Titulo, Puntuacion, ID_Comentario],
+    function (Error) {
+      if (Error) {
+        console.error('editarComentario:', Error);
+        return res.status(500).json({ Error: 'Error al editar comentario.' });
+      }
+      if (this.changes === 0) return res.status(404).json({ Error: 'Comentario no encontrado.' });
+      res.json({ Mensaje: 'Comentario actualizado correctamente.' });
     }
+  );
+};
 
-    const query = `UPDATE Comentarios SET Texto = COALESCE(?, Texto), Titulo = COALESCE(?, Titulo), Puntuacion = COALESCE(?, Puntuacion) WHERE ID_Comentario = ?`
-    db.run(query, [Texto, Titulo, Puntuacion, ID_Comentario], function (Error) {
-        if (Error) {
-            console.error('Error al editar comentario:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al editar el comentario.' })
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ mensaje: 'Comentario no encontrado.' })
-        }
-        res.status(200).json({ mensaje: 'Comentario actualizado correctamente.' })
-    })
-}
-
-// Eliminar comentario
 const eliminarComentario = (req, res) => {
-    const { ID_Comentario } = req.params
-
-    const query = `DELETE FROM Comentarios WHERE ID_Comentario = ?`
-    db.run(query, [ID_Comentario], function (Error) {
-        if (Error) {
-            console.error('Error al eliminar comentario:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al eliminar el comentario.' })
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ mensaje: 'Comentario no encontrado.' })
-        }
-        res.status(200).json({ mensaje: 'Comentario eliminado correctamente.' })
-    })
-}
+  const { ID_Comentario } = req.params;
+  db.run(`DELETE FROM Comentarios WHERE ID_Comentario = ?`, [ID_Comentario], function (Error) {
+    if (Error) {
+      console.error('eliminarComentario:', Error);
+      return res.status(500).json({ Error: 'Error al eliminar comentario.' });
+    }
+    if (this.changes === 0) return res.status(404).json({ Error: 'Comentario no encontrado.' });
+    res.json({ Mensaje: 'Comentario eliminado correctamente.' });
+  });
+};
 
 module.exports = {
-    obtenerComentarios,
-    crearComentario,
-    editarComentario,
-    eliminarComentario
-}
+  obtenerComentariosPorProducto,
+  crearComentario,
+  editarComentario,
+  eliminarComentario
+};

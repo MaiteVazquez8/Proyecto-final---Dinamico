@@ -1,114 +1,103 @@
-const db = require('../db')
+// src/Controllers/Calificaciones.Controller.js
+const db = require('../DataBase/db');
 
-//ver
+// listar calificaciones (todas)
 const obtenerCalificaciones = (req, res) => {
-    const query = `SELECT c.ID_Calificacion, c.DNI, cli.Nombre AS Cliente, c.ID_Producto, p.Nombre AS Producto, c.Puntuacion, c.Fecha FROM Calificaciones c LEFT JOIN Cliente cli ON c.DNI = cli.DNI LEFT JOIN Productos p ON c.ID_Producto = p.ID_Producto`
+  const query = `SELECT c.ID_Calificacion, c.DNI, cli.Nombre AS Cliente, c.ID_Producto, p.Nombre AS Producto, c.Puntuacion, c.Fecha
+                 FROM Calificaciones c
+                 LEFT JOIN Cliente cli ON c.DNI = cli.DNI
+                 LEFT JOIN Productos p ON c.ID_Producto = p.ID_Producto`;
+  db.all(query, [], (Error, filas) => {
+    if (Error) {
+      console.error('obtenerCalificaciones:', Error);
+      return res.status(500).json({ Error: 'Error al obtener calificaciones.' });
+    }
+    res.json(filas);
+  });
+};
 
-    db.all(query, [], (Error, rows) => {
-        if (Error) {
-            console.error('Error al obtener calificaciones:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al obtener calificaciones.' })
-        }
-        res.status(200).json(rows)
-    })
-}
-
-// calificar
 const crearCalificacion = (req, res) => {
-    const { DNI, ID_Producto, Puntuacion } = req.body
+  const { DNI, ID_Producto, Puntuacion } = req.body;
+  if (!DNI || !ID_Producto || Puntuacion == null) return res.status(400).json({ Error: 'Faltan datos.' });
+  if (Puntuacion < 1 || Puntuacion > 5) return res.status(400).json({ Error: 'Puntuación inválida.' });
 
-    if (!DNI || !ID_Producto || Puntuacion == null) {
-        return res.status(400).json({ mensaje: 'Faltan datos obligatorios (DNI, ID_Producto, Puntuacion).' })
-    }
+  // verificar que el cliente haya comprado el producto
+  db.get(
+    `SELECT 1 FROM Detalles_Compra dc JOIN Compras c ON dc.ID_Compra = c.ID_Compra WHERE c.DNI = ? AND dc.ID_Producto = ? LIMIT 1`,
+    [DNI, ID_Producto],
+    (Error, compra) => {
+      if (Error) {
+        console.error('crearCalificacion verificar compra:', Error);
+        return res.status(500).json({ Error: 'Error en servidor.' });
+      }
+      if (!compra) return res.status(403).json({ Error: 'No puedes calificar sin haber comprado el producto.' });
 
-    if (Puntuacion < 1 || Puntuacion > 5) {
-        return res.status(400).json({ mensaje: 'La puntuación debe estar entre 1 y 5.' })
-    }
-
-    const Fecha = new Date().toISOString()
-    const query = `INSERT INTO Calificaciones (DNI, ID_Producto, Puntuacion, Fecha) VALUES (?, ?, ?, ?)`
-
-    db.run(query, [DNI, ID_Producto, Puntuacion, Fecha], function (Error) {
+      const fecha = new Date().toISOString();
+      db.run(`INSERT INTO Calificaciones (ID_Producto, DNI, Puntuacion, Fecha) VALUES (?, ?, ?, ?)`, [ID_Producto, DNI, Puntuacion, fecha], function (Error) {
         if (Error) {
-            console.error('Error al crear calificación:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al crear calificación.' })
+          console.error('crearCalificacion insert:', Error);
+          return res.status(500).json({ Error: 'Error al guardar calificación.' });
         }
-        res.status(201).json({ mensaje: 'Calificación creada exitosamente.', ID_Calificacion: this.lastID })
-    })
-}
 
-//editar
+        // actualizar promedio
+        db.get(`SELECT AVG(Puntuacion) AS promedio FROM Calificaciones WHERE ID_Producto = ?`, [ID_Producto], (errAgg, fila) => {
+          if (!errAgg && fila && fila.promedio != null) {
+            db.run(`UPDATE Productos SET Promedio_Calificacion = ? WHERE ID_Producto = ?`, [fila.promedio, ID_Producto]);
+          }
+        });
+
+        res.status(201).json({ Mensaje: 'Calificación creada correctamente.', ID_Calificacion: this.lastID });
+      });
+    }
+  );
+};
+
 const editarCalificacion = (req, res) => {
-    const { ID_Calificacion } = req.params
-    const { Puntuacion } = req.body
+  const { ID_Calificacion } = req.params;
+  const { Puntuacion } = req.body;
+  if (Puntuacion == null) return res.status(400).json({ Error: 'Puntuación requerida.' });
+  if (Puntuacion < 1 || Puntuacion > 5) return res.status(400).json({ Error: 'Puntuación inválida.' });
 
-    if (!Puntuacion) {
-        return res.status(400).json({ mensaje: 'Debe enviar una nueva puntuación.' })
+  db.run(`UPDATE Calificaciones SET Puntuacion = ?, Fecha = ? WHERE ID_Calificacion = ?`, [Puntuacion, new Date().toISOString(), ID_Calificacion], function (Error) {
+    if (Error) {
+      console.error('editarCalificacion:', Error);
+      return res.status(500).json({ Error: 'Error al editar calificación.' });
     }
+    if (this.changes === 0) return res.status(404).json({ Error: 'Calificación no encontrada.' });
+    res.json({ Mensaje: 'Calificación actualizada correctamente.' });
+  });
+};
 
-    if (Puntuacion < 1 || Puntuacion > 5) {
-        return res.status(400).json({ mensaje: 'La puntuación debe estar entre 1 y 5.' })
-    }
-
-    const query = `UPDATE Calificaciones SET Puntuacion = ?, Fecha = ? WHERE ID_Calificacion = ?`
-
-    db.run(query, [Puntuacion, new Date().toISOString(), ID_Calificacion], function (Error) {
-        if (Error) {
-            console.error('Error al editar calificación:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al editar calificación.' })
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ mensaje: 'Calificación no encontrada.' })
-        }
-        res.status(200).json({ mensaje: 'Calificación actualizada correctamente.' })
-    })
-}
-
-// Eliminar
 const eliminarCalificacion = (req, res) => {
-    const { ID_Calificacion } = req.params
+  const { ID_Calificacion } = req.params;
+  db.run(`DELETE FROM Calificaciones WHERE ID_Calificacion = ?`, [ID_Calificacion], function (Error) {
+    if (Error) {
+      console.error('eliminarCalificacion:', Error);
+      return res.status(500).json({ Error: 'Error al eliminar calificación.' });
+    }
+    if (this.changes === 0) return res.status(404).json({ Error: 'Calificación no encontrada.' });
+    res.json({ Mensaje: 'Calificación eliminada correctamente.' });
+  });
+};
 
-    const query = `DELETE FROM Calificaciones WHERE ID_Calificacion = ?`
-    db.run(query, [ID_Calificacion], function (Error) {
-        if (Error) {
-            console.error('Error al eliminar calificación:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al eliminar calificación.' })
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ mensaje: 'Calificación no encontrada.' })
-        }
-        res.status(200).json({ mensaje: 'Calificación eliminada correctamente.' })
-    })
-}
-
-// Promedio
 const obtenerPromedioPorProducto = (req, res) => {
-    const { ID_Producto } = req.params
+  const { ID_Producto } = req.params;
+  if (!ID_Producto) return res.status(400).json({ Error: 'ID_Producto requerido.' });
 
-    const query = `SELECT ID_Producto, AVG(Puntuacion) AS Promedio, COUNT(*) AS Total FROM Calificaciones WHERE ID_Producto = ? GROUP BY ID_Producto`
-
-    db.get(query, [ID_Producto], (Error, row) => {
-        if (Error) {
-            console.error('Error al calcular promedio:', Error.message)
-            return res.status(500).json({ mensaje: 'Error al calcular promedio.' })
-        }
-
-        if (!row) {
-            return res.status(404).json({ mensaje: 'No hay calificaciones para este producto.' })
-        }
-
-        res.status(200).json({
-            ID_Producto: row.ID_Producto,
-            Promedio: parseFloat(row.Promedio).toFixed(2),
-            Total: row.Total
-        })
-    })
-}
+  db.get(`SELECT ID_Producto, AVG(Puntuacion) AS Promedio, COUNT(*) AS Total FROM Calificaciones WHERE ID_Producto = ? GROUP BY ID_Producto`, [ID_Producto], (Error, fila) => {
+    if (Error) {
+      console.error('obtenerPromedioPorProducto:', Error);
+      return res.status(500).json({ Error: 'Error al calcular promedio.' });
+    }
+    if (!fila) return res.status(404).json({ Error: 'No hay calificaciones para este producto.' });
+    res.json({ ID_Producto: fila.ID_Producto, Promedio: Number(fila.Promedio).toFixed(2), Total: fila.Total });
+  });
+};
 
 module.exports = {
-    obtenerCalificaciones,
-    crearCalificacion,
-    editarCalificacion,
-    eliminarCalificacion,
-    obtenerPromedioPorProducto
-}
+  obtenerCalificaciones,
+  crearCalificacion,
+  editarCalificacion,
+  eliminarCalificacion,
+  obtenerPromedioPorProducto
+};

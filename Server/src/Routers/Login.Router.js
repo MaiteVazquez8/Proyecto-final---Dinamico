@@ -1,24 +1,44 @@
-const express = require('express')
-const rutas = express.Router()
+// src/Routers/Login.Router.js
+const express = require('express');
+const router = express.Router();
 
-const {login, registrarCliente, modificarCliente, eliminarCliente, registrarPersonal, modificarPersonal, eliminarPersonal, obtenerEmpleados, obtenerGerentes, obtenerClientes} = require('../Controllers/Login.Controller');
+const {
+  login,
+  confirmar2FA,
+  refreshToken,
+  enviarTokenValidacion,
+  validarCorreo,
+  registrarCliente,
+  modificarCliente,
+  eliminarCliente,
+  registrarPersonal,
+  modificarPersonal,
+  eliminarPersonal,
+  obtenerEmpleados,
+  obtenerGerentes,
+  obtenerClientes
+} = require('../Controllers/Login.Controller');
 
-// LOGIN
-rutas.post('/Login', login);
+// --- AUTENTICACIÓN ---
+router.post('/login', login);
+router.post('/2fa/confirmar', confirmar2FA);
+router.post('/refresh-token', refreshToken);
 
-// CLIENTE
-rutas.post('/registrarCliente', registrarCliente);
-rutas.put('/modificarCliente/:DNI', modificarCliente);
-rutas.delete('/eliminarCliente/:DNI', eliminarCliente);
+// --- VALIDACIÓN DE CORREO ---
+router.post('/enviar-validacion', enviarTokenValidacion);
+router.post('/validar-correo', validarCorreo);
 
-// PERSONAL
-rutas.post('/registrarPersonal', registrarPersonal);
-rutas.put('/modificarPersonal/:DNI', modificarPersonal);
-rutas.delete('/eliminarPersonal/:DNI', eliminarPersonal);
+// --- GESTIÓN DE CLIENTES ---
+router.post('/clientes', registrarCliente);
+router.put('/clientes/:DNI', modificarCliente);
+router.delete('/clientes/:DNI', eliminarCliente);
+router.get('/clientes', obtenerClientes);
 
-// VISTAS
-rutas.get('/clientes', obtenerClientes); 
-rutas.get('/empleados', obtenerEmpleados); 
-rutas.get('/gerentes', obtenerGerentes);
+// --- GESTIÓN DE PERSONAL (Empleados y Gerentes) ---
+router.post('/personal', registrarPersonal);
+router.put('/personal/:DNI', modificarPersonal);
+router.delete('/personal/:DNI', eliminarPersonal);
+router.get('/empleados', obtenerEmpleados);
+router.get('/gerentes', obtenerGerentes);
 
-module.exports = rutas;
+module.exports = router;

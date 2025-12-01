@@ -9,9 +9,9 @@ function Register({ onNavigate }) {
         DNI: '',
         Nombre: '',
         Apellido: '',
-        Mail: '',
+        Email: '',
         Fecha_Nac: '',
-        Contraseña: '',
+        Password: '',
         Telefono: ''
     })
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -32,48 +32,65 @@ function Register({ onNavigate }) {
         setIsLoading(true)
 
         // Validación de campos requeridos
-        if (!formData.DNI || !formData.Nombre || !formData.Apellido || !formData.Mail || !formData.Contraseña) {
+        if (!formData.DNI || !formData.Nombre || !formData.Apellido || !formData.Email || !formData.Password) {
             setMensaje('Por favor completa todos los campos obligatorios')
             setIsLoading(false)
             return
         }
 
         // Validación de contraseñas coincidentes
-        if (formData.Contraseña !== confirmPassword) {
+        if (formData.Password !== confirmPassword) {
             setMensaje('Las contraseñas no coinciden')
             setIsLoading(false)
             return
         }
 
         try {
-            const response = await axios.post(AUTH_ENDPOINTS.REGISTER_CLIENT, formData)
+            // Adaptar datos para el servidor
+            const dataToSend = {
+                DNI: formData.DNI,
+                Nombre: formData.Nombre,
+                Apellido: formData.Apellido,
+                Mail: formData.Email,
+                Contraseña: formData.Password
+            }
+
+            const response = await axios.post(AUTH_ENDPOINTS.REGISTER_CLIENT, dataToSend)
 
             // Mostrar mensaje de verificación
-            const mensajeCompleto = response.data.Mensaje || 'Cliente registrado exitosamente'
+            const mensajeCompleto = response.data.Mensaje || response.data.mensaje || 'Cliente registrado exitosamente'
             setMensaje(mensajeCompleto)
-            
+
             // Limpiar formulario
             setFormData({
                 DNI: '',
                 Nombre: '',
                 Apellido: '',
-                Mail: '',
+                Email: '',
                 Fecha_Nac: '',
-                Contraseña: '',
+                Password: '',
                 Telefono: ''
             })
             setConfirmPassword('')
 
-            // Redirigir al login después de 3 segundos para que el usuario vea el mensaje
+            // Redirigir a la página de verificación después de 3 segundos
             setTimeout(() => {
-                onNavigate('login')
+                onNavigate('verify')
             }, 3000)
 
         } catch (error) {
+            console.error('Error al registrar:', error)
+            console.error('Error response:', error.response?.data)
+
+            // Priorizar el campo Error del servidor
             if (error.response?.data?.Error) {
                 setMensaje(error.response.data.Error)
+            } else if (error.response?.data?.mensaje) {
+                setMensaje(error.response.data.mensaje)
+            } else if (error.response?.data?.Mensaje) {
+                setMensaje(error.response.data.Mensaje)
             } else {
-                setMensaje('Error al registrar cliente')
+                setMensaje('Error al registrar cliente. Por favor intenta nuevamente.')
             }
         }
         setIsLoading(false)
@@ -131,14 +148,14 @@ function Register({ onNavigate }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label" htmlFor="Mail">Email *</label>
+                        <label className="form-label" htmlFor="Email">Email *</label>
                         <input
                             type="email"
-                            name="Mail"
-                            id="Mail"
+                            name="Email"
+                            id="Email"
                             className="form-input"
                             placeholder="Ingresa tu email"
-                            value={formData.Mail}
+                            value={formData.Email}
                             onChange={handleInputChange}
                             required
                         />
@@ -158,11 +175,11 @@ function Register({ onNavigate }) {
 
                     <div className="form-group">
                         <PasswordInput
-                            id="Contraseña"
-                            name="Contraseña"
+                            id="Password"
+                            name="Password"
                             label="Contraseña *"
                             placeholder="Crea una contraseña segura"
-                            value={formData.Contraseña}
+                            value={formData.Password}
                             onChange={handleInputChange}
                             required
                         />
@@ -178,7 +195,7 @@ function Register({ onNavigate }) {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                         />
-                        {confirmPassword && formData.Contraseña !== confirmPassword && (
+                        {confirmPassword && formData.Password !== confirmPassword && (
                             <p className="password-error">Las contraseñas no coinciden</p>
                         )}
                     </div>
@@ -201,14 +218,8 @@ function Register({ onNavigate }) {
                     </button>
 
                     {mensaje && (
-                        <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') || mensaje.includes('ya registrado') ? 'error' : 'success'}`}>
+                        <div className={`login-message ${mensaje.includes('Error') || mensaje.includes('completa') || mensaje.includes('ya registrado') || mensaje.includes('DNI') ? 'error' : 'success'}`}>
                             {mensaje}
-                            {mensaje.includes('verifica tu email') && (
-                                <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(102, 126, 234, 0.1)', borderRadius: '8px', fontSize: '14px', lineHeight: '1.6' }}>
-                                    <strong>Importante:</strong> Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el email de verificación. 
-                                    Haz clic en el enlace del email para activar tu cuenta.
-                                </div>
-                            )}
                         </div>
                     )}
                 </form>

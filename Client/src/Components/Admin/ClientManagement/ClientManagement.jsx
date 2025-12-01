@@ -39,18 +39,18 @@ function ClientManagement({ currentUser }) {
         try {
             setLoading(true);
             setError('');
-            
+
             // Verificar si hay un usuario autenticado
-            if (!currentUser || !currentUser.token) {
+            if (!currentUser || !currentUser.accessToken) {
                 console.error('No hay usuario autenticado o falta el token');
                 setError('No estás autenticado. Por favor, inicia sesión nuevamente.');
                 return;
             }
-            
-            const token = currentUser.token;
+
+            const token = currentUser.accessToken;
             console.log('Obteniendo clientes de:', AUTH_ENDPOINTS.GET_CLIENTS);
             console.log('Usuario autenticado como:', currentUser.Cargo);
-            
+
             // Realizar la petición con el token de autenticación
             const response = await axios.get(AUTH_ENDPOINTS.GET_CLIENTS, {
                 headers: {
@@ -58,27 +58,27 @@ function ClientManagement({ currentUser }) {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             console.log('Respuesta del servidor:', response);
-            
+
             if (response.data && Array.isArray(response.data)) {
                 setClients(response.data);
             } else {
                 console.warn('Formato de respuesta inesperado:', response.data);
                 setError('Formato de respuesta inesperado del servidor');
             }
-            
+
         } catch (error) {
             console.error('Error al cargar clientes:', error);
-            
+
             let errorMessage = 'No se pudo cargar la lista de clientes. ';
-            
+
             if (error.response) {
                 // Error de respuesta del servidor
                 const { status, data } = error.response;
                 errorMessage += `Error ${status}: `;
-                
-                switch(status) {
+
+                switch (status) {
                     case 401:
                         errorMessage += 'No autorizado. La sesión puede haber expirado.';
                         // Redirigir al login
@@ -103,9 +103,9 @@ function ClientManagement({ currentUser }) {
                 // Error al configurar la petición
                 errorMessage += error.message || 'Error desconocido al realizar la petición.';
             }
-            
+
             setError(errorMessage);
-            
+
             // Mostrar alerta al usuario
             Swal.fire({
                 title: 'Error',
@@ -113,7 +113,7 @@ function ClientManagement({ currentUser }) {
                 icon: 'error',
                 confirmButtonText: 'Aceptar'
             });
-            
+
             // Limpiar la lista de clientes en caso de error
             setClients([]);
         } finally {
@@ -134,24 +134,43 @@ function ClientManagement({ currentUser }) {
         try {
             setLoading(true)
             if (editingClient) {
-                await axios.put(AUTH_ENDPOINTS.UPDATE_CLIENT(editingClient.DNI), formData)
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: '¡Éxito!', 
-                    text: 'Cliente modificado correctamente', 
-                    confirmButtonColor: '#B8CFCE', 
-                    confirmButtonText: 'Aceptar' 
+                console.log('=== ENVIANDO DATOS AL SERVIDOR ===');
+                console.log('DNI del cliente:', editingClient.DNI);
+
+                // Preparar payload solo con los campos que el servidor acepta
+                const payload = {
+                    Nombre: formData.Nombre,
+                    Apellido: formData.Apellido,
+                    Mail: formData.Mail
+                };
+
+                // Solo incluir Contraseña si se proporcionó una nueva
+                if (formData.Contraseña && formData.Contraseña.trim() !== '') {
+                    payload.Contraseña = formData.Contraseña;
+                }
+
+                console.log('Datos a enviar (payload):', payload);
+                console.log('URL del endpoint:', AUTH_ENDPOINTS.UPDATE_CLIENT(editingClient.DNI));
+
+                await axios.put(AUTH_ENDPOINTS.UPDATE_CLIENT(editingClient.DNI), payload)
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: 'Cliente modificado correctamente',
+                    confirmButtonColor: '#B8CFCE',
+                    confirmButtonText: 'Aceptar'
                 })
             }
             setFormData({
-                DNI: '', 
-                Nombre: '', 
-                Apellido: '', 
-                Mail: '', 
+                DNI: '',
+                Nombre: '',
+                Apellido: '',
+                Mail: '',
                 Fecha_Nac: '',
-                Contraseña: '', 
-                Telefono: '', 
-                Direccion: '', 
+                Contraseña: '',
+                Telefono: '',
+                Direccion: '',
                 Cod_Postal: ''
             })
             setShowEditForm(false)
@@ -196,7 +215,7 @@ function ClientManagement({ currentUser }) {
         })
 
         if (!result.isConfirmed) return
-        
+
         try {
             const response = await axios.delete(AUTH_ENDPOINTS.DELETE_CLIENT(DNI))
             Swal.fire({
@@ -263,7 +282,7 @@ function ClientManagement({ currentUser }) {
                         className="product-search-input"
                         aria-label="Buscar clientes"
                     />
-                    <button 
+                    <button
                         className="refresh-btn"
                         onClick={loadClients}
                         title="Actualizar lista de clientes"
@@ -385,23 +404,23 @@ function ClientManagement({ currentUser }) {
                             <button type="submit" className="save-btn">
                                 Guardar Cambios
                             </button>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onClick={() => {
                                     setShowEditForm(false)
                                     setEditingClient(null)
                                     setFormData({
-                                        DNI: '', 
-                                        Nombre: '', 
-                                        Apellido: '', 
-                                        Mail: '', 
+                                        DNI: '',
+                                        Nombre: '',
+                                        Apellido: '',
+                                        Mail: '',
                                         Fecha_Nac: '',
-                                        Contraseña: '', 
-                                        Telefono: '', 
-                                        Direccion: '', 
+                                        Contraseña: '',
+                                        Telefono: '',
+                                        Direccion: '',
                                         Cod_Postal: ''
                                     })
-                                }} 
+                                }}
                                 className="cancel-btn"
                             >
                                 Cancelar
@@ -463,13 +482,13 @@ function ClientManagement({ currentUser }) {
                                         </span>
                                     </td>
                                     <td className="actions-cell">
-                                        <button 
-                                            className="edit-btn" 
+                                        <button
+                                            className="edit-btn"
                                             onClick={() => handleEdit(client)}
                                         >
                                             Editar
                                         </button>
-                                        <button 
+                                        <button
                                             className="delete-btn"
                                             onClick={() => handleDelete(client.DNI)}
                                         >

@@ -26,7 +26,16 @@ function SalesManagement({ currentUser }) {
             setCompras(response.data || [])
         } catch (error) {
             console.error('Error al cargar compras:', error)
-            setError('Error al cargar compras')
+
+            // Mensaje específico si el endpoint no existe
+            if (error.response?.status === 404) {
+                setError('El endpoint de compras no está disponible en el servidor. Por favor, contacta al administrador del sistema.')
+            } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+                setError('No se puede conectar con el servidor. Verifica que el servidor esté ejecutándose.')
+            } else {
+                setError('Error al cargar compras. Por favor, intenta nuevamente.')
+            }
+
             setCompras([])
         } finally {
             setLoading(false)
@@ -36,23 +45,23 @@ function SalesManagement({ currentUser }) {
     const handleEstadoChange = async (ID_Compra, nuevoEstado) => {
         try {
             console.log('Cambiando estado - ID_Compra:', ID_Compra, 'Nuevo estado:', nuevoEstado)
-            
+
             // Validar que ID_Compra sea válido
             if (!ID_Compra) {
                 throw new Error('ID de compra no válido')
             }
-            
+
             // Normalizar estado antes de enviar
             const estadoNormalizado = nuevoEstado === 'Preparando' ? 'En preparación' : nuevoEstado
-            
+
             console.log('Enviando petición - ID_Compra:', ID_Compra, 'Estado:', estadoNormalizado)
-            
+
             const response = await axios.put(SHOPPING_ENDPOINTS.UPDATE_PURCHASE_STATUS(ID_Compra), {
                 Estado_Envio: estadoNormalizado
             })
-            
+
             console.log('Respuesta del servidor:', response.data)
-            
+
             if (response.data.Mensaje) {
                 Swal.fire({
                     icon: 'success',
@@ -62,11 +71,11 @@ function SalesManagement({ currentUser }) {
                     confirmButtonText: 'Aceptar',
                     timer: 2000
                 })
-                
+
                 // Actualizar el estado local con el estado normalizado
-                setCompras(prevCompras => 
-                    prevCompras.map(compra => 
-                        compra.ID_Compra === ID_Compra 
+                setCompras(prevCompras =>
+                    prevCompras.map(compra =>
+                        compra.ID_Compra === ID_Compra
                             ? { ...compra, Estado_Envio: estadoNormalizado }
                             : compra
                     )
@@ -76,12 +85,12 @@ function SalesManagement({ currentUser }) {
             console.error('Error al actualizar estado:', error)
             console.error('Error response:', error.response?.data)
             console.error('Error status:', error.response?.status)
-            
-            const errorMessage = error.response?.data?.Error || 
-                                error.response?.data?.Detalle ||
-                                error.message || 
-                                'No se pudo actualizar el estado'
-            
+
+            const errorMessage = error.response?.data?.Error ||
+                error.response?.data?.Detalle ||
+                error.message ||
+                'No se pudo actualizar el estado'
+
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -188,7 +197,7 @@ function SalesManagement({ currentUser }) {
                         className="product-search-input"
                         aria-label="Buscar compras"
                     />
-                    <button 
+                    <button
                         className="refresh-btn"
                         onClick={loadCompras}
                         title="Actualizar lista de compras"
@@ -234,7 +243,7 @@ function SalesManagement({ currentUser }) {
                                     if (estadoActual === 'Preparando') {
                                         estadoActual = 'En preparación'
                                     }
-                                    
+
                                     return (
                                         <tr key={compra.ID_Compra}>
                                             <td>{compra.ID_Compra}</td>
@@ -249,7 +258,7 @@ function SalesManagement({ currentUser }) {
                                             <td className="price-cell">{formatPrice(compra.Total)}</td>
                                             <td>{compra.Tipo_Envio || 'N/A'}</td>
                                             <td>
-                                                <span 
+                                                <span
                                                     className="estado-badge"
                                                     style={{ backgroundColor: getEstadoColor(estadoActual) }}
                                                 >
@@ -276,7 +285,7 @@ function SalesManagement({ currentUser }) {
                                                         const nuevoEstado = e.target.value
                                                         handleEstadoChange(compra.ID_Compra, nuevoEstado)
                                                     }}
-                                                    style={{ 
+                                                    style={{
                                                         borderColor: getEstadoColor(estadoActual),
                                                         backgroundColor: getEstadoColor(estadoActual) + '20'
                                                     }}
@@ -304,7 +313,7 @@ function SalesManagement({ currentUser }) {
                             if (estadoActual === 'Preparando') {
                                 estadoActual = 'En preparación'
                             }
-                            
+
                             return (
                                 <div key={compra.ID_Compra} className="sales-card">
                                     <div className="sales-card-content">
@@ -312,52 +321,52 @@ function SalesManagement({ currentUser }) {
                                             <div className="card-id">Compra #{compra.ID_Compra}</div>
                                             <div className="card-date">{formatDate(compra.Fecha_Compra)}</div>
                                         </div>
-                                        
+
                                         <div className="card-body">
-                                        <div className="card-row">
-                                            <span className="card-label">DNI Cliente:</span>
-                                            <span className="card-value">{compra.DNI}</span>
-                                        </div>
-                                        
-                                        <div className="card-row">
-                                            <span className="card-label">Cliente:</span>
-                                            <div className="card-value">
-                                                <div className="card-client-info">
-                                                    <span className="card-client-name">
-                                                        {descripcion.Nombre || 'N/A'} {descripcion.Apellido || ''}
-                                                    </span>
-                                                    <span className="card-client-email">{descripcion.Email || ''}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="card-row">
-                                            <span className="card-label">Total:</span>
-                                            <span className="card-value card-price">{formatPrice(compra.Total)}</span>
-                                        </div>
-                                        
-                                        <div className="card-row">
-                                            <span className="card-label">Tipo de Envío:</span>
-                                            <span className="card-value">{compra.Tipo_Envio || 'N/A'}</span>
-                                        </div>
-                                        
-                                        {compra.Tipo_Envio !== 'Retiro en Sucursal' && (
                                             <div className="card-row">
-                                                <span className="card-label">Dirección:</span>
-                                                <div className="card-value" style={{ textAlign: 'left' }}>
-                                                    {descripcion.Direccion && <div>{descripcion.Direccion}</div>}
-                                                    {descripcion.Ciudad && <div>{descripcion.Ciudad}</div>}
-                                                    {descripcion.Provincia && <div>{descripcion.Provincia}</div>}
-                                                    {descripcion.CodigoPostal && <div>CP: {descripcion.CodigoPostal}</div>}
+                                                <span className="card-label">DNI Cliente:</span>
+                                                <span className="card-value">{compra.DNI}</span>
+                                            </div>
+
+                                            <div className="card-row">
+                                                <span className="card-label">Cliente:</span>
+                                                <div className="card-value">
+                                                    <div className="card-client-info">
+                                                        <span className="card-client-name">
+                                                            {descripcion.Nombre || 'N/A'} {descripcion.Apellido || ''}
+                                                        </span>
+                                                        <span className="card-client-email">{descripcion.Email || ''}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        )}
+
+                                            <div className="card-row">
+                                                <span className="card-label">Total:</span>
+                                                <span className="card-value card-price">{formatPrice(compra.Total)}</span>
+                                            </div>
+
+                                            <div className="card-row">
+                                                <span className="card-label">Tipo de Envío:</span>
+                                                <span className="card-value">{compra.Tipo_Envio || 'N/A'}</span>
+                                            </div>
+
+                                            {compra.Tipo_Envio !== 'Retiro en Sucursal' && (
+                                                <div className="card-row">
+                                                    <span className="card-label">Dirección:</span>
+                                                    <div className="card-value" style={{ textAlign: 'left' }}>
+                                                        {descripcion.Direccion && <div>{descripcion.Direccion}</div>}
+                                                        {descripcion.Ciudad && <div>{descripcion.Ciudad}</div>}
+                                                        {descripcion.Provincia && <div>{descripcion.Provincia}</div>}
+                                                        {descripcion.CodigoPostal && <div>CP: {descripcion.CodigoPostal}</div>}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="card-status-section">
                                         <span className="card-status-label">Estado de Envío:</span>
-                                        <span 
+                                        <span
                                             className="card-status-badge"
                                             style={{ backgroundColor: getEstadoColor(estadoActual) }}
                                         >
@@ -371,7 +380,7 @@ function SalesManagement({ currentUser }) {
                                                     const nuevoEstado = e.target.value
                                                     handleEstadoChange(compra.ID_Compra, nuevoEstado)
                                                 }}
-                                                style={{ 
+                                                style={{
                                                     borderColor: getEstadoColor(estadoActual),
                                                     backgroundColor: getEstadoColor(estadoActual) + '20'
                                                 }}
@@ -408,4 +417,3 @@ function SalesManagement({ currentUser }) {
 }
 
 export default SalesManagement
-

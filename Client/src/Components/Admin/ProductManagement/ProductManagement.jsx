@@ -556,7 +556,7 @@ function ProductManagement({ currentUser }) {
                 </div>
             </div>
 
-            {showAddForm && (
+            {showAddForm && !showSupplierForm && (
                 <div className="product-form-container">
                     <h2>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
                     <form onSubmit={handleSubmit} className="product-form">
@@ -776,6 +776,7 @@ function ProductManagement({ currentUser }) {
                                     name="Mail"
                                     value={supplierFormData.Mail}
                                     onChange={handleSupplierInputChange}
+                                    required
                                 />
                             </div>
 
